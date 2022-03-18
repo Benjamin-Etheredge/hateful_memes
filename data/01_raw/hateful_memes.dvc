@@ -1,5 +1,5 @@
 outs:
-- md5: c50c8dc104d3c81561c37c92efd22e0e.dir
-  size: 2174256
-  nfiles: 1018
+- md5: 850b7d94d16e41cf02ac3f9daf2dcde5.dir
+  size: 73778352
+  nfiles: 1328
   path: hateful_memes
