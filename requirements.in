@@ -15,5 +15,6 @@ pandas
 numpy
 seaborn
 jupyter
+scikit-image
 
 nbstripout
