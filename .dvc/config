@@ -1,0 +1,5 @@
+[core]
+    remote = minio
+['remote "minio"']
+    url = s3://dl-group/dvc
+    endpointurl = https://minio.etheredge.co
