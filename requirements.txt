@@ -29,7 +29,9 @@ argon2-cffi==21.3.0
 argon2-cffi-bindings==21.2.0
     # via argon2-cffi
 asttokens==2.0.5
-    # via stack-data
+    # via
+    #   icecream
+    #   stack-data
 async-timeout==4.0.2
     # via aiohttp
 asyncssh==2.8.1
@@ -70,7 +72,9 @@ click==7.1.2
     #   sacremoses
     #   wandb
 colorama==0.4.4
-    # via dvc
+    # via
+    #   dvc
+    #   icecream
 commonmark==0.9.1
     # via rich
 configobj==5.0.6
@@ -104,7 +108,9 @@ entrypoints==0.4
     #   jupyter-client
     #   nbconvert
 executing==0.8.3
-    # via stack-data
+    # via
+    #   icecream
+    #   stack-data
 filelock==3.6.0
     # via
     #   huggingface-hub
@@ -153,6 +159,8 @@ grpcio==1.44.0
     # via tensorboard
 huggingface-hub==0.4.0
     # via transformers
+icecream==2.1.2
+    # via -r requirements.in
 idna==2.10
     # via
     #   requests
@@ -374,6 +382,7 @@ pygit2==1.9.0
     # via scmrepo
 pygments==2.11.2
     # via
+    #   icecream
     #   ipython
     #   jupyter-console
     #   jupyterlab-pygments
@@ -483,6 +492,7 @@ shtab==1.5.3
 six==1.16.0
     # via
     #   absl-py
+    #   asttokens
     #   bleach
     #   configobj
     #   docker-pycreds
