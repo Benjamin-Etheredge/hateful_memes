@@ -29,16 +29,17 @@
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": [
 		"ms-python.python",
-		"ms-python.vscode-pylance"
+		"ms-python.vscode-pylance",
+        "iterative.dvc"
 	],
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "python --version",
+	"postCreateCommand": "pip install -e . && python --version && dvc pull data/",
 
-	"runArgs": ["--gpus=all", "--env-file=.env"],
+	"runArgs": ["--gpus=all", "--env-file=.env", "--shm-size=512m"],
 
 	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
 	"remoteUser": "vscode",
