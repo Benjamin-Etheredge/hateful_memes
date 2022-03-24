@@ -1,0 +1,7 @@
+stages:
+  baseline:
+    cmd: python src/models/baseline.py
+    deps:
+      - data/01_raw/hateful_memes
+    outs:
+      - data/03_model/baseline.pl

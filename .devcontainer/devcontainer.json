@@ -37,9 +37,9 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "pip install -e . && python --version && dvc pull data/",
+	"postCreateCommand": "pip install -e . && python --version && dvc pull data/**/*",
 
-	"runArgs": ["--gpus=all", "--env-file=.env", "--shm-size=512m"],
+	"runArgs": ["--gpus=all", "--env-file=.env", "--shm-size=2g"],
 
 	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
 	"remoteUser": "vscode",

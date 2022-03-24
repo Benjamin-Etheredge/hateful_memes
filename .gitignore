@@ -1,1 +1,6 @@
 **.env
+**.png
+**.egg-info
+**/__pycache__
+lightning_logs/
+wandb/

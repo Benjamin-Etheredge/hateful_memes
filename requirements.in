@@ -7,6 +7,7 @@ torchaudio===0.11.0+cu113
 -f https://download.pytorch.org/whl/cu113/torch_stable.html
 
 pytorch-lightning
+jsonargparse[signatures]
 transformers
 wandb
 pillow
@@ -19,3 +20,5 @@ scikit-image
 
 nbstripout
 icecream
+torch-tb-profiler
+torchtext
