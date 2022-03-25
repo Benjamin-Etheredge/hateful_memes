@@ -37,7 +37,7 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "pip install -e . && python --version && dvc pull data/**/*",
+	"postCreateCommand": "pip install -e . && python --version && dvc pull data/01_raw/*",
 
 	"runArgs": ["--gpus=all", "--env-file=.env", "--shm-size=2g"],
 
