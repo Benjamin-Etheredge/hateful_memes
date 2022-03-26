@@ -1,0 +1,23 @@
+name: GitHub Actions Demo
+on: [push]
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: [self-hosted, gpu]
+    container:
+      image: python:3.8
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.MINIO_AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.MINIO_AWS_SECRET_ACCESS_KEY }}
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+      options: --gpus all --shm-size=2G
+    timeout-minutes: 1440  # Increased job runtime since ML is slow
+    steps:
+      - uses: actions/checkout@v2
+      - name: Branch name
+        run: echo running on branch ${GITHUB_REF##*/}
+      - run: |
+          pip install -r requirements.txt
+          pip install -e .
+      - run: dvc pull data/01_raw/hateful_memes
+
+      - run: dvc repro
