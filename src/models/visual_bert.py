@@ -43,24 +43,24 @@ class VisualBertModule(pl.LightningModule):
         max_length=512, 
         include_top=True,
         dropout_rate=0.0,
-        dense_dim=512,
+        dense_dim=256,
     ):
         super().__init__()
         # self.hparams = hparams
         self.model = VisualBertModel.from_pretrained("uclanlp/visualbert-vqa-coco-pre")
-        for param in self.model.parameters():
-            param.requires_grad = False
+        # for param in self.model.parameters():
+        #     param.requires_grad = False
         ic(self.model)
         # model.
         # self.model.freeze()
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
         # self.resnet18 = models.resnet18(pretrained=True)
         # resnet = models.resnet152(pretrained=True)
-        resnet = models.resnet152(pretrained=True)
+        resnet = models.resnet50(pretrained=True)
         # ic(resnet)
         self.num_ftrs_resnet = resnet.fc.in_features
-        for param in resnet.parameters():
-            param.requires_grad = False
+        # for param in resnet.parameters():
+        #     param.requires_grad = False
         resnet.fc = nn.Flatten()
         ic(resnet)
         self.resnet = resnet
@@ -92,22 +92,22 @@ class VisualBertModule(pl.LightningModule):
     def _shared_step(self, batch):
         y_hat = self.forward(batch)
         y = batch['label']
-        loss = F.binary_cross_entropy(y_hat, y.to(y_hat.dtype))
-        # loss = F.binary_cross_entropy_with_logits(y_hat, y.to(y_hat.dtype))
-        acc = torch.sum(torch.round(y_hat) == y.data) / (y.shape[0] * 1.0)
-        # acc = torch.sum(torch.round(torch.sigmoid(y_hat)) == y.data) / (y.shape[0] * 1.0)
+        # loss = F.binary_cross_entropy(y_hat, y.to(y_hat.dtype))
+        # acc = torch.sum(torch.round(y_hat) == y.data) / (y.shape[0] * 1.0)
+        loss = F.binary_cross_entropy_with_logits(y_hat, y.to(y_hat.dtype))
+        acc = torch.sum(torch.round(torch.sigmoid(y_hat)) == y.data) / (y.shape[0] * 1.0)
         return loss, acc
 
     def validation_step(self, batch, batch_idx):
         loss, acc = self._shared_step(batch)
-        self.log("val/loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        self.log("val/acc", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("val/loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, batch_size=batch['image'].size(0))
+        self.log("val/acc", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True, batch_size=batch['image'].size(0))
         return loss
     
     def training_step(self, batch, batch_idx):
         loss, acc = self._shared_step(batch)
-        self.log("train/loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        self.log("train/acc", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("train/loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, batch_size=batch['image'].size(0))
+        self.log("train/acc", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True, batch_size=batch['image'].size(0))
         return loss
 
 
@@ -115,8 +115,9 @@ class VisualBertModule(pl.LightningModule):
     def forward(self, batch):
         text = batch['text']
         image = batch['image']
-        with torch.no_grad():
-            image_x = self.resnet(image)
+        image_x = self.resnet(image)
+        # with torch.no_grad():
+            # image_x = self.resnet(image)
         # ic(image_x.shape)
         image_x = image_x.view(image_x.shape[0], -1)
 
@@ -145,10 +146,10 @@ class VisualBertModule(pl.LightningModule):
 
 
         # ic(inputs)
-        with torch.no_grad():
-            x = self.model(**inputs)
-            x = x.pooler_output
-            x = x.view(x.shape[0], -1)
+        # with torch.no_grad():
+        x = self.model(**inputs)
+        x = x.pooler_output
+        x = x.view(x.shape[0], -1)
         # ic(x.shape)
 
         # ic(x.last_hidden_state.shape)
@@ -170,7 +171,7 @@ class VisualBertModule(pl.LightningModule):
         x = self.fc3(x)
         x.squeeze_()
         # ic(x.shape)
-        x = torch.sigmoid(x)
+        # x = torch.sigmoid(x)
         return x
 
     def configure_optimizers(self):
@@ -188,9 +189,9 @@ if __name__ == "__main__":
         # logger=wandb_logger, 
         # gradient_clip_val=1.0,
         # callbacks=[checkpoint_callback])
-        # precision=16,
+        precision=16,
     )
     
     model = VisualBertModule()
-    trainer.fit(model, datamodule=MaeMaeDataModule(batch_size=64))
+    trainer.fit(model, datamodule=MaeMaeDataModule(batch_size=32))
 
