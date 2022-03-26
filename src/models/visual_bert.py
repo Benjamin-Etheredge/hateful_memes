@@ -1,7 +1,14 @@
+from matplotlib.pyplot import autoscale
 import pytorch_lightning as pl
 import torch
+import click
 from transformers import BertTokenizer, VisualBertModel
 import torchvision.models as models
+from data.hateful_memes import MaeMaeDataModule
+from torch.nn import functional as F
+from torch import nn
+from dvclive.lightning import DvcLiveLogger
+from pytorch_lightning.callbacks import ModelCheckpoint
 from icecream import ic
 # ic.disable()
 
@@ -32,8 +39,7 @@ from icecream import ic
 # ic(models.alexnet(pretrained=True))
 # ic(models.alexnet(pretrained=True))
 
-from torch.nn import functional as F
-from torch import nn
+
 
 class VisualBertModule(pl.LightningModule):
 
@@ -178,20 +184,53 @@ class VisualBertModule(pl.LightningModule):
         return torch.optim.Adam(self.parameters(), lr=self.lr)
 
 
-from data.hateful_memes import MaeMaeDataModule
-if __name__ == "__main__":
-    # wandb_logger = WandbLogger(project="Hateful_Memes_Base_Image", log_model=True)
-    # checkpoint_callback = ModelCheckpoint(monitor="val/acc", mode="max", dirpath="data/06_models/hateful_memes", save_top_k=1)
+
+@click.command()
+@click.option('--batch_size', default=32, help='Batch size')
+@click.option('--lr', default=1e-4, help='Learning rate')
+@click.option('--max_length', default=128, help='Max length')
+@click.option('--dense_dim', default=256, help='Dense dim')
+@click.option('--dropout_rate', default=0.1, help='Dropout rate')
+@click.option('--epochs', default=10, help='Epochs')
+@click.option('--save_dir', default=None, help='Save dir')
+@click.option('--model_dir', default=None, help='Save dir')
+@click.option('--gradient_clip_value', default=1.0, help='Gradient clip')
+def main(batch_size, lr, max_length, dense_dim, dropout_rate, 
+         epochs, save_dir, model_dir, gradient_clip_value):
+
+    logger = DvcLiveLogger(
+        # path=save_dir,
+    )
+    checkpoint_callback = ModelCheckpoint(
+        monitor="val/acc", 
+        mode="max", 
+        dirpath=model_dir, 
+        filename="{epoch}-{step}-{val_acc:.4f}",
+        verbose=True,
+        save_top_k=1)
 
     trainer = pl.Trainer(
         gpus=1, 
-        max_epochs=100, 
+        max_epochs=epochs, 
+        logger=logger,
         # logger=wandb_logger, 
-        # gradient_clip_val=1.0,
+        gradient_clip_val=gradient_clip_value,
+        callbacks=[checkpoint_callback],
+        # detect_anomaly=True, # TODO explore more
         # callbacks=[checkpoint_callback])
-        precision=16,
+        # precision=16,
+        # auto_scale_batch_size=True,
     )
     
-    model = VisualBertModule()
-    trainer.fit(model, datamodule=MaeMaeDataModule(batch_size=32))
+    model = VisualBertModule(
+        lr=lr, 
+        max_length=max_length, 
+        dense_dim=dense_dim, 
+        dropout_rate=dropout_rate)
+    trainer.fit(model, datamodule=MaeMaeDataModule(batch_size=batch_size))
 
+
+if __name__ == "__main__":
+    main()
+    # wandb_logger = WandbLogger(project="Hateful_Memes_Base_Image", log_model=True)
+    # checkpoint_callback = ModelCheckpoint(monitor="val/acc", mode="max", dirpath="data/06_models/hateful_memes", save_top_k=1)

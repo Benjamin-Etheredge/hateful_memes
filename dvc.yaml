@@ -1,7 +1,38 @@
 stages:
-  baseline:
-    cmd: python src/models/baseline.py
+  visual_bert:
+    cmd: >
+        python src/models/visual_bert.py
+        --batch_size ${visual_bert.batch_size}
+        --lr ${visual_bert.lr}
+        --epochs ${visual_bert.epochs}
+        --max_length ${visual_bert.max_length}
+        --dense_dim ${visual_bert.dense_dim}
+        --dropout_rate ${visual_bert.dropout_rate}
+        --gradient_clip_value ${visual_bert.gradient_clip_value}
+        --save_dir data/08_reporting/visual_bert
+        --model_dir data/06_models/visual_bert
     deps:
       - data/01_raw/hateful_memes
+      - src/models/visual_bert.py
     outs:
-      - data/03_model/baseline.pl
+      - data/06_models/visual_bert
+    params:
+      - visual_bert
+    live:
+        data/08_reporting/visual_bert/live:
+          summary: true
+          html: true
+    
+  simple_image_model:
+    cmd: >
+        python src/models/simple_image_model.py
+    deps:
+      - data/01_raw/hateful_memes
+      - src/models/simple_image_model.py
+    params:
+      - simple_image_model
+    live:
+        data/08_reporting/simple_image_model:
+          summary: true
+          html: true
+

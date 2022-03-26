@@ -1,0 +1,34 @@
+schema: '2.0'
+stages:
+  visual_bert:
+    cmd: "python src/models/visual_bert.py --batch_size 16 --lr 1e-05 --epochs 4 --max_length\
+      \ 32 --dense_dim 256 --dropout_rate 0.1 --gradient_clip_value 1.0 --save_dir\
+      \ data/08_reporting/visual_bert --model_dir data/06_models/visual_bert\n"
+    deps:
+    - path: data/01_raw/hateful_memes
+      md5: 8844b5201ff55743fcd36c40d7352a88.dir
+      size: 4232567214
+      nfiles: 12148
+    - path: src/models/visual_bert.py
+      md5: b39f340155869d369727d1879407ac8d
+      size: 8154
+    params:
+      params.yaml:
+        visual_bert:
+          batch_size: 16
+          source: src/models/visual_bert.py
+          lr: 1e-05
+          epochs: 4
+          max_length: 32
+          dense_dim: 256
+          dropout_rate: 0.1
+          gradient_clip_value: 1.0
+    outs:
+    - path: data/06_models/visual_bert
+      md5: 0f84031aaf1999dd4c16eeb492ecf15d.dir
+      size: 1623288232
+      nfiles: 1
+    - path: data/08_reporting/visual_bert/live
+      md5: 7399f9091c83c8839d801802a13bcd4b.dir
+      size: 851
+      nfiles: 5

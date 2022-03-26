@@ -1,0 +1,20 @@
+visual_bert:
+  batch_size: 16
+  source: src/models/visual_bert.py
+  lr: 1e-5
+  epochs: 1
+  max_length: 256
+  dense_dim: 256
+  dropout_rate: 0.1
+  gradient_clip_value: 1.0
+
+simple_image_model:
+  batch_size: 32
+  source: src/models/simple_image_model.py
+  lr: 1e-5
+  epochs: 3
+  max_seq_length: 512
+  dense_dim: 128
+  dropout_rate: 0.1
+  gradient_clip_value: 1.0
+
