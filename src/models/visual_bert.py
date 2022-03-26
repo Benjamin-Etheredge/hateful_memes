@@ -231,6 +231,7 @@ def main(batch_size, lr, max_length, dense_dim, dropout_rate,
 
 
 if __name__ == "__main__":
+    pl.seed_everything(42)
     main()
     # wandb_logger = WandbLogger(project="Hateful_Memes_Base_Image", log_model=True)
     # checkpoint_callback = ModelCheckpoint(monitor="val/acc", mode="max", dirpath="data/06_models/hateful_memes", save_top_k=1)

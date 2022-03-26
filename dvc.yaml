@@ -45,3 +45,13 @@ stages:
           summary: true
           html: true
 
+  baseline_model:
+    cmd: python src/models/baseline_algorithm.py
+    deps:
+      - data/01_raw/hateful_memes
+      - src/models/baseline_algorithm.py
+    live:
+        data/08_reporting/baseline:
+          summary: true
+          html: false
+

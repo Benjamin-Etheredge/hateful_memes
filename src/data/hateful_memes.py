@@ -25,7 +25,7 @@ class MaeMaeDataset(torch.utils.data.Dataset):
         train: bool = True, 
         img_transforms=None,
         txt_transforms=None,
-        include_text_features: bool = True,
+        include_text_features: bool = False,
     ):
         self.root_dir = Path(root_dir)
         self.img_transforms = img_transforms
@@ -43,7 +43,7 @@ class MaeMaeDataset(torch.utils.data.Dataset):
 
         self.include_text_features = include_text_features
         self.vocab = None
-        # self.tokenizer = transformers.BertTokenizer.from_pretrained('bert-base-uncased')
+        self.tokenizer = transformers.BertTokenizer.from_pretrained('bert-base-uncased')
         self.text_pipeline = self.create_text_transform()
         # self.imgs = 
     
@@ -62,7 +62,7 @@ class MaeMaeDataset(torch.utils.data.Dataset):
             text_list.append(item['text_features'])
             offsets.append(item['offset'])
 
-        img_list = torch.cat(img_list)
+        img_list = torch.stack(img_list)
         labels_list = torch.tensor(labels_list, dtype=torch.int32)
         offsets = torch.tensor(offsets[:-1]).cumsum(dim=0)
         text_list = torch.cat(text_list)
@@ -73,7 +73,6 @@ class MaeMaeDataset(torch.utils.data.Dataset):
             image=img_list,
             text=raw_text,
         )
-            
 
     def __len__(self):
         return len(self.info)
@@ -94,6 +93,7 @@ class MaeMaeDataset(torch.utils.data.Dataset):
             text = self.txt_transforms(text)
 
         label = data['label']
+        # TODO maybe make label transformer
 
         extra_text_info = {}
         if self.include_text_features:
@@ -168,10 +168,11 @@ class MaeMaeDataModule(pl.LightningDataModule):
         img_transforms=None, 
         txt_transforms=None,
         val_split: float = 0.2,
-        train_num_workers=32,
-        val_num_workers=32,
-        test_num_workers=32,
+        train_num_workers=8,
+        val_num_workers=8,
+        test_num_workers=8,
         pin_memory=True,
+        collate_fn=None,
         # tokenizer=None,
     ):
         super().__init__()
@@ -189,11 +190,13 @@ class MaeMaeDataModule(pl.LightningDataModule):
 
         self.tokenizer = None
         self.vocab = None
+        self.collate_fn = collate_fn
     
     def prepare_data(self) -> None:
         return super().prepare_data()
     
     def setup(self, stage: str):
+        # self.log(batch_size=self.batch_size)
         self.dataset = MaeMaeDataset(
             self.data_dir,
             img_transforms=self.img_transforms, 
@@ -212,10 +215,13 @@ class MaeMaeDataModule(pl.LightningDataModule):
         self.val_len = self.dataset_len - self.train_len
 
         self.train_dataset, self.val_dataset = random_split(self.dataset, [self.train_len, self.val_len])
-        
-
-
     
+    # def create_collate_fn(self):
+        # if self.collate_fn is None:
+        #     return default_collate
+        # else:
+        #     return self.collate_fn
+
     def train_dataloader(self):
         return torch.utils.data.DataLoader(
             self.train_dataset,
@@ -225,7 +231,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
             pin_memory=self.pin_memory,
             drop_last=True,
             persistent_workers=True,
-            collate_fn=MaeMaeDataset.collate_batch,
+            # collate_fn=MaeMaeDataset.collate_batch,
         )
 
     def val_dataloader(self):
@@ -236,7 +242,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
             num_workers=self.val_num_workers,
             pin_memory=self.pin_memory,
             persistent_workers=True,
-            collate_fn=MaeMaeDataset.collate_batch,
+            # collate_fn=MaeMaeDataset.collate_batch,
             # collate_fn=self.collate_batch, = None
         )
     
@@ -247,7 +253,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
             shuffle=False,
             num_workers=self.test_num_workers,
             pin_memory=self.pin_memory,
-            collate_fn=MaeMaeDataset.collate_batch,
+            # collate_fn=MaeMaeDataset.collate_batch,
             # collate_fn=self.collate_batch,
         ) 
 
@@ -267,6 +273,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
             offsets.append(processed_text.size(0))
 
         img_list = torch.torch(img_list)
+        
         labels_list = torch.tensor(labels_list, dtype=torch.int32)
         offsets = torch.tensor(offsets[:-1]).cumsum(dim=0)
         text_list = torch.cat(text_list)

@@ -11,6 +11,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from torch import nn
 from torch.nn import functional as F
 import torch
+import pytorch_lightning as pl
 
 
 class SimpleImageMaeMaeModel(BaseMaeMaeModel):
@@ -115,4 +116,5 @@ def main(batch_size, lr, dense_dim, grad_clip,
     trainer.fit(model, datamodule=MaeMaeDataModule(batch_size=batch_size))
 
 if __name__ == "__main__":
+    pl.seed_everything(42)
     main()
