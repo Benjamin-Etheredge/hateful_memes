@@ -2,8 +2,8 @@ visual_bert:
   batch_size: 16
   source: src/models/visual_bert.py
   lr: 1e-5
-  epochs: 1
-  max_length: 256
+  epochs: 4
+  max_length: 32
   dense_dim: 256
   dropout_rate: 0.1
   gradient_clip_value: 1.0

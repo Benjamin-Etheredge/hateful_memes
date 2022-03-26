@@ -19,20 +19,29 @@ stages:
     params:
       - visual_bert
     live:
-        data/08_reporting/visual_bert/live:
+        data/08_reporting/visual_bert:
           summary: true
           html: true
     
   simple_image_model:
     cmd: >
         python src/models/simple_image_model.py
+        --batch_size ${simple_image_model.batch_size}
+        --lr ${simple_image_model.lr}
+        --epochs ${simple_image_model.epochs}
+        --dense_dim ${simple_image_model.dense_dim}
+        --dropout_rate ${simple_image_model.dropout_rate}
+        --grad_clip ${simple_image_model.gradient_clip_value}
+        --model_dir data/06_models/simple_image
     deps:
       - data/01_raw/hateful_memes
       - src/models/simple_image_model.py
     params:
       - simple_image_model
+    outs:
+      - data/06_models/simple_image
     live:
-        data/08_reporting/simple_image_model:
+        data/08_reporting/simple_image:
           summary: true
           html: true
 

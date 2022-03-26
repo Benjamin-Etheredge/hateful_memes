@@ -1,4 +1,6 @@
 
+import click
+from dvclive.lightning import DvcLiveLogger
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning import LightningModule, Trainer
 
@@ -11,32 +13,49 @@ from torch.nn import functional as F
 import torch
 
 
-class BaseImageMaeMaeModel(BaseMaeMaeModel):
-    def __init__(self, lr=0.003):
+class SimpleImageMaeMaeModel(BaseMaeMaeModel):
+    def __init__(
+        self, 
+        lr=0.003, 
+        dense_dim=128, 
+        dropout_rate=0.1,
+        batch_norm=False,
+
+    ):
         super().__init__()
-        self.lr = lr
         self.conv1 = nn.Conv2d(3, 16, 3, 1)
         self.conv2 = nn.Conv2d(16, 32, 3, 1)
         self.conv3 = nn.Conv2d(32, 64, 3, 1)
+        # TODO better batch norm usage and remove bias
 
-        self.l1 = nn.Linear(43264, 128)
-        # self.l1 = torch.nn.LazyLinear(128)
-        # self.l2 = torch.nn.LazyLinear(1)
-        self.l2 = nn.Linear(128, 1)
+        self.l1 = nn.Linear(43264, dense_dim)
+        self.l2 = nn.Linear(dense_dim, dense_dim)
+        self.l3 = nn.Linear(dense_dim, 1)
+
+        self.lr = lr
+        self.dense_dim = dense_dim
+        self.dropout_rate = dropout_rate
+        self.batch_norm = batch_norm
         self.save_hyperparameters()
 
     def forward(self, batch):
         x_img = batch['image']
         x = x_img
         x = self.conv1(x)
+        if self.batch_norm:
+            x = F.batch_norm(x, training=self.training)
         x = F.relu(x)
         x = F.max_pool2d(x, 2)
 
         x = self.conv2(x)
+        if self.batch_norm:
+            x = F.batch_norm(x, training=self.training)
         x = F.relu(x)
         x = F.max_pool2d(x, 2)
 
         x = self.conv3(x)
+        if self.batch_norm:
+            x = F.batch_norm(x, training=self.training)
         x = F.relu(x)
         x = F.max_pool2d(x, 2)
 
@@ -44,26 +63,56 @@ class BaseImageMaeMaeModel(BaseMaeMaeModel):
 
         x = self.l1(x)
         x = F.relu(x)
+        x = F.dropout(input=x, p=self.dropout_rate)
 
         x = self.l2(x)
+        x = F.relu(x)
+        x = F.dropout(input=x, p=self.dropout_rate)
+
+        x = self.l3(x)
+
         x = torch.sigmoid(x)
         x = torch.squeeze(x)
         return x
 
 
 # Model to process text
+@click.command()
+@click.option('--batch_size', default=32, help='Batch size')
+@click.option('--lr', default=1e-4, help='Learning rate')
+@click.option('--dense_dim', default=256, help='Dense dim')
+@click.option('--grad_clip', default=1.0, help='Gradient clipping')
+@click.option('--dropout_rate', default=0.1, help='Dropout rate')
+@click.option('--batch_norm', default=False, help='Batch norm')
+@click.option('--epochs', default=100, help='Epochs')
+@click.option('--model_dir', default=None, help='Model path')
+def main(batch_size, lr, dense_dim, grad_clip, 
+         dropout_rate, batch_norm, epochs, model_dir):
+    logger = DvcLiveLogger()
 
-if __name__ == "__main__":
-    wandb_logger = WandbLogger(project="Hateful_Memes_Base_Image", log_model=True)
-    checkpoint_callback = ModelCheckpoint(monitor="val/acc", mode="max", dirpath="data/06_models/hateful_memes", save_top_k=1)
+    checkpoint_callback = ModelCheckpoint(
+        monitor="val/acc", 
+        mode="max", 
+        dirpath=model_dir, 
+        filename="{epoch}-{step}-{val_acc:.4f}",
+        verbose=True,
+        save_top_k=1)
+
+    model = SimpleImageMaeMaeModel(
+        lr=lr, 
+        dense_dim=dense_dim, 
+        dropout_rate=dropout_rate,
+        batch_norm=batch_norm)
 
     trainer = Trainer(
-        gpus=1, 
-        max_epochs=100, 
-        # logger=wandb_logger, 
-        gradient_clip_val=1.0,
+        logger=logger,
+        max_epochs=epochs,
+        gradient_clip_val=grad_clip,
+        gpus=1,
+        fast_dev_run=False, # TODO explore this as form of unit test
         callbacks=[checkpoint_callback])
-    
-    from data.hateful_memes import MaeMaeDataset
-    model = BaseImageMaeMaeModel()
-    trainer.fit(model, datamodule=MaeMaeDataModule(batch_size=32))
+    # TODO should I move module inside lightning module?
+    trainer.fit(model, datamodule=MaeMaeDataModule(batch_size=batch_size))
+
+if __name__ == "__main__":
+    main()
