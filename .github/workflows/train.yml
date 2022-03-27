@@ -1,7 +1,7 @@
-name: GitHub Actions Demo
+name: Train all models
 on: [push]
 jobs:
-  Explore-GitHub-Actions:
+  train:
     runs-on: [self-hosted, gpu]
     container:
       # image: etheredgeb/hateful-memes:cicd
