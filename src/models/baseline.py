@@ -32,15 +32,15 @@ class BaseMaeMaeModel(LightningModule):
     def training_step(self, batch, batch_idx):
         # x_img, x_txt = self.preprocess(x_img, x_txt)
         loss, acc = self._shared_step(batch)
-        self.log("train/loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
-        self.log("train/acc", acc, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log("train/loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("train/acc", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
 
         return loss
 
     def validation_step(self, batch, batch_nb):
         loss, acc = self._shared_step(batch)
-        self.log("val/loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
-        self.log("val/acc", acc, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log("val/loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("val/acc", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         return loss
 
     def configure_optimizers(self):
@@ -80,6 +80,7 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
 
         # self.log("batch_size", batch_size)
         self.batch_size = batch_size
+        self.max_length = max_length
 
         self.save_hyperparameters()
     

@@ -1,6 +1,5 @@
 /visual_bert
-/visual_bert_dvc_plots
-
 /simple_image
-/simple_image_dvc_plots
 /baseline
+/simple_mlp_image
+/*dvc_plots

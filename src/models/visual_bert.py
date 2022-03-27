@@ -9,6 +9,7 @@ from torch.nn import functional as F
 from torch import nn
 from dvclive.lightning import DvcLiveLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from icecream import ic
 # ic.disable()
 
@@ -208,6 +209,11 @@ def main(batch_size, lr, max_length, dense_dim, dropout_rate,
         filename="{epoch}-{step}-{val_acc:.4f}",
         verbose=True,
         save_top_k=1)
+    early_stopping = EarlyStopping(
+            monitor='val/acc', 
+            patience=10, 
+            mode='max', 
+            verbose=True)
 
     trainer = pl.Trainer(
         gpus=1, 
@@ -215,7 +221,7 @@ def main(batch_size, lr, max_length, dense_dim, dropout_rate,
         logger=logger,
         # logger=wandb_logger, 
         gradient_clip_val=gradient_clip_value,
-        callbacks=[checkpoint_callback],
+        callbacks=[checkpoint_callback, early_stopping],
         # detect_anomaly=True, # TODO explore more
         # callbacks=[checkpoint_callback])
         # precision=16,

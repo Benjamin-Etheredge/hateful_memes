@@ -10,8 +10,8 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: src/models/visual_bert.py
-      md5: 6a0a99d38adea8de7b1a0a0a5f1e24b3
-      size: 8181
+      md5: 57ce0b3be6bd80351a16c8606e3ce2ca
+      size: 8411
     params:
       params.yaml:
         visual_bert:
@@ -25,12 +25,12 @@ stages:
           gradient_clip_value: 1.0
     outs:
     - path: data/06_models/visual_bert
-      md5: 842e7e346d488534b51b70abdf4f34a9.dir
-      size: 1623288232
+      md5: dd2a2b721edd0a4bce594396caea43fc.dir
+      size: 1623288615
       nfiles: 1
     - path: data/08_reporting/visual_bert
-      md5: ad1dfc6ecc171926f92f6db0b4e6de26.dir
-      size: 9593
+      md5: 032584a95310c56988059f90d7787020.dir
+      size: 2360
       nfiles: 5
   simple_image_model:
     cmd: "python src/models/simple_image_model.py --batch_size 64 --lr 1e-05 --epochs\
@@ -74,6 +74,66 @@ stages:
       size: 2043
     outs:
     - path: data/08_reporting/baseline
-      md5: 0944cae229a904ca06b62dfd9b1b2176.dir
+      md5: 7f01c28a6be9da2e83d73ef80da106ab.dir
       size: 148
       nfiles: 3
+  simple_mlp_image:
+    cmd: "python src/models/simple_mlp_image.py --batch_size 64 --lr 1e-05 --epochs\
+      \ 50 --dense_dim 128 --dropout_rate 0.1 --grad_clip 1.0 --model_dir data/06_models/simple_mlp_image\n"
+    deps:
+    - path: data/01_raw/hateful_memes
+      md5: 8844b5201ff55743fcd36c40d7352a88.dir
+      size: 4232567214
+      nfiles: 12148
+    - path: src/models/simple_mlp_image.py
+      md5: 3710ba761f1ae425069bb60f0334ac1c
+      size: 3145
+    params:
+      params.yaml:
+        simple_mlp_image:
+          batch_size: 64
+          lr: 1e-05
+          epochs: 50
+          dense_dim: 128
+          dropout_rate: 0.1
+          gradient_clip_value: 1.0
+    outs:
+    - path: data/06_models/simple_mlp_image
+      md5: f889ead378cdb3e1b348c9a8fc66bb60.dir
+      size: 231418921
+      nfiles: 1
+    - path: data/08_reporting/simple_mlp_image
+      md5: f568b7967e544979397fccc2a7c7eb3a.dir
+      size: 2891
+      nfiles: 5
+  simple_image:
+    cmd: "python src/models/simple_image.py --batch_size 64 --lr 1e-05 --epochs 50\
+      \ --dense_dim 128 --dropout_rate 0.1 --grad_clip 1.0 --model_dir data/06_models/simple_image\
+      \ --batch_norm true\n"
+    deps:
+    - path: data/01_raw/hateful_memes
+      md5: 8844b5201ff55743fcd36c40d7352a88.dir
+      size: 4232567214
+      nfiles: 12148
+    - path: src/models/simple_image.py
+      md5: 211a5534928d7e9106fc50c46765f298
+      size: 3923
+    params:
+      params.yaml:
+        simple_image:
+          batch_size: 64
+          lr: 1e-05
+          epochs: 50
+          dense_dim: 128
+          dropout_rate: 0.1
+          gradient_clip_value: 1.0
+          batch_norm: true
+    outs:
+    - path: data/06_models/simple_image
+      md5: 62f38ca25d53faaab73ffdc5e7417b78.dir
+      size: 66949619
+      nfiles: 1
+    - path: data/08_reporting/simple_image
+      md5: a73cedb8a66d250fc4c68fdb756ecdff.dir
+      size: 2162
+      nfiles: 5

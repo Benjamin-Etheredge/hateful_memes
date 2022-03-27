@@ -22,22 +22,45 @@ stages:
         data/08_reporting/visual_bert:
           summary: true
           html: true
-    
-  simple_image_model:
+
+  simple_mlp_image:
     cmd: >
-        python src/models/simple_image_model.py
-        --batch_size ${simple_image_model.batch_size}
-        --lr ${simple_image_model.lr}
-        --epochs ${simple_image_model.epochs}
-        --dense_dim ${simple_image_model.dense_dim}
-        --dropout_rate ${simple_image_model.dropout_rate}
-        --grad_clip ${simple_image_model.gradient_clip_value}
-        --model_dir data/06_models/simple_image
+        python src/models/simple_mlp_image.py
+        --batch_size ${simple_mlp_image.batch_size}
+        --lr ${simple_mlp_image.lr}
+        --epochs ${simple_mlp_image.epochs}
+        --dense_dim ${simple_mlp_image.dense_dim}
+        --dropout_rate ${simple_mlp_image.dropout_rate}
+        --grad_clip ${simple_mlp_image.gradient_clip_value}
+        --model_dir data/06_models/simple_mlp_image
     deps:
       - data/01_raw/hateful_memes
-      - src/models/simple_image_model.py
+      - src/models/simple_mlp_image.py
     params:
-      - simple_image_model
+      - simple_mlp_image
+    outs:
+      - data/06_models/simple_mlp_image
+    live:
+        data/08_reporting/simple_mlp_image:
+          summary: true
+          html: true   
+
+  simple_image:
+    cmd: >
+        python src/models/simple_image.py
+        --batch_size ${simple_image.batch_size}
+        --lr ${simple_image.lr}
+        --epochs ${simple_image.epochs}
+        --dense_dim ${simple_image.dense_dim}
+        --dropout_rate ${simple_image.dropout_rate}
+        --grad_clip ${simple_image.gradient_clip_value}
+        --model_dir data/06_models/simple_image
+        --batch_norm ${simple_image.batch_norm}
+    deps:
+      - data/01_raw/hateful_memes
+      - src/models/simple_image.py
+    params:
+      - simple_image
     outs:
       - data/06_models/simple_image
     live:
