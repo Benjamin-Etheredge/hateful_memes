@@ -26,11 +26,13 @@ jobs:
       - name: Train VisualBERT
         continue-on-error: true
         run: |
+          dvc pull visual_bert
           dvc repro visual_bert
           cml ci
 
       - name: Train Simple Image Model
         continue-on-error: true
         run: |
+          dvc pull simple_image_model
           dvc repro simple_image_model
           cml ci
