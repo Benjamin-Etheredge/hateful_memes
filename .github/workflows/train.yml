@@ -20,8 +20,17 @@ jobs:
           pip install -r requirements.txt
           pip install -e .
 
-      - run: dvc pull data/01_raw/hateful_memes
+      - name: Pull data
+        run: dvc pull data/01_raw/hateful_memes
 
-      - run: dvc repro visual_bert
+      - name: Train VisualBERT
+        continue-on-error: true
+        run: |
+          dvc repro visual_bert
+          cml ci
 
-      - run: dvc repro simple_image_model
+      - name: Train Simple Image Model
+        continue-on-error: true
+        run: |
+          dvc repro simple_image_model
+          cml ci
