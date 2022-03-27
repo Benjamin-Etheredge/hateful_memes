@@ -30,7 +30,8 @@
 	"extensions": [
 		"ms-python.python",
 		"ms-python.vscode-pylance",
-        "iterative.dvc"
+        "iterative.dvc",
+		"GitHub.copilot"
 	],
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
@@ -45,6 +46,7 @@
 	"remoteUser": "vscode",
 	"features": {
 		"git": "os-provided",
-		"git-lfs": "latest"
+		"git-lfs": "latest",
+		"docker-from-docker": "20.10"
 	}
 }
