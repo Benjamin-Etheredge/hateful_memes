@@ -12,6 +12,7 @@ transformers
 wandb
 pillow
 dvc[s3]
+dvclive
 pandas
 numpy
 seaborn

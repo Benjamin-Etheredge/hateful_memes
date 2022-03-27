@@ -105,6 +105,8 @@ dulwich==0.20.34
     # via scmrepo
 dvc[s3]==2.9.5
     # via -r requirements.in
+dvclive==0.6.0
+    # via -r requirements.in
 entrypoints==0.4
     # via
     #   jupyter-client
