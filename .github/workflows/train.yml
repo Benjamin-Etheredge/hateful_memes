@@ -22,7 +22,7 @@ jobs:
           pip install -e .
 
       - name: Pull data
-        run: dvc pull -j 32 data/01_raw/hateful_memes
+        run: dvc pull -j 128 data/01_raw/hateful_memes
 
       - name: Train VisualBERT
         continue-on-error: true
@@ -45,6 +45,6 @@ jobs:
           dvc repro simple_mlp_image
           cml ci
       
-      - name: Commit run
-        run: |
-          cml pr --auto-merge .
+      # - name: Commit run
+      #   run: |
+      #     cml pr .
