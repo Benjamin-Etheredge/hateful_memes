@@ -124,8 +124,8 @@ def main(batch_size, lr, dense_dim, grad_clip,
         model, 
         datamodule=MaeMaeDataModule(
             batch_size=batch_size, 
-            train_num_workers=max(1, os.cpu_count()//2),
-            val_num_workers=max(1, os.cpu_count()//2)))
+            train_num_workers=max(1, min(os.cpu_count()//2, 16),
+            val_num_workers=max(1, min(os.cpu_count()//2, 16))))
 
 if __name__ == "__main__":
     pl.seed_everything(42)
