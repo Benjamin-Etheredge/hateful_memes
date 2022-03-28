@@ -3,7 +3,7 @@ visual_bert:
   source: src/models/visual_bert.py
   lr: 1e-5
   epochs: 50
-  max_length: 512
+  max_length: 256
   dense_dim: 256
   dropout_rate: 0.1
   gradient_clip_value: 1.0
