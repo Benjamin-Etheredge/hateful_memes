@@ -116,8 +116,8 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: src/models/simple_image.py
-      md5: 211a5534928d7e9106fc50c46765f298
-      size: 3923
+      md5: 88ee5ebba8a4c6384bcd11c0ed370cf3
+      size: 3955
     params:
       params.yaml:
         simple_image:
@@ -130,10 +130,10 @@ stages:
           batch_norm: true
     outs:
     - path: data/06_models/simple_image
-      md5: 62f38ca25d53faaab73ffdc5e7417b78.dir
+      md5: 6598dd988a2ef0b73093a6f2a6ddfce0.dir
       size: 66949619
       nfiles: 1
     - path: data/08_reporting/simple_image
-      md5: a73cedb8a66d250fc4c68fdb756ecdff.dir
+      md5: 81d40640c88452837df444056db85e52.dir
       size: 2162
       nfiles: 5
