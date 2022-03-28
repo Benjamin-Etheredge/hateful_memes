@@ -45,6 +45,6 @@ jobs:
           dvc repro simple_mlp_image
           cml ci
       
-      # - name: Commit run
-      #   run: |
-      #     cml pr .
+      - name: Commit run
+        run: |
+          cml pr .
