@@ -2,7 +2,7 @@ schema: '2.0'
 stages:
   visual_bert:
     cmd: "python src/models/visual_bert.py --batch_size 16 --lr 1e-05 --epochs 50\
-      \ --max_length 512 --dense_dim 256 --dropout_rate 0.1 --gradient_clip_value\
+      \ --max_length 256 --dense_dim 256 --dropout_rate 0.1 --gradient_clip_value\
       \ 1.0 --save_dir data/08_reporting/visual_bert --model_dir data/06_models/visual_bert\n"
     deps:
     - path: data/01_raw/hateful_memes
@@ -19,18 +19,18 @@ stages:
           source: src/models/visual_bert.py
           lr: 1e-05
           epochs: 50
-          max_length: 512
+          max_length: 256
           dense_dim: 256
           dropout_rate: 0.1
           gradient_clip_value: 1.0
     outs:
     - path: data/06_models/visual_bert
-      md5: dd2a2b721edd0a4bce594396caea43fc.dir
-      size: 1623288615
+      md5: fa54468316871c2f9db073eb3bf61abc.dir
+      size: 1623288679
       nfiles: 1
     - path: data/08_reporting/visual_bert
-      md5: 032584a95310c56988059f90d7787020.dir
-      size: 2360
+      md5: b4fa191293dc3f2099bfa1b2b0f7bed2.dir
+      size: 2737
       nfiles: 5
   simple_image_model:
     cmd: "python src/models/simple_image_model.py --batch_size 64 --lr 1e-05 --epochs\
