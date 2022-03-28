@@ -20,7 +20,7 @@ simple_image:
   batch_size: 64
   lr: 1e-5
   epochs: 50
-  dense_dim: 128
+  dense_dim: 256
   dropout_rate: 0.1
   gradient_clip_value: 1.0
   batch_norm: true
