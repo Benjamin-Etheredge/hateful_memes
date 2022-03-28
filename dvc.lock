@@ -78,7 +78,7 @@ stages:
       size: 148
       nfiles: 3
   simple_mlp_image:
-    cmd: "python src/models/simple_mlp_image.py --batch_size 64 --lr 1e-05 --epochs\
+    cmd: "python src/models/simple_mlp_image.py --batch_size 128 --lr 1e-05 --epochs\
       \ 50 --dense_dim 128 --dropout_rate 0.1 --grad_clip 1.0 --model_dir data/06_models/simple_mlp_image\n"
     deps:
     - path: data/01_raw/hateful_memes
@@ -91,7 +91,7 @@ stages:
     params:
       params.yaml:
         simple_mlp_image:
-          batch_size: 64
+          batch_size: 128
           lr: 1e-05
           epochs: 50
           dense_dim: 128
@@ -99,16 +99,16 @@ stages:
           gradient_clip_value: 1.0
     outs:
     - path: data/06_models/simple_mlp_image
-      md5: f889ead378cdb3e1b348c9a8fc66bb60.dir
+      md5: 9d5561d216d3e7ca5fcd3ae3c316937f.dir
       size: 231418921
       nfiles: 1
     - path: data/08_reporting/simple_mlp_image
-      md5: f568b7967e544979397fccc2a7c7eb3a.dir
-      size: 2891
+      md5: a73255a1114ce28ba38bde9b7e79e9f9.dir
+      size: 2142
       nfiles: 5
   simple_image:
     cmd: "python src/models/simple_image.py --batch_size 64 --lr 1e-05 --epochs 50\
-      \ --dense_dim 128 --dropout_rate 0.1 --grad_clip 1.0 --model_dir data/06_models/simple_image\
+      \ --dense_dim 256 --dropout_rate 0.1 --grad_clip 1.0 --model_dir data/06_models/simple_image\
       \ --batch_norm true\n"
     deps:
     - path: data/01_raw/hateful_memes
@@ -116,24 +116,24 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: src/models/simple_image.py
-      md5: 211a5534928d7e9106fc50c46765f298
-      size: 3923
+      md5: 88ee5ebba8a4c6384bcd11c0ed370cf3
+      size: 3955
     params:
       params.yaml:
         simple_image:
           batch_size: 64
           lr: 1e-05
           epochs: 50
-          dense_dim: 128
+          dense_dim: 256
           dropout_rate: 0.1
           gradient_clip_value: 1.0
           batch_norm: true
     outs:
     - path: data/06_models/simple_image
-      md5: 62f38ca25d53faaab73ffdc5e7417b78.dir
-      size: 66949619
+      md5: 9e913c1c79a43d61d1aca0dee3fe73fe.dir
+      size: 133997619
       nfiles: 1
     - path: data/08_reporting/simple_image
-      md5: a73cedb8a66d250fc4c68fdb756ecdff.dir
+      md5: 5f7f326e1718c36025665bcbfea9772e.dir
       size: 2162
       nfiles: 5
