@@ -22,7 +22,7 @@ jobs:
           pip install -e .
 
       - name: Pull data
-        run: dvc pull data/01_raw/hateful_memes
+        run: dvc pull -j 32 data/01_raw/hateful_memes
 
       - name: Train VisualBERT
         continue-on-error: true
