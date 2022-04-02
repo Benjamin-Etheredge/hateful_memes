@@ -65,6 +65,7 @@ stages:
       - src/models/simple_mlp_image.py
     outs:
       - data/06_models/simple_mlp_image
+      - data/08_reporting/simple_mlp_image_dvc_plots
     live:
       data/08_reporting/simple_mlp_image:
         summary: true
