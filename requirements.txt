@@ -8,8 +8,10 @@
 
 absl-py==1.0.0
     # via tensorboard
-aiobotocore==2.1.2
-    # via s3fs
+aiobotocore[boto3]==2.1.2
+    # via
+    #   dvc
+    #   s3fs
 aiohttp==3.8.1
     # via
     #   aiobotocore
@@ -48,8 +50,13 @@ beautifulsoup4==4.10.0
     # via nbconvert
 bleach==4.1.0
     # via nbconvert
-botocore==1.23.24
+boto3==1.20.24
     # via aiobotocore
+botocore==1.23.24
+    # via
+    #   aiobotocore
+    #   boto3
+    #   s3transfer
 cachetools==4.2.4
     # via google-auth
 certifi==2021.10.8
@@ -103,8 +110,10 @@ dpath==2.0.6
     # via dvc
 dulwich==0.20.34
     # via scmrepo
-dvc[s3]==2.9.5
+dvc[s3]==2.10.0
     # via -r requirements.in
+dvc-render==0.0.4
+    # via dvc
 dvclive==0.6.0
     # via -r requirements.in
 entrypoints==0.4
@@ -140,6 +149,7 @@ ftfy==6.1.1
 funcy==1.17
     # via
     #   dvc
+    #   dvc-render
     #   scmrepo
 future==0.18.2
     # via
@@ -203,7 +213,9 @@ jinja2==3.0.3
     #   nbconvert
     #   notebook
 jmespath==0.10.0
-    # via botocore
+    # via
+    #   boto3
+    #   botocore
 joblib==1.1.0
     # via sacremoses
 jsonargparse[signatures]==4.4.0
@@ -475,6 +487,8 @@ ruamel-yaml-clib==0.2.6
     # via ruamel-yaml
 s3fs[boto3]==2022.2.0
     # via dvc
+s3transfer==0.5.2
+    # via boto3
 sacremoses==0.0.49
     # via transformers
 scikit-image==0.19.2
@@ -483,7 +497,7 @@ scipy==1.8.0
     # via
     #   scikit-image
     #   seaborn
-scmrepo==0.0.7
+scmrepo==0.0.16
     # via dvc
 seaborn==0.11.2
     # via -r requirements.in
@@ -520,7 +534,9 @@ soupsieve==2.3.1
 stack-data==0.2.0
     # via ipython
 tabulate==0.8.9
-    # via dvc
+    # via
+    #   dvc
+    #   dvc-render
 tensorboard==2.8.0
     # via
     #   pytorch-lightning
@@ -557,7 +573,7 @@ torch==1.11.0+cu113
     #   torchvision
 torch-tb-profiler==0.4.0
     # via -r requirements.in
-torchaudio===0.11.0+cu113
+torchaudio==0.11.0+cu113
     # via -r requirements.in
 torchmetrics==0.7.2
     # via pytorch-lightning
@@ -571,7 +587,7 @@ tornado==6.1
     #   jupyter-client
     #   notebook
     #   terminado
-tqdm==4.63.0
+tqdm==4.63.1
     # via
     #   dvc
     #   huggingface-hub

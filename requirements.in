@@ -3,7 +3,7 @@ pip-tools
 # pytorch
 torch==1.11.0+cu113 
 torchvision==0.12.0+cu113 
-torchaudio===0.11.0+cu113 
+torchaudio==0.11.0+cu113 
 -f https://download.pytorch.org/whl/cu113/torch_stable.html
 
 pytorch-lightning
@@ -11,7 +11,7 @@ jsonargparse[signatures]
 transformers
 wandb
 pillow
-dvc[s3]
+dvc[s3]==2.10.0
 dvclive
 pandas
 numpy
