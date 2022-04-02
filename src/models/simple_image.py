@@ -88,10 +88,11 @@ class SimpleImageMaeMaeModel(BaseMaeMaeModel):
 @click.option('--dropout_rate', default=0.1, help='Dropout rate')
 @click.option('--batch_norm', default=False, help='Batch norm')
 @click.option('--epochs', default=100, help='Epochs')
-@click.option('--model_dir', default=None, help='Model path')
+@click.option('--model_dir', default='/tmp', help='Model path')
+@click.option('--fast_dev_run', default=False, help='Fast dev run')
 def main(batch_size, lr, dense_dim, grad_clip, 
-         dropout_rate, batch_norm, epochs, model_dir):
-    logger = DvcLiveLogger()
+         dropout_rate, batch_norm, epochs, model_dir, fast_dev_run):
+    logger = DvcLiveLogger() if not fast_dev_run else None
 
     checkpoint_callback = ModelCheckpoint(
         monitor="val/acc", 
@@ -117,7 +118,7 @@ def main(batch_size, lr, dense_dim, grad_clip,
         max_epochs=epochs,
         gradient_clip_val=grad_clip,
         gpus=1,
-        fast_dev_run=False, # TODO explore this as form of unit test
+        fast_dev_run=fast_dev_run, 
         callbacks=[checkpoint_callback, early_stopping])
     # TODO should I move module inside lightning module?
     trainer.fit(

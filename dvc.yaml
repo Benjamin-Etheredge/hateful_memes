@@ -1,4 +1,16 @@
 stages:
+  test_visual_bert:
+    cmd: >
+        python src/models/visual_bert.py
+        --batch_size 4 
+        --fast_dev_run True
+        |& tee logs/test_visual_bert.log
+    deps:
+      - data/01_raw/hateful_memes
+      - src/models/visual_bert.py
+    outs:
+      - logs/test_visual_bert.log
+
   visual_bert:
     vars:
       - config/visual_bert.yaml
@@ -13,14 +25,27 @@ stages:
         --gradient_clip_value ${gradient_clip_value}
         --model_dir data/06_models/visual_bert
     deps:
+      - logs/test_visual_bert.log
       - data/01_raw/hateful_memes
       - src/models/visual_bert.py
     outs:
       - data/06_models/visual_bert
     live:
-        data/08_reporting/visual_bert:
-          summary: true
-          html: true
+      data/08_reporting/visual_bert:
+        summary: true
+        html: true
+
+  test_simple_mlp_image:
+    cmd: >
+        python src/models/simple_mlp_image.py 
+        --fast_dev_run True
+        |& tee logs/test_simple_mlp_image.log
+    deps:
+      - data/01_raw/hateful_memes
+      - src/models/simple_mlp_image.py
+    outs:
+      - logs/test_simple_mlp_image.log
+        
 
   simple_mlp_image:
     vars:
@@ -35,14 +60,26 @@ stages:
         --grad_clip ${gradient_clip_value}
         --model_dir data/06_models/simple_mlp_image
     deps:
+      - logs/test_simple_mlp_image.log
       - data/01_raw/hateful_memes
       - src/models/simple_mlp_image.py
     outs:
       - data/06_models/simple_mlp_image
     live:
-        data/08_reporting/simple_mlp_image:
-          summary: true
-          html: true   
+      data/08_reporting/simple_mlp_image:
+        summary: true
+        html: true   
+
+  test_simple_image:
+    cmd: >
+        python src/models/simple_image.py 
+        --fast_dev_run True
+        |& tee logs/test_simple_image.log
+    deps:
+      - data/01_raw/hateful_memes
+      - src/models/simple_image.py
+    outs:
+      - logs/test_simple_image.log
 
   simple_image:
     vars: 
@@ -58,14 +95,15 @@ stages:
         --model_dir data/06_models/simple_image
         --batch_norm ${batch_norm}
     deps:
+      - logs/test_simple_image.log
       - data/01_raw/hateful_memes
       - src/models/simple_image.py
     outs:
       - data/06_models/simple_image
     live:
-        data/08_reporting/simple_image:
-          summary: true
-          html: true
+      data/08_reporting/simple_image:
+        summary: true
+        html: true
 
   baseline_model:
     cmd: python src/models/baseline_algorithm.py
@@ -73,7 +111,7 @@ stages:
       - data/01_raw/hateful_memes
       - src/models/baseline_algorithm.py
     live:
-        data/08_reporting/baseline:
-          summary: true
-          html: false
+      data/08_reporting/baseline:
+        summary: true
+        html: false
 

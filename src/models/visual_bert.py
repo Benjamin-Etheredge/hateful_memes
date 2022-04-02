@@ -193,13 +193,13 @@ class VisualBertModule(pl.LightningModule):
 @click.option('--dense_dim', default=256, help='Dense dim')
 @click.option('--dropout_rate', default=0.1, help='Dropout rate')
 @click.option('--epochs', default=10, help='Epochs')
-@click.option('--model_dir', default=None, help='Save dir')
+@click.option('--model_dir', default='/tmp', help='Save dir')
 @click.option('--gradient_clip_value', default=1.0, help='Gradient clip')
+@click.option('--fast_dev_run', default=False, help='Fast dev run')
 def main(batch_size, lr, max_length, dense_dim, dropout_rate, 
-         epochs, model_dir, gradient_clip_value):
+         epochs, model_dir, gradient_clip_value, fast_dev_run):
 
-    logger = DvcLiveLogger(
-    )
+    logger = DvcLiveLogger() if not fast_dev_run else DvcLogger()
     checkpoint_callback = ModelCheckpoint(
         monitor="val/acc", 
         mode="max", 
@@ -220,6 +220,7 @@ def main(batch_size, lr, max_length, dense_dim, dropout_rate,
         # logger=wandb_logger, 
         gradient_clip_val=gradient_clip_value,
         callbacks=[checkpoint_callback, early_stopping],
+        fast_dev_run=fast_dev_run,
         # detect_anomaly=True, # TODO explore more
         # callbacks=[checkpoint_callback])
         # precision=16,
@@ -231,7 +232,9 @@ def main(batch_size, lr, max_length, dense_dim, dropout_rate,
         max_length=max_length, 
         dense_dim=dense_dim, 
         dropout_rate=dropout_rate)
-    trainer.fit(model, datamodule=MaeMaeDataModule(batch_size=batch_size))
+    trainer.fit(
+        model, 
+        datamodule=MaeMaeDataModule(batch_size=batch_size))
 
 
 if __name__ == "__main__":
