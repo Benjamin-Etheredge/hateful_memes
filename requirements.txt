@@ -8,7 +8,7 @@
 
 absl-py==1.0.0
     # via tensorboard
-aiobotocore[boto3]==2.1.2
+aiobotocore[boto3]==2.2.0
     # via
     #   dvc
     #   s3fs
@@ -36,7 +36,7 @@ asttokens==2.0.5
     #   stack-data
 async-timeout==4.0.2
     # via aiohttp
-asyncssh==2.8.1
+asyncssh==2.10.0
     # via scmrepo
 atpublic==3.0.1
     # via flufl-lock
@@ -50,14 +50,14 @@ beautifulsoup4==4.10.0
     # via nbconvert
 bleach==4.1.0
     # via nbconvert
-boto3==1.20.24
+boto3==1.21.21
     # via aiobotocore
-botocore==1.23.24
+botocore==1.24.21
     # via
     #   aiobotocore
     #   boto3
     #   s3transfer
-cachetools==4.2.4
+cachetools==5.0.0
     # via google-auth
 certifi==2021.10.8
     # via
@@ -73,7 +73,7 @@ charset-normalizer==2.0.12
     # via
     #   aiohttp
     #   requests
-click==7.1.2
+click==8.1.2
     # via
     #   pip-tools
     #   sacremoses
@@ -90,7 +90,7 @@ cryptography==36.0.2
     # via asyncssh
 cycler==0.11.0
     # via matplotlib
-debugpy==1.5.1
+debugpy==1.6.0
     # via ipykernel
 decorator==5.1.1
     # via ipython
@@ -108,7 +108,7 @@ docstring-parser==0.13
     # via jsonargparse
 dpath==2.0.6
     # via dvc
-dulwich==0.20.34
+dulwich==0.20.35
     # via scmrepo
 dvc[s3]==2.10.0
     # via -r requirements.in
@@ -132,13 +132,13 @@ flatten-dict==0.4.2
     # via dvc
 flufl-lock==7.0
     # via dvc
-fonttools==4.31.1
+fonttools==4.31.2
     # via matplotlib
 frozenlist==1.3.0
     # via
     #   aiohttp
     #   aiosignal
-fsspec[http]==2022.2.0
+fsspec[http]==2022.3.0
     # via
     #   dvc
     #   pytorch-lightning
@@ -152,9 +152,7 @@ funcy==1.17
     #   dvc-render
     #   scmrepo
 future==0.18.2
-    # via
-    #   grandalf
-    #   pytorch-lightning
+    # via grandalf
 gitdb==4.0.9
     # via gitpython
 gitpython==3.1.27
@@ -175,7 +173,7 @@ huggingface-hub==0.4.0
     # via transformers
 icecream==2.1.2
     # via -r requirements.in
-idna==2.10
+idna==3.3
     # via
     #   requests
     #   yarl
@@ -183,18 +181,18 @@ imageio==2.16.1
     # via scikit-image
 importlib-metadata==4.11.3
     # via markdown
-importlib-resources==5.4.0
+importlib-resources==5.6.0
     # via
     #   dvc
     #   jsonschema
-ipykernel==6.9.2
+ipykernel==6.11.0
     # via
     #   ipywidgets
     #   jupyter
     #   jupyter-console
     #   notebook
     #   qtconsole
-ipython==8.1.1
+ipython==8.2.0
     # via
     #   ipykernel
     #   ipywidgets
@@ -208,23 +206,23 @@ ipywidgets==7.7.0
     # via jupyter
 jedi==0.18.1
     # via ipython
-jinja2==3.0.3
+jinja2==3.1.1
     # via
     #   nbconvert
     #   notebook
-jmespath==0.10.0
+jmespath==1.0.0
     # via
     #   boto3
     #   botocore
 joblib==1.1.0
     # via sacremoses
-jsonargparse[signatures]==4.4.0
+jsonargparse[signatures]==4.5.0
     # via -r requirements.in
 jsonschema==4.4.0
     # via nbformat
 jupyter==1.0.0
     # via -r requirements.in
-jupyter-client==7.1.2
+jupyter-client==7.2.1
     # via
     #   ipykernel
     #   jupyter-console
@@ -244,14 +242,16 @@ jupyterlab-pygments==0.1.2
     # via nbconvert
 jupyterlab-widgets==1.1.0
     # via ipywidgets
-kiwisolver==1.4.0
+kiwisolver==1.4.2
     # via matplotlib
 mailchecker==4.1.14
     # via python-benedict
 markdown==3.3.6
     # via tensorboard
 markupsafe==2.1.1
-    # via jinja2
+    # via
+    #   jinja2
+    #   nbconvert
 matplotlib==3.5.1
     # via seaborn
 matplotlib-inline==0.1.3
@@ -268,7 +268,7 @@ nanotime==0.5.2
     # via dvc
 nbclient==0.5.13
     # via nbconvert
-nbconvert==6.4.4
+nbconvert==6.4.5
     # via
     #   jupyter
     #   notebook
@@ -281,7 +281,7 @@ nbformat==5.2.0
     #   notebook
 nbstripout==0.5.0
     # via -r requirements.in
-nest-asyncio==1.5.4
+nest-asyncio==1.5.5
     # via
     #   ipykernel
     #   jupyter-client
@@ -325,7 +325,7 @@ packaging==21.3
     #   scikit-image
     #   torchmetrics
     #   transformers
-pandas==1.4.1
+pandas==1.4.2
     # via
     #   -r requirements.in
     #   seaborn
@@ -344,11 +344,11 @@ pep517==0.12.0
     # via pip-tools
 pexpect==4.8.0
     # via ipython
-phonenumbers==8.12.45
+phonenumbers==8.12.46
     # via python-benedict
 pickleshare==0.7.5
     # via ipython
-pillow==9.0.1
+pillow==9.1.0
     # via
     #   -r requirements.in
     #   imageio
@@ -367,7 +367,7 @@ prompt-toolkit==3.0.28
     # via
     #   ipython
     #   jupyter-console
-protobuf==3.19.4
+protobuf==3.20.0
     # via
     #   tensorboard
     #   wandb
@@ -392,13 +392,13 @@ pyasn1-modules==0.2.8
     # via google-auth
 pycparser==2.21
     # via cffi
-pydeprecate==0.3.1
+pydeprecate==0.3.2
     # via
     #   pytorch-lightning
     #   torchmetrics
 pydot==1.4.2
     # via dvc
-pygit2==1.9.0
+pygit2==1.9.1
     # via scmrepo
 pygments==2.11.2
     # via
@@ -436,9 +436,9 @@ python-fsutil==0.6.0
     # via python-benedict
 python-slugify==6.1.1
     # via python-benedict
-pytorch-lightning==1.5.10
+pytorch-lightning==1.6.0
     # via -r requirements.in
-pytz==2021.3
+pytz==2022.1
     # via pandas
 pywavelets==1.3.0
     # via scikit-image
@@ -455,7 +455,7 @@ pyzmq==22.3.0
     #   jupyter-client
     #   notebook
     #   qtconsole
-qtconsole==5.2.2
+qtconsole==5.3.0
     # via jupyter
 qtpy==2.0.1
     # via qtconsole
@@ -477,7 +477,7 @@ requests==2.27.1
     #   wandb
 requests-oauthlib==1.3.1
     # via google-auth-oauthlib
-rich==12.0.0
+rich==12.0.1
     # via dvc
 rsa==4.8
     # via google-auth
@@ -485,7 +485,7 @@ ruamel-yaml==0.17.21
     # via dvc
 ruamel-yaml-clib==0.2.6
     # via ruamel-yaml
-s3fs[boto3]==2022.2.0
+s3fs[boto3]==2022.3.0
     # via dvc
 s3transfer==0.5.2
     # via boto3
@@ -553,7 +553,7 @@ testpath==0.6.0
     # via nbconvert
 text-unidecode==1.3
     # via python-slugify
-tifffile==2022.3.16
+tifffile==2022.3.25
     # via scikit-image
 tokenizers==0.11.6
     # via transformers
@@ -575,7 +575,7 @@ torch-tb-profiler==0.4.0
     # via -r requirements.in
 torchaudio==0.11.0+cu113
     # via -r requirements.in
-torchmetrics==0.7.2
+torchmetrics==0.7.3
     # via pytorch-lightning
 torchtext==0.12.0
     # via -r requirements.in
@@ -613,6 +613,7 @@ transformers==4.17.0
 typing-extensions==4.1.1
     # via
     #   aioitertools
+    #   asyncssh
     #   dvc
     #   huggingface-hub
     #   pytorch-lightning
@@ -624,7 +625,7 @@ urllib3==1.26.9
     #   dulwich
     #   requests
     #   sentry-sdk
-voluptuous==0.12.2
+voluptuous==0.13.0
     # via dvc
 wandb==0.12.11
     # via -r requirements.in
@@ -634,9 +635,9 @@ wcwidth==0.2.5
     #   prompt-toolkit
 webencodings==0.5.1
     # via bleach
-werkzeug==2.0.3
+werkzeug==2.1.1
     # via tensorboard
-wheel==0.36.2
+wheel==0.37.1
     # via
     #   pip-tools
     #   tensorboard
