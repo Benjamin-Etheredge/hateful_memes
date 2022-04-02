@@ -1,36 +1,25 @@
 schema: '2.0'
 stages:
   visual_bert:
-    cmd: "python src/models/visual_bert.py --batch_size 16 --lr 1e-05 --epochs 50\
+    cmd: "python src/models/visual_bert.py --batch_size 16 --lr 1e-05 --epochs 100\
       \ --max_length 512 --dense_dim 256 --dropout_rate 0.1 --gradient_clip_value\
-      \ 1.0 --save_dir data/08_reporting/visual_bert --model_dir data/06_models/visual_bert\n"
+      \ 1.0 --model_dir data/06_models/visual_bert\n"
     deps:
     - path: data/01_raw/hateful_memes
       md5: 8844b5201ff55743fcd36c40d7352a88.dir
       size: 4232567214
       nfiles: 12148
     - path: src/models/visual_bert.py
-      md5: 57ce0b3be6bd80351a16c8606e3ce2ca
-      size: 8411
-    params:
-      params.yaml:
-        visual_bert:
-          batch_size: 16
-          source: src/models/visual_bert.py
-          lr: 1e-05
-          epochs: 50
-          max_length: 512
-          dense_dim: 256
-          dropout_rate: 0.1
-          gradient_clip_value: 1.0
+      md5: a007a3943d011601ad909662f5e7d37a
+      size: 8317
     outs:
     - path: data/06_models/visual_bert
-      md5: dd2a2b721edd0a4bce594396caea43fc.dir
-      size: 1623288615
+      md5: 4573208dffd944982c0442f3f9237992.dir
+      size: 1623288679
       nfiles: 1
     - path: data/08_reporting/visual_bert
-      md5: 032584a95310c56988059f90d7787020.dir
-      size: 2360
+      md5: dc023138f332d76fbe10b8971ce660dc.dir
+      size: 2542
       nfiles: 5
   simple_image_model:
     cmd: "python src/models/simple_image_model.py --batch_size 64 --lr 1e-05 --epochs\
@@ -78,7 +67,7 @@ stages:
       size: 148
       nfiles: 3
   simple_mlp_image:
-    cmd: "python src/models/simple_mlp_image.py --batch_size 64 --lr 1e-05 --epochs\
+    cmd: "python src/models/simple_mlp_image.py --batch_size 128 --lr 1e-05 --epochs\
       \ 50 --dense_dim 128 --dropout_rate 0.1 --grad_clip 1.0 --model_dir data/06_models/simple_mlp_image\n"
     deps:
     - path: data/01_raw/hateful_memes
@@ -88,23 +77,14 @@ stages:
     - path: src/models/simple_mlp_image.py
       md5: 3710ba761f1ae425069bb60f0334ac1c
       size: 3145
-    params:
-      params.yaml:
-        simple_mlp_image:
-          batch_size: 64
-          lr: 1e-05
-          epochs: 50
-          dense_dim: 128
-          dropout_rate: 0.1
-          gradient_clip_value: 1.0
     outs:
     - path: data/06_models/simple_mlp_image
-      md5: f889ead378cdb3e1b348c9a8fc66bb60.dir
+      md5: 9d5561d216d3e7ca5fcd3ae3c316937f.dir
       size: 231418921
       nfiles: 1
     - path: data/08_reporting/simple_mlp_image
-      md5: f568b7967e544979397fccc2a7c7eb3a.dir
-      size: 2891
+      md5: c702359f4aae8489b83182d0c0d5a18a.dir
+      size: 2142
       nfiles: 5
   simple_image:
     cmd: "python src/models/simple_image.py --batch_size 64 --lr 1e-05 --epochs 50\
@@ -116,24 +96,14 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: src/models/simple_image.py
-      md5: 211a5534928d7e9106fc50c46765f298
-      size: 3923
-    params:
-      params.yaml:
-        simple_image:
-          batch_size: 64
-          lr: 1e-05
-          epochs: 50
-          dense_dim: 128
-          dropout_rate: 0.1
-          gradient_clip_value: 1.0
-          batch_norm: true
+      md5: 88ee5ebba8a4c6384bcd11c0ed370cf3
+      size: 3955
     outs:
     - path: data/06_models/simple_image
-      md5: 62f38ca25d53faaab73ffdc5e7417b78.dir
+      md5: 800de4168c350efd62af4f80f71bafde.dir
       size: 66949619
       nfiles: 1
     - path: data/08_reporting/simple_image
-      md5: a73cedb8a66d250fc4c68fdb756ecdff.dir
-      size: 2162
+      md5: 8bcca3510bed5581f16af03d6a21ad92.dir
+      size: 2161
       nfiles: 5
