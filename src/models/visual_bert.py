@@ -193,14 +193,12 @@ class VisualBertModule(pl.LightningModule):
 @click.option('--dense_dim', default=256, help='Dense dim')
 @click.option('--dropout_rate', default=0.1, help='Dropout rate')
 @click.option('--epochs', default=10, help='Epochs')
-@click.option('--save_dir', default=None, help='Save dir')
 @click.option('--model_dir', default=None, help='Save dir')
 @click.option('--gradient_clip_value', default=1.0, help='Gradient clip')
 def main(batch_size, lr, max_length, dense_dim, dropout_rate, 
-         epochs, save_dir, model_dir, gradient_clip_value):
+         epochs, model_dir, gradient_clip_value):
 
     logger = DvcLiveLogger(
-        # path=save_dir,
     )
     checkpoint_callback = ModelCheckpoint(
         monitor="val/acc", 

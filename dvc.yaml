@@ -1,43 +1,42 @@
 stages:
   visual_bert:
+    vars:
+      - config/visual_bert.yaml
     cmd: >
         python src/models/visual_bert.py
-        --batch_size ${visual_bert.batch_size}
-        --lr ${visual_bert.lr}
-        --epochs ${visual_bert.epochs}
-        --max_length ${visual_bert.max_length}
-        --dense_dim ${visual_bert.dense_dim}
-        --dropout_rate ${visual_bert.dropout_rate}
-        --gradient_clip_value ${visual_bert.gradient_clip_value}
-        --save_dir data/08_reporting/visual_bert
+        --batch_size ${batch_size}
+        --lr ${lr}
+        --epochs ${epochs}
+        --max_length ${max_length}
+        --dense_dim ${dense_dim}
+        --dropout_rate ${dropout_rate}
+        --gradient_clip_value ${gradient_clip_value}
         --model_dir data/06_models/visual_bert
     deps:
       - data/01_raw/hateful_memes
       - src/models/visual_bert.py
     outs:
       - data/06_models/visual_bert
-    params:
-      - visual_bert
     live:
         data/08_reporting/visual_bert:
           summary: true
           html: true
 
   simple_mlp_image:
+    vars:
+      - config/simple_mlp_image.yaml
     cmd: >
         python src/models/simple_mlp_image.py
-        --batch_size ${simple_mlp_image.batch_size}
-        --lr ${simple_mlp_image.lr}
-        --epochs ${simple_mlp_image.epochs}
-        --dense_dim ${simple_mlp_image.dense_dim}
-        --dropout_rate ${simple_mlp_image.dropout_rate}
-        --grad_clip ${simple_mlp_image.gradient_clip_value}
+        --batch_size ${batch_size}
+        --lr ${lr}
+        --epochs ${epochs}
+        --dense_dim ${dense_dim}
+        --dropout_rate ${dropout_rate}
+        --grad_clip ${gradient_clip_value}
         --model_dir data/06_models/simple_mlp_image
     deps:
       - data/01_raw/hateful_memes
       - src/models/simple_mlp_image.py
-    params:
-      - simple_mlp_image
     outs:
       - data/06_models/simple_mlp_image
     live:
@@ -46,21 +45,21 @@ stages:
           html: true   
 
   simple_image:
+    vars: 
+      - config/simple_image.yaml
     cmd: >
         python src/models/simple_image.py
-        --batch_size ${simple_image.batch_size}
-        --lr ${simple_image.lr}
-        --epochs ${simple_image.epochs}
-        --dense_dim ${simple_image.dense_dim}
-        --dropout_rate ${simple_image.dropout_rate}
-        --grad_clip ${simple_image.gradient_clip_value}
+        --batch_size ${batch_size}
+        --lr ${lr}
+        --epochs ${epochs}
+        --dense_dim ${dense_dim}
+        --dropout_rate ${dropout_rate}
+        --grad_clip ${gradient_clip_value}
         --model_dir data/06_models/simple_image
-        --batch_norm ${simple_image.batch_norm}
+        --batch_norm ${batch_norm}
     deps:
       - data/01_raw/hateful_memes
       - src/models/simple_image.py
-    params:
-      - simple_image
     outs:
       - data/06_models/simple_image
     live:
