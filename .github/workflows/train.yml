@@ -27,21 +27,26 @@ jobs:
       - name: Train VisualBERT
         continue-on-error: true
         run: |
-          dvc pull visual_bert
+          dvc pull -d visual_bert
           dvc repro visual_bert
+          dvc push visual_bert
 
       - name: Train Simple Image Model
         continue-on-error: true
         run: |
-          dvc pull simple_image
+          dvc pull -d simple_image
           dvc repro simple_image
+          dvc push simple_image
 
       - name: Train Simple MLP Image Model
         continue-on-error: true
         run: |
-          dvc pull simple_mlp_image
+          dvc pull -d simple_mlp_image
           dvc repro simple_mlp_image
+          dvc push simple_mlp_image
       
       - name: Commit run
         run: |
+          cml ci
           cml pr .
+        
