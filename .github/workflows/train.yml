@@ -10,7 +10,7 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.MINIO_AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.MINIO_AWS_SECRET_ACCESS_KEY }}
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-      options: --gpus all --shm-size=8G --network=host
+      options: --gpus all --shm-size=8G
     timeout-minutes: 1440  # Increased job runtime since ML is slow
     steps:
       - uses: actions/checkout@v2
@@ -29,21 +29,18 @@ jobs:
         run: |
           dvc pull visual_bert
           dvc repro visual_bert
-          cml ci
 
       - name: Train Simple Image Model
         continue-on-error: true
         run: |
           dvc pull simple_image
           dvc repro simple_image
-          cml ci
 
       - name: Train Simple MLP Image Model
         continue-on-error: true
         run: |
           dvc pull simple_mlp_image
           dvc repro simple_mlp_image
-          cml ci
       
       - name: Commit run
         run: |
