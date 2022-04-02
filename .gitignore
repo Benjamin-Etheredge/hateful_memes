@@ -5,13 +5,4 @@
 lightning_logs/
 wandb/
 mmf/
-/dvclive.json
-dist/
-
-*.log
-.vscode/
-
-*.ckpt
-
-**/.DS_Store
-
+.vscode/settings.json
