@@ -4,7 +4,7 @@ pip-tools
 torch
 torchvision
 torchaudio
--f https://download.pytorch.org/whl/cu113/torch_stable.html
+-f https://download.pytorch.org/whl/cu113
 
 pytorch-lightning
 jsonargparse[signatures]

@@ -4,7 +4,7 @@
 #
 #    pip-compile
 #
---find-links https://download.pytorch.org/whl/cu113/torch_stable.html
+--find-links https://download.pytorch.org/whl/cu113
 
 absl-py==1.0.0
     # via tensorboard
@@ -563,7 +563,7 @@ toml==0.10.2
     #   python-benedict
 tomli==2.0.1
     # via pep517
-torch==1.11.0+cu113
+torch==1.11.0
     # via
     #   -r requirements.in
     #   pytorch-lightning
@@ -573,13 +573,13 @@ torch==1.11.0+cu113
     #   torchvision
 torch-tb-profiler==0.4.0
     # via -r requirements.in
-torchaudio==0.11.0+cu113
+torchaudio==0.11.0
     # via -r requirements.in
 torchmetrics==0.7.3
     # via pytorch-lightning
 torchtext==0.12.0
     # via -r requirements.in
-torchvision==0.12.0+cu113
+torchvision==0.12.0
     # via -r requirements.in
 tornado==6.1
     # via

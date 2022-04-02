@@ -18,7 +18,7 @@ jobs:
         run: echo running on branch ${GITHUB_REF##*/}
       - name: Install requirements
         run: |
-          pip install -r --no-cache requirements.txt
+          pip install -r requirements.txt
           pip install -e .
 
       - name: Pull data
