@@ -89,9 +89,13 @@ stages:
       size: 231418921
       nfiles: 1
     - path: data/08_reporting/simple_mlp_image
-      md5: 8718321ed5e768febb1476cebeec741c.dir
+      md5: 8f59ae4133bef8adccc32a4300d56926.dir
       size: 2142
       nfiles: 5
+    - path: data/08_reporting/simple_mlp_image_dvc_plots
+      md5: 2087c9074f8579f24c51be0c71d8e2e8.dir
+      size: 34029
+      nfiles: 1
   simple_image:
     cmd: "python src/models/simple_image.py --batch_size 64 --lr 1e-05 --epochs 50\
       \ --dense_dim 128 --dropout_rate 0.1 --grad_clip 1.0 --model_dir data/06_models/simple_image\
