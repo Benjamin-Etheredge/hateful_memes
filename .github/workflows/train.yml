@@ -24,24 +24,24 @@ jobs:
       - name: Pull data
         run: dvc pull data/01_raw/hateful_memes
 
+      - name: Pull everything else
+        run: dvc pull 
+
       - name: Train VisualBERT
         continue-on-error: true
         run: |
-          dvc pull -d visual_bert
           dvc repro visual_bert
           dvc push visual_bert
 
       - name: Train Simple Image Model
         continue-on-error: true
         run: |
-          dvc pull -d simple_image
           dvc repro simple_image
           dvc push simple_image
 
       - name: Train Simple MLP Image Model
         continue-on-error: true
         run: |
-          dvc pull -d simple_mlp_image
           dvc repro simple_mlp_image
           dvc push simple_mlp_image
       
