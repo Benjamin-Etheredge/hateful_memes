@@ -1,10 +1,11 @@
 pip-tools
 
 # pytorch
-torch
+--extra-index-url https://download.pytorch.org/whl/cu113
+torch #==1.11.0 #+cu113  # sometimes is grabs the wrong version
 torchvision
 torchaudio
--f https://download.pytorch.org/whl/cu113
+torchtext
 
 pytorch-lightning
 jsonargparse[signatures]
@@ -12,7 +13,9 @@ transformers
 wandb
 pillow
 dvc[s3]==2.10.0
-dvclive
+# dvclive[pytorch_lightning]
+git+https://github.com/Benjamin-Etheredge/dvclive
+
 pandas
 numpy
 seaborn
@@ -22,4 +25,3 @@ scikit-image
 nbstripout
 icecream
 torch-tb-profiler
-torchtext
