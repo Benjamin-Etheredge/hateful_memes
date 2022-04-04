@@ -1,8 +1,8 @@
 from gc import callbacks
 from models.baseline import BaseTextMaeMaeModel
-from data.hateful_memes import MaeMaeDataset
+from hateful_memes.data.hateful_memes import MaeMaeDataset
 
-from data.hateful_memes import MaeMaeDataModule
+from hateful_memes.data.hateful_memes import MaeMaeDataModule
 from pytorch_lightning.utilities.cli import LightningCLI
 from pytorch_lightning.callbacks import ModelCheckpoint
 import torch

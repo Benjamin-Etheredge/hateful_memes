@@ -5,8 +5,8 @@ from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning import LightningModule, Trainer
 import os
 
-from models.baseline import BaseMaeMaeModel
-from data.hateful_memes import MaeMaeDataModule
+from hateful_memes.models.baseline import BaseMaeMaeModel
+from hateful_memes.data.hateful_memes import MaeMaeDataModule
 from pytorch_lightning.utilities.cli import LightningCLI
 from pytorch_lightning.callbacks import ModelCheckpoint
 from torch import nn
