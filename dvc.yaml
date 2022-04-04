@@ -59,7 +59,7 @@ stages:
         --dropout_rate ${dropout_rate}
         --grad_clip ${gradient_clip_value}
         --model_dir data/06_models/simple_mlp_image
-        --log_dir data/08_reporting/simple_mlp_image
+        # --log_dir data/08_reporting/simple_mlp_image
     deps:
       - logs/test_simple_mlp_image.log
       - data/01_raw/hateful_memes
@@ -67,34 +67,34 @@ stages:
     outs:
       - data/06_models/simple_mlp_image
     metrics:
-      - data/08_reporting/simple_mlp_image.json:
-          cache: false
+      - dvclive.json
     plots:
-      - data/08_reporting/simple_mlp_image/scalars/epoch.tsv:
-          cache: false
-          template: linear
-          x: epoch
-          y: step
-      - data/08_reporting/simple_mlp_image/scalars/train_acc.tsv:
-          cache: false
-          template: linear
-          x: step
-          y: train_acc
-      - data/08_reporting/simple_mlp_image/scalars/train_loss.tsv:
-          cache: false
-          template: linear
-          x: step
-          y: train_loss
-      - data/08_reporting/simple_mlp_image/scalars/val_acc.tsv:
-          cache: false
-          template: linear
-          x: step
-          y: val_acc
-      - data/08_reporting/simple_mlp_image/scalars/val_loss.tsv:
-          cache: false
-          template: linear
-          x: step
-          y: val_loss
+      - dvclive/scalars
+      # - data/08_reporting/simple_mlp_image/scalars/epoch.tsv:
+      #     cache: false
+      #     template: linear
+      #     x: epoch
+      #     y: step
+      # - data/08_reporting/simple_mlp_image/scalars/train_acc.tsv:
+      #     cache: false
+      #     template: linear
+      #     x: step
+      #     y: train_acc
+      # - data/08_reporting/simple_mlp_image/scalars/train_loss.tsv:
+      #     cache: false
+      #     template: linear
+      #     x: step
+      #     y: train_loss
+      # - data/08_reporting/simple_mlp_image/scalars/val_acc.tsv:
+      #     cache: false
+      #     template: linear
+      #     x: step
+      #     y: val_acc
+      # - data/08_reporting/simple_mlp_image/scalars/val_loss.tsv:
+      #     cache: false
+      #     template: linear
+      #     x: step
+      #     y: val_loss
 
   test_simple_image:
     cmd: >
