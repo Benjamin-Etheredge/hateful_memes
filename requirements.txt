@@ -4,7 +4,7 @@
 #
 #    pip-compile
 #
---find-links https://download.pytorch.org/whl/cu113
+--extra-index-url https://download.pytorch.org/whl/cu113
 
 absl-py==1.0.0
     # via tensorboard
@@ -113,8 +113,10 @@ dulwich==0.20.35
 dvc[s3]==2.10.0
     # via -r requirements.in
 dvc-render==0.0.4
-    # via dvc
-dvclive==0.6.0
+    # via
+    #   dvc
+    #   dvclive
+dvclive @ git+https://github.com/Benjamin-Etheredge/dvclive
     # via -r requirements.in
 entrypoints==0.4
     # via
@@ -477,7 +479,7 @@ requests==2.27.1
     #   wandb
 requests-oauthlib==1.3.1
     # via google-auth-oauthlib
-rich==12.0.1
+rich==12.1.0
     # via dvc
 rsa==4.8
     # via google-auth
@@ -563,7 +565,7 @@ toml==0.10.2
     #   python-benedict
 tomli==2.0.1
     # via pep517
-torch==1.11.0
+torch==1.11.0+cu113
     # via
     #   -r requirements.in
     #   pytorch-lightning
@@ -573,13 +575,13 @@ torch==1.11.0
     #   torchvision
 torch-tb-profiler==0.4.0
     # via -r requirements.in
-torchaudio==0.11.0
+torchaudio==0.11.0+cu113
     # via -r requirements.in
 torchmetrics==0.7.3
     # via pytorch-lightning
 torchtext==0.12.0
     # via -r requirements.in
-torchvision==0.12.0
+torchvision==0.12.0+cu113
     # via -r requirements.in
 tornado==6.1
     # via
@@ -587,7 +589,7 @@ tornado==6.1
     #   jupyter-client
     #   notebook
     #   terminado
-tqdm==4.63.1
+tqdm==4.64.0
     # via
     #   dvc
     #   huggingface-hub
@@ -617,6 +619,7 @@ typing-extensions==4.1.1
     #   dvc
     #   huggingface-hub
     #   pytorch-lightning
+    #   rich
     #   torch
     #   torchvision
 urllib3==1.26.9
@@ -653,7 +656,7 @@ yaspin==2.1.0
     # via wandb
 zc-lockfile==2.0
     # via dvc
-zipp==3.7.0
+zipp==3.8.0
     # via
     #   importlib-metadata
     #   importlib-resources

@@ -1,18 +1,23 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
-// https://github.com/microsoft/vscode-dev-containers/tree/v0.224.3/containers/python-3-miniconda
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.231.2/containers/python-3
 {
-	"name": "Miniconda (Python 3)",
-	"build": { 
-		"context": "..",
+	"name": "Python 3",
+	"build": {
 		"dockerfile": "Dockerfile",
-		"args": {
-			"NODE_VERSION": "16"
+		"context": "..",
+		"args": { 
+			// Update 'VARIANT' to pick a Python version: 3, 3.10, 3.9, 3.8, 3.7, 3.6
+			// Append -bullseye or -buster to pin to an OS version.
+			// Use -bullseye variants on local on arm64/Apple Silicon.
+			"VARIANT": "3.8",
+			// Options
+			"NODE_VERSION": "none"
 		}
 	},
 
 	// Set *default* container specific settings.json values on container create.
 	"settings": { 
-		"python.defaultInterpreterPath": "/opt/conda/bin/python",
+		"python.defaultInterpreterPath": "/usr/local/bin/python",
 		"python.linting.enabled": true,
 		"python.linting.pylintEnabled": true,
 		"python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
@@ -38,15 +43,14 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "pip install -e . && python --version && dvc pull data/01_raw/*",
-
+	"postCreateCommand": "pip install -r requirements.txt && pip install -e . && dvc pull data/01_raw/* && dvc pull",
 	"runArgs": ["--gpus=all", "--env-file=.env", "--shm-size=8g"],
 
 	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
 	"remoteUser": "vscode",
 	"features": {
+		"docker-from-docker": "20.10",
 		"git": "os-provided",
-		"git-lfs": "latest",
-		"docker-from-docker": "20.10"
+		"git-lfs": "latest"
 	}
 }
