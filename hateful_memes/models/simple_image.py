@@ -17,6 +17,7 @@ from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
 
 class SimpleImageMaeMaeModel(BaseMaeMaeModel):
+    """ Simple Image Model """
     def __init__(
         self, 
         lr=0.003, 
@@ -90,9 +91,10 @@ class SimpleImageMaeMaeModel(BaseMaeMaeModel):
 @click.option('--epochs', default=100, help='Epochs')
 @click.option('--model_dir', default='/tmp', help='Model path')
 @click.option('--fast_dev_run', default=False, help='Fast dev run')
-def main(batch_size, lr, dense_dim, grad_clip, 
-         dropout_rate, batch_norm, epochs, model_dir, fast_dev_run):
-    logger = DvcLiveLogger() if not fast_dev_run else None
+@click.option('--log_dir', default=None, help='Log dir')
+def main(batch_size, lr, dense_dim, grad_clip, dropout_rate, 
+         batch_norm, epochs, model_dir, fast_dev_run, log_dir):
+    logger = DvcLiveLogger(path=log_dir) if not fast_dev_run else None
 
     checkpoint_callback = ModelCheckpoint(
         monitor="val/acc", 
