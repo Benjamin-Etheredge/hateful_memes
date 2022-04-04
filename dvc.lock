@@ -89,13 +89,13 @@ stages:
       md5: e11bded287f56b7b55fb18941bab200a.dir
       size: 115665641
       nfiles: 1
-    - path: data/08_reporting/simple_mlp_image
-      md5: b9fbfca161aed8e2218ae36acbf923a3.dir
-      size: 33585
-      nfiles: 6
     - path: data/08_reporting/simple_mlp_image.json
       md5: a9a9ace8ea3167ad6c23060655bcfcee
       size: 215
+    - path: data/08_reporting/simple_mlp_image/scalars
+      md5: 157f4534e7aa2e2eedc816b0d32328f2.dir
+      size: 2731
+      nfiles: 5
   simple_image:
     cmd: "python hateful_memes/models/simple_image.py --batch_size 64 --lr 1e-05 --epochs\
       \ 50 --dense_dim 128 --dropout_rate 0.1 --grad_clip 1.0 --model_dir data/06_models/simple_image\
@@ -106,19 +106,19 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/models/simple_image.py
-      md5: ef647075778e883a2f8fb2d90caa830e
-      size: 4064
+      md5: c8d147e52dc084862268ce028ad15eee
+      size: 4137
     - path: logs/test_simple_image.log
-      md5: e01c0920044d6dffbf88420574be9983
+      md5: 9c422ddbbfc2c21467fffb4ee37d419f
       size: 2649
     outs:
     - path: data/06_models/simple_image
-      md5: 3070bb4059ec33ad3242bcb38ca0739f.dir
+      md5: a52589c2b7cddaec4461e1f1c46f1b8d.dir
       size: 66951667
       nfiles: 1
     - path: data/08_reporting/simple_image
-      md5: 2dd376699b19c385fd67e142d87ba92c.dir
-      size: 30569
+      md5: b4cbba7ba6ec56366daf2cd28241c4f2.dir
+      size: 30573
       nfiles: 6
   test_simple_mlp_image:
     cmd: "python hateful_memes/models/simple_mlp_image.py  --fast_dev_run True |&\
@@ -159,11 +159,11 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/models/simple_image.py
-      md5: ef647075778e883a2f8fb2d90caa830e
-      size: 4064
+      md5: c8d147e52dc084862268ce028ad15eee
+      size: 4137
     outs:
     - path: logs/test_simple_image.log
-      md5: e01c0920044d6dffbf88420574be9983
+      md5: 9c422ddbbfc2c21467fffb4ee37d419f
       size: 2649
   baseline:
     cmd: python hateful_memes/models/baseline_algorithm.py
