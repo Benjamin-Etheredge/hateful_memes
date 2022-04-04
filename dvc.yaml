@@ -78,23 +78,23 @@ stages:
       - data/08_reporting/simple_mlp_image/scalars/train/acc.tsv:
           cache: false
           template: linear
-          x: epoch
-          y: acc
+          x: step
+          y: train/acc
       - data/08_reporting/simple_mlp_image/scalars/train/loss.tsv:
           cache: false
           template: linear
-          x: epoch
-          y: loss
+          x: step
+          y: train/loss
       - data/08_reporting/simple_mlp_image/scalars/val/acc.tsv:
           cache: false
           template: linear
-          x: epoch
-          y: acc
+          x: step
+          y: val/acc
       - data/08_reporting/simple_mlp_image/scalars/val/loss.tsv:
           cache: false
           template: linear
-          x: epoch
-          y: loss
+          x: step
+          y: val/loss
 
   test_simple_image:
     cmd: >
