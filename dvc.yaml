@@ -70,7 +70,8 @@ stages:
       - data/08_reporting/simple_mlp_image.json:
           cache: false
     plots:
-      - data/08_reporting/simple_mlp_image/scalars
+      - data/08_reporting/simple_mlp_image/scalars:
+          cache: false
 
   test_simple_image:
     cmd: >
