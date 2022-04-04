@@ -59,17 +59,18 @@ stages:
         --dropout_rate ${dropout_rate}
         --grad_clip ${gradient_clip_value}
         --model_dir data/06_models/simple_mlp_image
+        --log_dir data/08_reporting/simple_mlp_image
     deps:
       - logs/test_simple_mlp_image.log
       - data/01_raw/hateful_memes
       - hateful_memes/models/simple_mlp_image.py
     outs:
       - data/06_models/simple_mlp_image
-      - data/08_reporting/simple_mlp_image_dvc_plots
-    live:
-      data/08_reporting/simple_mlp_image:
-        summary: true
-        html: true   
+    metrics:
+      - data/08_reporting/simple_mlp_image.json:
+          cache: false
+    plots:
+      - data/08_reporting/simple_mlp_image
 
   test_simple_image:
     cmd: >

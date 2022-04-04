@@ -66,9 +66,11 @@ class SimpleMLPImageMaeMaeModel(BaseMaeMaeModel):
 @click.option('--epochs', default=100, help='Epochs')
 @click.option('--model_dir', default='/tmp', help='Model path')
 @click.option('--fast_dev_run', type=bool, default=False, help='Fast dev run')
+@click.option('--log_dir', default=None, help='Log dir')
 def main(batch_size, lr, dense_dim, grad_clip, 
-         dropout_rate, epochs, model_dir, fast_dev_run):
-    logger = DvcLiveLogger() if not fast_dev_run else None
+         dropout_rate, epochs, model_dir, fast_dev_run, log_dir):
+    """ shut up pylint """
+    logger = DvcLiveLogger(path=log_dir) if not fast_dev_run else None
     early_stopping = EarlyStopping(
             monitor='val/acc', 
             patience=10, 

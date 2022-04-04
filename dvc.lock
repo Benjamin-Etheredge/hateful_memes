@@ -72,17 +72,17 @@ stages:
   simple_mlp_image:
     cmd: "python hateful_memes/models/simple_mlp_image.py --batch_size 128 --lr 1e-05\
       \ --epochs 50 --dense_dim 64 --dropout_rate 0.1 --grad_clip 1.0 --model_dir\
-      \ data/06_models/simple_mlp_image\n"
+      \ data/06_models/simple_mlp_image --log_dir data/08_reporting/simple_mlp_image\n"
     deps:
     - path: data/01_raw/hateful_memes
       md5: 8844b5201ff55743fcd36c40d7352a88.dir
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/models/simple_mlp_image.py
-      md5: 7d0f85745cd43e363ef426e586845ba4
-      size: 3293
+      md5: 71ab3754f669033a501e13770de3148c
+      size: 3398
     - path: logs/test_simple_mlp_image.log
-      md5: 8004b36d03dc6378ce76920eadcf88e5
+      md5: 0622ccf1182901140a4676262c18230b
       size: 2559
     outs:
     - path: data/06_models/simple_mlp_image
@@ -90,13 +90,12 @@ stages:
       size: 115665641
       nfiles: 1
     - path: data/08_reporting/simple_mlp_image
-      md5: c2ea0dab49c70ad43008c6ef26d9a2be.dir
+      md5: b9fbfca161aed8e2218ae36acbf923a3.dir
       size: 33585
       nfiles: 6
-    - path: data/08_reporting/simple_mlp_image_dvc_plots
-      md5: 9bda2c06bacef40c2af394244f16842e.dir
-      size: 37904
-      nfiles: 1
+    - path: data/08_reporting/simple_mlp_image.json
+      md5: a9a9ace8ea3167ad6c23060655bcfcee
+      size: 215
   simple_image:
     cmd: "python hateful_memes/models/simple_image.py --batch_size 64 --lr 1e-05 --epochs\
       \ 50 --dense_dim 128 --dropout_rate 0.1 --grad_clip 1.0 --model_dir data/06_models/simple_image\
@@ -130,11 +129,11 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/models/simple_mlp_image.py
-      md5: 7d0f85745cd43e363ef426e586845ba4
-      size: 3293
+      md5: 71ab3754f669033a501e13770de3148c
+      size: 3398
     outs:
     - path: logs/test_simple_mlp_image.log
-      md5: 8004b36d03dc6378ce76920eadcf88e5
+      md5: 0622ccf1182901140a4676262c18230b
       size: 2559
   test_visual_bert:
     cmd: "python hateful_memes/models/visual_bert.py --batch_size 4  --fast_dev_run\
