@@ -70,11 +70,31 @@ stages:
       - data/08_reporting/simple_mlp_image.json:
           cache: false
     plots:
-      - data/08_reporting/simple_mlp_image/scalars/epoch.tsv
-      - data/08_reporting/simple_mlp_image/scalars/train/acc.tsv
-      - data/08_reporting/simple_mlp_image/scalars/train/loss.tsv
-      - data/08_reporting/simple_mlp_image/scalars/val/acc.tsv
-      - data/08_reporting/simple_mlp_image/scalars/val/loss.tsv
+      - data/08_reporting/simple_mlp_image/scalars/epoch.tsv:
+          cache: false
+          template: linear
+          x: epoch
+          y: step
+      - data/08_reporting/simple_mlp_image/scalars/train/acc.tsv:
+          cache: false
+          template: linear
+          x: epoch
+          y: acc
+      - data/08_reporting/simple_mlp_image/scalars/train/loss.tsv:
+          cache: false
+          template: linear
+          x: epoch
+          y: loss
+      - data/08_reporting/simple_mlp_image/scalars/val/acc.tsv:
+          cache: false
+          template: linear
+          x: epoch
+          y: acc
+      - data/08_reporting/simple_mlp_image/scalars/val/loss.tsv:
+          cache: false
+          template: linear
+          x: epoch
+          y: loss
 
   test_simple_image:
     cmd: >
