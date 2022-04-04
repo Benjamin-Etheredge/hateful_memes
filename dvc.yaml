@@ -1,13 +1,13 @@
 stages:
   test_visual_bert:
     cmd: >
-        python src/models/visual_bert.py
+        python hateful_memes/models/visual_bert.py
         --batch_size 4 
         --fast_dev_run True
         |& tee logs/test_visual_bert.log
     deps:
       - data/01_raw/hateful_memes
-      - src/models/visual_bert.py
+      - hateful_memes/models/visual_bert.py
     outs:
       - logs/test_visual_bert.log
 
@@ -15,7 +15,7 @@ stages:
     vars:
       - config/visual_bert.yaml
     cmd: >
-        python src/models/visual_bert.py
+        python hateful_memes/models/visual_bert.py
         --batch_size ${batch_size}
         --lr ${lr}
         --epochs ${epochs}
@@ -27,7 +27,7 @@ stages:
     deps:
       - logs/test_visual_bert.log
       - data/01_raw/hateful_memes
-      - src/models/visual_bert.py
+      - hateful_memes/models/visual_bert.py
     outs:
       - data/06_models/visual_bert
     live:
@@ -37,12 +37,12 @@ stages:
 
   test_simple_mlp_image:
     cmd: >
-        python src/models/simple_mlp_image.py 
+        python hateful_memes/models/simple_mlp_image.py 
         --fast_dev_run True
         |& tee logs/test_simple_mlp_image.log
     deps:
       - data/01_raw/hateful_memes
-      - src/models/simple_mlp_image.py
+      - hateful_memes/models/simple_mlp_image.py
     outs:
       - logs/test_simple_mlp_image.log
         
@@ -51,7 +51,7 @@ stages:
     vars:
       - config/simple_mlp_image.yaml
     cmd: >
-        python src/models/simple_mlp_image.py
+        python hateful_memes/models/simple_mlp_image.py
         --batch_size ${batch_size}
         --lr ${lr}
         --epochs ${epochs}
@@ -62,7 +62,7 @@ stages:
     deps:
       - logs/test_simple_mlp_image.log
       - data/01_raw/hateful_memes
-      - src/models/simple_mlp_image.py
+      - hateful_memes/models/simple_mlp_image.py
     outs:
       - data/06_models/simple_mlp_image
       - data/08_reporting/simple_mlp_image_dvc_plots
@@ -73,12 +73,12 @@ stages:
 
   test_simple_image:
     cmd: >
-        python src/models/simple_image.py 
+        python hateful_memes/models/simple_image.py 
         --fast_dev_run True
         |& tee logs/test_simple_image.log
     deps:
       - data/01_raw/hateful_memes
-      - src/models/simple_image.py
+      - hateful_memes/models/simple_image.py
     outs:
       - logs/test_simple_image.log
 
@@ -86,7 +86,7 @@ stages:
     vars: 
       - config/simple_image.yaml
     cmd: >
-        python src/models/simple_image.py
+        python hateful_memes/models/simple_image.py
         --batch_size ${batch_size}
         --lr ${lr}
         --epochs ${epochs}
@@ -98,7 +98,7 @@ stages:
     deps:
       - logs/test_simple_image.log
       - data/01_raw/hateful_memes
-      - src/models/simple_image.py
+      - hateful_memes/models/simple_image.py
     outs:
       - data/06_models/simple_image
     live:
@@ -106,11 +106,11 @@ stages:
         summary: true
         html: true
 
-  baseline_model:
-    cmd: python src/models/baseline_algorithm.py
+  baseline:
+    cmd: python hateful_memes/models/baseline_algorithm.py
     deps:
       - data/01_raw/hateful_memes
-      - src/models/baseline_algorithm.py
+      - hateful_memes/models/baseline_algorithm.py
     live:
       data/08_reporting/baseline:
         summary: true

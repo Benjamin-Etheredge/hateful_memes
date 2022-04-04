@@ -4,7 +4,7 @@ import torch
 import click
 from transformers import BertTokenizer, VisualBertModel
 import torchvision.models as models
-from data.hateful_memes import MaeMaeDataModule
+from hateful_memes.data.hateful_memes import MaeMaeDataModule
 from torch.nn import functional as F
 from torch import nn
 from dvclive.lightning import DvcLiveLogger

@@ -11,6 +11,7 @@ from torchvision import transforms
 from torchvision import transforms as T
 from icecream import ic
 from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning.callbacks import ModelCheckpoint
 
 
 
@@ -130,9 +131,6 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
         x = torch.squeeze(x)
         return x
 
-from data.hateful_memes import MaeMaeDataModule
-from pytorch_lightning.utilities.cli import LightningCLI
-from pytorch_lightning.callbacks import ModelCheckpoint
 if __name__ == "__main__":
     wandb_logger = WandbLogger(project="Hateful_Memes_Base", log_model=True)
     # wandb_logger = WandbLogger(log_model=True)

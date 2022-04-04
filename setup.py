@@ -12,10 +12,11 @@ setup(
     name = "hateful_memes",
     version = "0.0.1",
     author = "Benjamin Etheredge",
-    packages = find_packages(
-        where='src'
-    ),
-    package_dir={"": "src"},
+    packages=find_packages(include=['hateful_memes']),
+    # packages = find_packages(
+    #     where='hateful_memes'
+    # ),
+    # package_dir={"": "hateful_memes"},
     # author_email = "andrewjcarter@gmail.com",
     # description = ("An demonstration of how to create, document, and publish "
                                 #    "to the cheese shop a5 pypi.org."),

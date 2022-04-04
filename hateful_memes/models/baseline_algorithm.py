@@ -1,13 +1,14 @@
 import torch
 from pytorch_lightning import LightningModule, Trainer
 from pytorch_lightning.utilities.cli import LightningCLI
-from data.hateful_memes import MaeMaeDataModule
+from hateful_memes.data.hateful_memes import MaeMaeDataModule
 from dvclive.lightning import DvcLiveLogger
 import pytorch_lightning as pl
 from torch.nn import functional as F
 
 
 class Base(LightningModule):
+    """ Simple base model """
 
     def validation_step(self, batch, batch_idx):
         loss, acc = self._shared_step(batch)
@@ -34,6 +35,7 @@ class Base(LightningModule):
     
 
 class Affirmative(Base):
+    """ Return 1 for all inputs """
     def forward(self, x):
         batch_size = x.size(0)
         return torch.ones(batch_size)
@@ -51,9 +53,7 @@ class Affirmative(Base):
 
 if __name__ == '__main__':
     pl.seed_everything(42)
-    logger = DvcLiveLogger(
-        # path=save_dir,
-    )
+    logger = DvcLiveLogger()
 
     trainer = pl.Trainer(
         gpus=0, 
