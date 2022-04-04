@@ -72,13 +72,13 @@ def main(batch_size, lr, dense_dim, grad_clip,
     """ shut up pylint """
     logger = DvcLiveLogger(path=log_dir) if not fast_dev_run else None
     early_stopping = EarlyStopping(
-            monitor='val/acc', 
+            monitor='val_acc', 
             patience=10, 
             mode='max', 
             verbose=True)
 
     checkpoint_callback = ModelCheckpoint(
-        monitor="val/acc", 
+        monitor="val_acc", 
         mode="max", 
         dirpath=model_dir, 
         filename="{epoch}-{step}-{val_acc:.4f}",
