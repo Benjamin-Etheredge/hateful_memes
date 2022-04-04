@@ -92,10 +92,21 @@ stages:
     - path: data/08_reporting/simple_mlp_image.json
       md5: a9a9ace8ea3167ad6c23060655bcfcee
       size: 215
-    - path: data/08_reporting/simple_mlp_image/scalars
-      md5: 157f4534e7aa2e2eedc816b0d32328f2.dir
-      size: 2731
-      nfiles: 5
+    - path: data/08_reporting/simple_mlp_image/scalars/epoch.tsv
+      md5: b732e70a5ba89f7e2be03ed9e197c2ca
+      size: 581
+    - path: data/08_reporting/simple_mlp_image/scalars/train/acc.tsv
+      md5: fc9d58b6fe5eed7e156ba3b1e53d543e
+      size: 539
+    - path: data/08_reporting/simple_mlp_image/scalars/train/loss.tsv
+      md5: 0005567a3571ef49bb354f8eb7af19a0
+      size: 538
+    - path: data/08_reporting/simple_mlp_image/scalars/val/acc.tsv
+      md5: 755a1232cd4daa11d1b0f0010de9fc87
+      size: 537
+    - path: data/08_reporting/simple_mlp_image/scalars/val/loss.tsv
+      md5: e35f97dd918a581ed5b9771e8e010eb5
+      size: 536
   simple_image:
     cmd: "python hateful_memes/models/simple_image.py --batch_size 64 --lr 1e-05 --epochs\
       \ 50 --dense_dim 128 --dropout_rate 0.1 --grad_clip 1.0 --model_dir data/06_models/simple_image\
