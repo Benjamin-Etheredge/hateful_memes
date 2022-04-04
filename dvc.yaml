@@ -100,16 +100,18 @@ stages:
         --grad_clip ${gradient_clip_value}
         --model_dir data/06_models/simple_image
         --batch_norm ${batch_norm}
+        --log_dir data/08_reporting/simple_image
     deps:
       - logs/test_simple_image.log
       - data/01_raw/hateful_memes
       - hateful_memes/models/simple_image.py
     outs:
       - data/06_models/simple_image
-    live:
-      data/08_reporting/simple_image:
-        summary: true
-        html: true
+    metrics:
+      - data/08_reporting/simple_image.json:
+          cache: false
+    plots:
+      - data/08_reporting/simple_image/scalars
 
   baseline:
     cmd: python hateful_memes/models/baseline_algorithm.py
