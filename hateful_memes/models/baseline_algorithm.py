@@ -51,9 +51,10 @@ class Affirmative(Base):
 #         return torch.zeros(batch_size)
        
 
+from pytorch_lightning.loggers import WandbLogger
 if __name__ == '__main__':
     pl.seed_everything(42)
-    logger = DvcLiveLogger()
+    logger = WandbLogger(project="baseline") 
 
     trainer = pl.Trainer(
         gpus=0, 

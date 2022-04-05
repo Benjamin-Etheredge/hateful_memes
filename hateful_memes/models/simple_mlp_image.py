@@ -55,7 +55,7 @@ class SimpleMLPImageMaeMaeModel(BaseMaeMaeModel):
         x = torch.squeeze(x)
         return x
 
-
+from pytorch_lightning.loggers import WandbLogger
 # Model to process text
 @click.command()
 @click.option('--batch_size', default=32, help='Batch size')
@@ -66,19 +66,18 @@ class SimpleMLPImageMaeMaeModel(BaseMaeMaeModel):
 @click.option('--epochs', default=100, help='Epochs')
 @click.option('--model_dir', default='/tmp', help='Model path')
 @click.option('--fast_dev_run', type=bool, default=False, help='Fast dev run')
-@click.option('--log_dir', default=None, help='Log dir')
 def main(batch_size, lr, dense_dim, grad_clip, 
-         dropout_rate, epochs, model_dir, fast_dev_run, log_dir):
+         dropout_rate, epochs, model_dir, fast_dev_run):
     """ shut up pylint """
-    logger = DvcLiveLogger(path=log_dir) if not fast_dev_run else None
+    logger = WandbLogger(project="simple-mlp-image") if not fast_dev_run else None
     early_stopping = EarlyStopping(
-            monitor='val_acc', 
+            monitor='val/acc', 
             patience=10, 
             mode='max', 
             verbose=True)
 
     checkpoint_callback = ModelCheckpoint(
-        monitor="val_acc", 
+        monitor="val/acc", 
         mode="max", 
         dirpath=model_dir, 
         filename="{epoch}-{step}-{val_acc:.4f}",

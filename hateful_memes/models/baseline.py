@@ -132,7 +132,7 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
         return x
 
 if __name__ == "__main__":
-    wandb_logger = WandbLogger(project="Hateful_Memes_Base", log_model=True)
+    # wandb_logger = WandbLogger(project="Hateful_Memes_Base", log_model=True)
     # wandb_logger = WandbLogger(log_model=True)
     # cli = LightningCLI(
     #     model_class=MaeMaeModel, 
