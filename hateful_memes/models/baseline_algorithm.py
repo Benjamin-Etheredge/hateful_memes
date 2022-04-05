@@ -62,5 +62,5 @@ if __name__ == '__main__':
         logger=logger,
     )
     
-    trainer.validate(Affirmative(), datamodule=MaeMaeDataModule(batch_size=32))
+    trainer.validate(Affirmative(), datamodule=MaeMaeDataModule(batch_size=8))
 

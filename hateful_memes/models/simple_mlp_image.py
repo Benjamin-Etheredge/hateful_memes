@@ -93,17 +93,17 @@ def main(batch_size, lr, dense_dim, grad_clip,
         logger=logger,
         max_epochs=epochs,
         gradient_clip_val=grad_clip,
-        gpus=1,
+        gpus=1 if torch.cuda.is_available() else 0,
         fast_dev_run=fast_dev_run, 
         callbacks=[checkpoint_callback, early_stopping],
         )
 
     # TODO should I move module inside lightning module?
     trainer.fit(
-        model, 
+        model,
         datamodule=MaeMaeDataModule(batch_size=batch_size,
-            train_num_workers=max(1, os.cpu_count()//2),
-            val_num_workers=max(1, os.cpu_count()//2)))
+            train_num_workers=max(1, min(8, os.cpu_count()//2)),
+            val_num_workers=max(1, min(8, os.cpu_count()//2))))
 
 if __name__ == "__main__":
     pl.seed_everything(42)

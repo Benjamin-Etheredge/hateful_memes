@@ -35,6 +35,9 @@ jobs:
       - name: Pull everything else
         run: dvc pull 
 
+      - name: Test Models
+        run: scripts/test_models.sh
+
       - name: Train VisualBERT
         continue-on-error: true
         run: |

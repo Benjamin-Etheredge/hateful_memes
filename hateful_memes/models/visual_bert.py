@@ -199,6 +199,7 @@ class VisualBertModule(pl.LightningModule):
 @click.option('--fast_dev_run', default=False, help='Fast dev run')
 def main(batch_size, lr, max_length, dense_dim, dropout_rate, 
          epochs, model_dir, gradient_clip_value, fast_dev_run):
+    """ train model """
 
     logger = WandbLogger(project="visual-bert") if not fast_dev_run else None
     checkpoint_callback = ModelCheckpoint(
@@ -215,7 +216,7 @@ def main(batch_size, lr, max_length, dense_dim, dropout_rate,
             verbose=True)
 
     trainer = pl.Trainer(
-        gpus=1, 
+        gpus=1 if torch.cuda.is_available() else 0,
         max_epochs=epochs, 
         logger=logger,
         # logger=wandb_logger, 

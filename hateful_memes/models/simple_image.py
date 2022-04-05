@@ -119,7 +119,7 @@ def main(batch_size, lr, dense_dim, grad_clip, dropout_rate,
         logger=logger,
         max_epochs=epochs,
         gradient_clip_val=grad_clip,
-        gpus=1,
+        gpus=1 if torch.cuda.is_available() else 0,
         fast_dev_run=fast_dev_run, 
         callbacks=[checkpoint_callback, early_stopping])
     # TODO should I move module inside lightning module?
@@ -127,8 +127,8 @@ def main(batch_size, lr, dense_dim, grad_clip, dropout_rate,
         model, 
         datamodule=MaeMaeDataModule(
             batch_size=batch_size, 
-            train_num_workers=max(1, min(os.cpu_count()//2, 16)),
-            val_num_workers=max(1, min(os.cpu_count()//2, 16))
+            train_num_workers=max(1, min(os.cpu_count()//2, 8)),
+            val_num_workers=max(1, min(os.cpu_count()//2, 8))
         )
     )
 
