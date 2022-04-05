@@ -10,6 +10,7 @@ from torch import nn
 from dvclive.lightning import DvcLiveLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+from pytorch_lightning.loggers import WandbLogger
 from icecream import ic
 # ic.disable()
 
@@ -199,7 +200,7 @@ class VisualBertModule(pl.LightningModule):
 def main(batch_size, lr, max_length, dense_dim, dropout_rate, 
          epochs, model_dir, gradient_clip_value, fast_dev_run):
 
-    logger = DvcLiveLogger() if not fast_dev_run else DvcLogger()
+    logger = WandbLogger(project="visual-bert") if not fast_dev_run else None
     checkpoint_callback = ModelCheckpoint(
         monitor="val/acc", 
         mode="max", 
