@@ -41,19 +41,19 @@ jobs:
         # continue-on-error: true
         run: |
           dvc repro visual_bert
-          dvc push visual_bert
+          dvc push -d visual_bert
 
       - name: Train Simple Image Model
         # continue-on-error: true
         run: |
           dvc repro simple_image
-          dvc push simple_image
+          dvc push -d simple_image
 
       - name: Train Simple MLP Image Model
         # continue-on-error: true
         run: |
           dvc repro simple_mlp_image
-          dvc push simple_mlp_image
+          dvc push -d simple_mlp_image
       
       - name: Commit run
         run: |
