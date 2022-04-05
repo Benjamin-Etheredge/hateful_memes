@@ -2,6 +2,9 @@ name: Train all models
 on: 
     workflow_dispatch:
     push:
+defaults:
+    run:
+      shell: bash
 jobs:
   train:
     runs-on: [self-hosted, gpu]
@@ -15,9 +18,7 @@ jobs:
         WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
         repo_token: ${{ secrets.GITHUB_TOKEN }}
       options: --gpus all --shm-size=8G
-      defaults:
-        run:
-          shell: bash
+
     timeout-minutes: 1440  # Increased job runtime since ML is slow
     steps:
       - uses: actions/checkout@v2
