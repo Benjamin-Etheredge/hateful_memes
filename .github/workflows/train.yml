@@ -2,9 +2,9 @@ name: Train all models
 on: 
     workflow_dispatch:
     push:
-defaults:
-    run:
-      shell: bash
+# defaults:
+#     run:
+#       shell: bash
 jobs:
   train:
     runs-on: [self-hosted, gpu]
@@ -22,11 +22,13 @@ jobs:
     timeout-minutes: 1440  # Increased job runtime since ML is slow
     steps:
       - uses: actions/checkout@v2
+
       - name: Branch name
         run: echo running on branch ${GITHUB_REF##*/}
+
       - name: Install requirements
         run: |
-          pip install -r requirements.txt --no-cache
+          pip install -r requirements.txt
           pip install -e .
 
       - name: Pull data
