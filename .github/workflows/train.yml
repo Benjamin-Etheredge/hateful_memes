@@ -28,7 +28,7 @@ jobs:
 
       - name: Install requirements
         run: |
-          pip install -r requirements.txt
+          pip install -r requirements.txt || pip install -r requirements.txt --no-cache
           pip install -e .
 
       - name: Pull data
