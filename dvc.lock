@@ -2,34 +2,34 @@ schema: '2.0'
 stages:
   test_visual_bert:
     cmd: "python hateful_memes/models/visual_bert.py --batch_size 4  --fast_dev_run\
-      \ True |& tee logs/test_visual_bert.log\n"
+      \ True | tee logs/test_visual_bert.log 2>&1\n"
     deps:
     - path: data/01_raw/hateful_memes
       md5: 8844b5201ff55743fcd36c40d7352a88.dir
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/models/visual_bert.py
-      md5: ceb3604e879b92f43b128baea1f0a245
-      size: 8500
+      md5: efbff69c281e0de05f3baf9adbd6c74d
+      size: 8621
     outs:
     - path: logs/test_visual_bert.log
-      md5: 8d04ba0d34db608b62daf92721723206
-      size: 834
+      md5: d41d8cd98f00b204e9800998ecf8427e
+      size: 0
   test_simple_image:
-    cmd: "python hateful_memes/models/simple_image.py  --fast_dev_run True |& tee\
-      \ logs/test_simple_image.log\n"
+    cmd: "python hateful_memes/models/simple_image.py  --fast_dev_run True | tee logs/test_simple_image.log\
+      \ 2>&1\n"
     deps:
     - path: data/01_raw/hateful_memes
       md5: 8844b5201ff55743fcd36c40d7352a88.dir
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/models/simple_image.py
-      md5: 173e4753dcda4a67ab6d8788daa4c4e2
-      size: 4139
+      md5: 4fa38493d289aaa094110fa1adb3d324
+      size: 4173
     outs:
     - path: logs/test_simple_image.log
-      md5: 62961549ca0b66f036a47d94d60f0699
-      size: 2649
+      md5: d41d8cd98f00b204e9800998ecf8427e
+      size: 0
   simple_image:
     cmd: "python hateful_memes/models/simple_image.py --batch_size 64 --lr 1e-05 --epochs\
       \ 50 --dense_dim 128 --dropout_rate 0.1 --grad_clip 1.0 --model_dir data/06_models/simple_image\
