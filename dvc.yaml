@@ -30,10 +30,6 @@ stages:
       - hateful_memes/models/visual_bert.py
     outs:
       - data/06_models/visual_bert
-    live:
-      data/08_reporting/visual_bert:
-        summary: true
-        html: true
 
   test_simple_mlp_image:
     cmd: >
@@ -46,7 +42,6 @@ stages:
     outs:
       - logs/test_simple_mlp_image.log
         
-
   simple_mlp_image:
     vars:
       - config/simple_mlp_image.yaml
@@ -59,42 +54,13 @@ stages:
         --dropout_rate ${dropout_rate}
         --grad_clip ${gradient_clip_value}
         --model_dir data/06_models/simple_mlp_image
-        # --log_dir data/08_reporting/simple_mlp_image
     deps:
       - logs/test_simple_mlp_image.log
       - data/01_raw/hateful_memes
       - hateful_memes/models/simple_mlp_image.py
+      - hateful_memes/models/baseline.py
     outs:
       - data/06_models/simple_mlp_image
-    metrics:
-      - dvclive.json
-    plots:
-      - dvclive/scalars
-      # - data/08_reporting/simple_mlp_image/scalars/epoch.tsv:
-      #     cache: false
-      #     template: linear
-      #     x: epoch
-      #     y: step
-      # - data/08_reporting/simple_mlp_image/scalars/train_acc.tsv:
-      #     cache: false
-      #     template: linear
-      #     x: step
-      #     y: train_acc
-      # - data/08_reporting/simple_mlp_image/scalars/train_loss.tsv:
-      #     cache: false
-      #     template: linear
-      #     x: step
-      #     y: train_loss
-      # - data/08_reporting/simple_mlp_image/scalars/val_acc.tsv:
-      #     cache: false
-      #     template: linear
-      #     x: step
-      #     y: val_acc
-      # - data/08_reporting/simple_mlp_image/scalars/val_loss.tsv:
-      #     cache: false
-      #     template: linear
-      #     x: step
-      #     y: val_loss
 
   test_simple_image:
     cmd: >
@@ -120,26 +86,17 @@ stages:
         --grad_clip ${gradient_clip_value}
         --model_dir data/06_models/simple_image
         --batch_norm ${batch_norm}
-        --log_dir data/08_reporting/simple_image
     deps:
       - logs/test_simple_image.log
       - data/01_raw/hateful_memes
       - hateful_memes/models/simple_image.py
+      - hateful_memes/models/baseline.py
     outs:
       - data/06_models/simple_image
-    metrics:
-      - data/08_reporting/simple_image.json:
-          cache: false
-    plots:
-      - data/08_reporting/simple_image/scalars
 
   baseline:
     cmd: python hateful_memes/models/baseline_algorithm.py
     deps:
       - data/01_raw/hateful_memes
       - hateful_memes/models/baseline_algorithm.py
-    live:
-      data/08_reporting/baseline:
-        summary: true
-        html: false
 
