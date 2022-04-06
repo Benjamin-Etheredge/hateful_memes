@@ -13,7 +13,7 @@ stages:
       size: 8621
     outs:
     - path: logs/test_visual_bert.log
-      md5: b46ca6897a71c2d591e55748c98e7c65
+      md5: 52e8e9b8d480f1a79557d0edc64df702
       size: 997
   test_simple_image:
     cmd: "python -m hateful_memes.models.simple_image --fast_dev_run True | tee logs/test_simple_image.log\
@@ -28,7 +28,7 @@ stages:
       size: 4173
     outs:
     - path: logs/test_simple_image.log
-      md5: 1ca7f3dd1913fa2188adbdf59dd91046
+      md5: f29aac91a2783dbf437beef51de1bef9
       size: 1002
   simple_image:
     cmd: "python -m hateful_memes.models.simple_image --batch_size 64 --lr 1e-05 --epochs\
@@ -46,11 +46,11 @@ stages:
       md5: 4fa38493d289aaa094110fa1adb3d324
       size: 4173
     - path: logs/test_simple_image.log
-      md5: 1ca7f3dd1913fa2188adbdf59dd91046
+      md5: f29aac91a2783dbf437beef51de1bef9
       size: 1002
     outs:
     - path: data/06_models/simple_image
-      md5: 3e1b7d14285399d857c27f5666295f25.dir
+      md5: 121e36240e90831a490dcb343c1134bb.dir
       size: 66951667
       nfiles: 1
   test_simple_mlp_image:
@@ -66,8 +66,8 @@ stages:
       size: 3444
     outs:
     - path: logs/test_simple_mlp_image.log
-      md5: e6ba77b01e53520ee69485d8916d0392
-      size: 3063
+      md5: ecc68450c5a651ed0fc21fbfd4379f0a
+      size: 2541
   simple_mlp_image:
     cmd: "python -m hateful_memes.models.simple_mlp_image --batch_size 128 --lr 1e-05\
       \ --epochs 50 --dense_dim 64 --dropout_rate 0.1 --grad_clip 1.0 --model_dir\
@@ -84,8 +84,8 @@ stages:
       md5: 373fedf1b7204d14120e850a2b61b43f
       size: 3444
     - path: logs/test_simple_mlp_image.log
-      md5: e6ba77b01e53520ee69485d8916d0392
-      size: 3063
+      md5: ecc68450c5a651ed0fc21fbfd4379f0a
+      size: 2541
     outs:
     - path: data/06_models/simple_mlp_image
       md5: cd5a2c7d2d61bb6a5173f1dd1ca23a3c.dir
@@ -114,10 +114,10 @@ stages:
       md5: efbff69c281e0de05f3baf9adbd6c74d
       size: 8621
     - path: logs/test_visual_bert.log
-      md5: b46ca6897a71c2d591e55748c98e7c65
+      md5: 52e8e9b8d480f1a79557d0edc64df702
       size: 997
     outs:
     - path: data/06_models/visual_bert
-      md5: d53bc9b6b3187162e14d6037d13d885f.dir
+      md5: 4a760a13a814f701caf47716b6758f6c.dir
       size: 1623290983
       nfiles: 1
