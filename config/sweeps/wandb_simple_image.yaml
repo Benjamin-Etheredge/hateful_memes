@@ -1,4 +1,9 @@
-program: hateful_memes/models/simple_image.py
+command:
+  - ${env}
+  - ${interpreter}
+  - -m
+  - hateful_memes.models.simple_image
+  - ${args}
 project: simple-image
 method: random
 metric:
