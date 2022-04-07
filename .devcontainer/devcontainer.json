@@ -47,6 +47,10 @@
 	// "runArgs": ["--gpus=all", "--env-file=.env", "--shm-size=8g"],
 	"runArgs": ["--env-file=.env", "--shm-size=512m"],
 
+    "containerEnv": {
+        "WANDB_ENTITY": "meme-team"
+    },
+
 	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
 	"remoteUser": "vscode",
 	"features": {

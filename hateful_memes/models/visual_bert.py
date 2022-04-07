@@ -5,6 +5,7 @@ import click
 from transformers import BertTokenizer, VisualBertModel
 import torchvision.models as models
 from hateful_memes.data.hateful_memes import MaeMaeDataModule
+from hateful_memes.utils import get_project_logger
 from torch.nn import functional as F
 from torch import nn
 from dvclive.lightning import DvcLiveLogger
@@ -44,6 +45,7 @@ from icecream import ic
 
 
 class VisualBertModule(pl.LightningModule):
+    """ Visual Bert Model """
 
     def __init__(
         self, 
@@ -53,6 +55,7 @@ class VisualBertModule(pl.LightningModule):
         dropout_rate=0.0,
         dense_dim=256,
     ):
+        """ Visual Bert Model """
         super().__init__()
         # self.hparams = hparams
         self.model = VisualBertModel.from_pretrained("uclanlp/visualbert-vqa-coco-pre")
@@ -149,25 +152,11 @@ class VisualBertModule(pl.LightningModule):
                 "visual_attention_mask": torch.ones(image_x.shape[:-1], dtype=torch.float).to(self.device),
             }
         )
-        # for key,value in inputs.items():
-        #     ic(key, value.shape)
 
-
-        # ic(inputs)
-        # with torch.no_grad():
         x = self.model(**inputs)
         x = x.pooler_output
         x = x.view(x.shape[0], -1)
-        # ic(x.shape)
 
-        # ic(x.last_hidden_state.shape)
-        # ic(x.pooler_output.shape)
-
-
-        # x = x.mean(dim=1)
-        # x = x.unsqueeze(1)
-        # ic(x.shape)
-        # ic(x.shape)
         x = self.fc1(x)
         x = F.relu(x)
         x = F.dropout(input=x, p=self.dropout_rate)
@@ -175,16 +164,12 @@ class VisualBertModule(pl.LightningModule):
         x = self.fc2(x)
         x = F.relu(x)
         x = F.dropout(input=x, p=self.dropout_rate)
-        # ic(x.shape)
         x = self.fc3(x)
         x.squeeze_()
-        # ic(x.shape)
-        # x = torch.sigmoid(x)
         return x
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=self.lr)
-
 
 
 @click.command()
@@ -197,11 +182,14 @@ class VisualBertModule(pl.LightningModule):
 @click.option('--model_dir', default='/tmp', help='Save dir')
 @click.option('--gradient_clip_value', default=1.0, help='Gradient clip')
 @click.option('--fast_dev_run', default=False, help='Fast dev run')
+@click.option('--log_dir', default="data/08_reporting/visual_bert", help='Log dir')
+@click.option('--project', default="visual-bert", help='Project')
 def main(batch_size, lr, max_length, dense_dim, dropout_rate, 
-         epochs, model_dir, gradient_clip_value, fast_dev_run):
+         epochs, model_dir, gradient_clip_value, fast_dev_run, 
+         log_dir, project):
     """ train model """
 
-    logger = WandbLogger(project="visual-bert") if not fast_dev_run else None
+    logger = get_project_logger(project=project, save_dir=log_dir, offline=fast_dev_run)
     checkpoint_callback = ModelCheckpoint(
         monitor="val/acc", 
         mode="max", 
