@@ -5,13 +5,49 @@ on:
   workflow_dispatch:
     inputs:
       sweep_id:
-        description: "Sweep Info from wandb - {team}/{project}/{run_name}"
+        description: "Sweep Info from wandb - meme-team/{project}/{sweep_id}"
         required: true
-
-concurrency: hyper
+    gpu_size:
+        description: 'GPU Size'
+        required: true
+        default: 'large' 
+        type: choice
+        options:
+        - small
+        - large
 
 jobs:
-  sweeper:
+  small_gpu_sweeper:
+    if:  ${{ github.event.inputs.gpu_size == 'small' }} 
+    runs-on: [self-hosted,small-gpu]
+    timeout-minutes: 1440  # Increased job runtime since ML is slow
+    container:
+      image: docker://iterativeai/cml:0-dvc2-base1-gpu
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.MINIO_AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.MINIO_AWS_SECRET_ACCESS_KEY }}
+        WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+      options: --gpus all --shm-size=8G
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }} # https://github.com/stefanzweifel/git-auto-commit-action
+
+      - name: Install requirements
+        run: pip install -r requirements.txt --no-cache-dir
+
+      - name: Install as local package
+        run: pip install -e .
+
+      - name: pull_data
+        run: dvc pull data/01_raw/hateful_memes
+
+      - name: Sweep
+        run: wandb agent ${{ github.event.inputs.sweep_id }}
+
+  large_gpu_sweeper:
+    if:  ${{ github.event.inputs.gpu_size == 'large' }} 
     runs-on: [self-hosted,gpu]
     timeout-minutes: 1440  # Increased job runtime since ML is slow
     container:
@@ -37,4 +73,4 @@ jobs:
         run: dvc pull data/01_raw/hateful_memes
 
       - name: Sweep
-        run: wandb agent sweep ${{ inputs.sweep_id }}
+        run: wandb agent ${{ github.event.inputs.sweep_id }}
