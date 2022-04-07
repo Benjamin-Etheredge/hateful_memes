@@ -5,8 +5,8 @@ on:
       paths:
         - '**.js'
         - '**.py'
-        - config/*yaml
-        - dvc.yaml
+        - 'config/*yaml'
+        - 'dvc.yaml'
 # defaults:
 #     run:
 #       shell: bash
