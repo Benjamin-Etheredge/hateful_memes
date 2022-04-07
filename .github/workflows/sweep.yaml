@@ -37,4 +37,4 @@ jobs:
         run: dvc pull data/01_raw/hateful_memes
 
       - name: Sweep
-        run: wandb agent ${{ inputs.sweep_id }}
+        run: wandb agent ${{ github.event.inputs.sweep_id }}
