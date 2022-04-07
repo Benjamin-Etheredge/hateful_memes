@@ -7,6 +7,7 @@ import os
 
 from hateful_memes.models.baseline import BaseMaeMaeModel
 from hateful_memes.data.hateful_memes import MaeMaeDataModule
+from hateful_memes.utils import get_project_logger
 from pytorch_lightning.utilities.cli import LightningCLI
 from pytorch_lightning.callbacks import ModelCheckpoint
 from torch import nn
@@ -91,10 +92,12 @@ class SimpleImageMaeMaeModel(BaseMaeMaeModel):
 @click.option('--epochs', default=100, help='Epochs')
 @click.option('--model_dir', default='/tmp', help='Model path')
 @click.option('--fast_dev_run', default=False, help='Fast dev run')
+@click.option('--log_dir', default="data/08_reporting/simple_image", help='Log dir')
+@click.option('--project', default="simple-image", help='Project')
 def main(batch_size, lr, dense_dim, grad_clip, dropout_rate, 
-         batch_norm, epochs, model_dir, fast_dev_run):
+         batch_norm, epochs, model_dir, fast_dev_run, log_dir, project):
     """ Train model """
-    logger = WandbLogger(project="simple-image") if not fast_dev_run else None
+    logger = get_project_logger(project=project, save_dir=log_dir, offline=fast_dev_run)
 
     checkpoint_callback = ModelCheckpoint(
         monitor="val/acc", 

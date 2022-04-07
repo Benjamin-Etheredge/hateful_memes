@@ -4,6 +4,8 @@ stages:
         python -m hateful_memes.models.visual_bert
         --batch_size 4 
         --fast_dev_run True
+        --log_dir logs/test_simple_visual_bert_image_metrics
+        --project test
         | tee logs/test_visual_bert.log 2>&1
     deps:
       - data/01_raw/hateful_memes
@@ -35,6 +37,8 @@ stages:
     cmd: >
         python -m hateful_memes.models.simple_mlp_image
         --fast_dev_run True
+        --log_dir logs/test_simple_mlp_image_metrics
+        --project test
         > logs/test_simple_mlp_image.log 2>&1
     deps:
       - data/01_raw/hateful_memes
@@ -65,6 +69,8 @@ stages:
   test_simple_image:
     cmd: >
         python -m hateful_memes.models.simple_image
+        --log_dir logs/test_simple_image_metrics
+        --project test
         --fast_dev_run True
         | tee logs/test_simple_image.log 2>&1
     deps:

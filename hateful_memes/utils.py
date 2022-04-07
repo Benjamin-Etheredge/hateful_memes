@@ -1,9 +1,9 @@
-from pytorch_lightning.loggers import WandbLogger, LightningLoggerBase
-from typing import List
-class MultiLogger(LightningLoggerBase):
-    def __init__(
-        self, 
-        loggers: List[LightningLoggerBase], 
-        *args, **kwargs
-    ):
-        self.loggers = loggers
+from pytorch_lightning.loggers import WandbLogger, CSVLogger
+
+def get_project_logger(*, project=None, save_dir=None, offline=False):
+    """ Creates a logger for the project."""
+    return [
+        WandbLogger(project=project, offline=offline),
+        CSVLogger(save_dir=save_dir)
+    ]
+
