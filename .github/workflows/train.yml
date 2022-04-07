@@ -2,6 +2,9 @@ name: Train all models
 on: 
     workflow_dispatch:
     push:
+      - '**.py'
+      - config/*yaml
+      - dvc.yaml
 # defaults:
 #     run:
 #       shell: bash
