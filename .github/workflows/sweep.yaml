@@ -18,8 +18,8 @@ on:
 
 jobs:
   small_gpu_sweeper:
-    if:  ${{ github.event.inputs.gpu_size == 'true' }} 
-    runs-on: [self-hosted,gpu]
+    if:  ${{ github.event.inputs.gpu_size == 'small' }} 
+    runs-on: [self-hosted,small-gpu]
     timeout-minutes: 1440  # Increased job runtime since ML is slow
     container:
       image: docker://iterativeai/cml:0-dvc2-base1-gpu
@@ -45,7 +45,9 @@ jobs:
 
       - name: Sweep
         run: wandb agent ${{ github.event.inputs.sweep_id }}
-  sweeper:
+
+  large_gpu_sweeper:
+    if:  ${{ github.event.inputs.gpu_size == 'large' }} 
     runs-on: [self-hosted,gpu]
     timeout-minutes: 1440  # Increased job runtime since ML is slow
     container:
