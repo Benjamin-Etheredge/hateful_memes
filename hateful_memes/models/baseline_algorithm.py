@@ -1,6 +1,7 @@
 import torch
 from pytorch_lightning import LightningModule, Trainer
 from pytorch_lightning.utilities.cli import LightningCLI
+from hateful_memes.utils import get_project_logger
 from hateful_memes.data.hateful_memes import MaeMaeDataModule
 from dvclive.lightning import DvcLiveLogger
 import pytorch_lightning as pl
@@ -41,7 +42,6 @@ class Affirmative(Base):
         return torch.ones(batch_size)
     
 
-
 # class Negative(Base):
 #     def __init__(self):
 #         super().__init__()
@@ -54,7 +54,7 @@ class Affirmative(Base):
 from pytorch_lightning.loggers import WandbLogger
 if __name__ == '__main__':
     pl.seed_everything(42)
-    logger = WandbLogger(project="baseline") 
+    logger = get_project_logger(name='baseline_algorithm', save_dir='data/08_reporting/baseline', offline=True)
 
     trainer = pl.Trainer(
         gpus=0, 
