@@ -39,7 +39,7 @@ stages:
         --fast_dev_run True
         --log_dir logs/test_simple_mlp_image_metrics
         --project test
-        > logs/test_simple_mlp_image.log 2>&1
+        | tee logs/test_simple_mlp_image.log 2>&1
     deps:
       - data/01_raw/hateful_memes
       - hateful_memes/models/simple_mlp_image.py
