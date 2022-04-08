@@ -10,11 +10,11 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/models/visual_bert.py
-      md5: fbfb97867b185f970a567e6642d0316c
-      size: 7112
+      md5: 7e022936f7a1e219f179d4338180670e
+      size: 7170
     outs:
     - path: logs/test_visual_bert.log
-      md5: e902403ff9ba2e231fb98f5989882f1f
+      md5: 7ccb8f2fec69be7156194e182177e0b9
       size: 1043
   test_simple_image:
     cmd: "python -m hateful_memes.models.simple_image --log_dir logs/test_simple_image_metrics\
@@ -56,7 +56,7 @@ stages:
       nfiles: 1
   test_simple_mlp_image:
     cmd: "python -m hateful_memes.models.simple_mlp_image --fast_dev_run True --log_dir\
-      \ logs/test_simple_mlp_image_metrics --project test > logs/test_simple_mlp_image.log\
+      \ logs/test_simple_mlp_image_metrics --project test | tee logs/test_simple_mlp_image.log\
       \ 2>&1\n"
     deps:
     - path: data/01_raw/hateful_memes
@@ -68,8 +68,8 @@ stages:
       size: 3648
     outs:
     - path: logs/test_simple_mlp_image.log
-      md5: 1e68ff7b98314ed2671cf9dd23160093
-      size: 3654
+      md5: 76922160830897369d25b63f17ca2409
+      size: 1043
   simple_mlp_image:
     cmd: "python -m hateful_memes.models.simple_mlp_image --batch_size 128 --lr 1e-05\
       \ --epochs 50 --dense_dim 64 --dropout_rate 0.1 --grad_clip 1.0 --model_dir\
@@ -86,8 +86,8 @@ stages:
       md5: 28b51986c8ab9516c2816c06bb426474
       size: 3648
     - path: logs/test_simple_mlp_image.log
-      md5: 1e68ff7b98314ed2671cf9dd23160093
-      size: 3654
+      md5: 76922160830897369d25b63f17ca2409
+      size: 1043
     outs:
     - path: data/06_models/simple_mlp_image
       md5: cd5a2c7d2d61bb6a5173f1dd1ca23a3c.dir
@@ -113,13 +113,13 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/models/visual_bert.py
-      md5: e908e23c157f5ade916216742ae473c3
-      size: 8516
+      md5: 7e022936f7a1e219f179d4338180670e
+      size: 7170
     - path: logs/test_visual_bert.log
-      md5: ec344c1870a1073412f8c3dc0b3f6325
-      size: 76
+      md5: 7ccb8f2fec69be7156194e182177e0b9
+      size: 1043
     outs:
     - path: data/06_models/visual_bert
-      md5: 501b7a88a88fd5a8f1887ced49963863.dir
-      size: 1623290983
+      md5: d2e64cfb439e7f01e5783165ed5febb6.dir
+      size: 1620144243
       nfiles: 1
