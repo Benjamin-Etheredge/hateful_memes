@@ -42,13 +42,10 @@ class Affirmative(Base):
         return torch.ones(batch_size)
     
 
-# class Negative(Base):
-#     def __init__(self):
-#         super().__init__()
-#         self.save_hyperparameters()
-#     def forward(self, x):
-#         batch_size = x.size(0)
-#         return torch.zeros(batch_size)
+class Negative(Base):
+    def forward(self, x):
+        batch_size = x.size(0)
+        return torch.zeros(batch_size)
        
 
 from pytorch_lightning.loggers import WandbLogger
@@ -62,5 +59,5 @@ if __name__ == '__main__':
         logger=logger,
     )
     
-    trainer.validate(Affirmative(), datamodule=MaeMaeDataModule(batch_size=8))
+    trainer.validate(Negative(), datamodule=MaeMaeDataModule(batch_size=8))
 
