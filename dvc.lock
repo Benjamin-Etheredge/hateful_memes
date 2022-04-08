@@ -10,12 +10,12 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/models/visual_bert.py
-      md5: e908e23c157f5ade916216742ae473c3
-      size: 8516
+      md5: fbfb97867b185f970a567e6642d0316c
+      size: 7112
     outs:
     - path: logs/test_visual_bert.log
-      md5: ec344c1870a1073412f8c3dc0b3f6325
-      size: 76
+      md5: e902403ff9ba2e231fb98f5989882f1f
+      size: 1043
   test_simple_image:
     cmd: "python -m hateful_memes.models.simple_image --log_dir logs/test_simple_image_metrics\
       \ --project test --fast_dev_run True | tee logs/test_simple_image.log 2>&1\n"
