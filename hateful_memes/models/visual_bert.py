@@ -13,82 +13,45 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.loggers import WandbLogger
 from icecream import ic
-# ic.disable()
-
-# model = VisualBertModel.from_pretrained("uclanlp/visualbert-vqa-coco-pre")
-# tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
-
-# inputs = tokenizer("What is the man eating?", return_tensors="pt")
-# # this is a custom function that returns the visual embeddings given the image path
-# # visual_embeds = get_visual_embeddings(image_path)
-# visual_embeds = torch.rand((1, 2048)).unsqueeze(0)
-
-# visual_token_type_ids = torch.ones(visual_embeds.shape[:-1], dtype=torch.long)
-# visual_attention_mask = torch.ones(visual_embeds.shape[:-1], dtype=torch.float)
-# inputs.update(
-#     {
-#         "visual_embeds": visual_embeds,
-#         "visual_token_type_ids": visual_token_type_ids,
-#         "visual_attention_mask": visual_attention_mask,
-#     }
-# )
-# ic(inputs)
-# outputs = model(**inputs)
-# last_hidden_state = outputs.last_hidden_state
-# model = models.vit_b_16(pretrained=True)
-# ic(model)
-# model = models.vit_l_16(pretrained=True)
-# ic(model)
-# ic(models.alexnet(pretrained=True))
-# ic(models.alexnet(pretrained=True))
-
 
 
 class VisualBertModule(pl.LightningModule):
     """ Visual Bert Model """
 
     def __init__(
-        self, 
-        lr=0.003, 
-        max_length=512, 
+        self,
+        lr=0.003,
+        max_length=512,
         include_top=True,
         dropout_rate=0.0,
         dense_dim=256,
+        freeze=False,
     ):
         """ Visual Bert Model """
         super().__init__()
         # self.hparams = hparams
-        self.model = VisualBertModel.from_pretrained("uclanlp/visualbert-vqa-coco-pre")
-        # for param in self.model.parameters():
-        #     param.requires_grad = False
-        ic(self.model)
-        # model.
-        # self.model.freeze()
+        self.visual_bert = VisualBertModel.from_pretrained("uclanlp/visualbert-vqa-coco-pre")
+        if freeze:
+            for param in self.visual_bert.parameters():
+                param.requires_grad = False
+        ic(self.visual_bert)
+        ic(self.visual_bert.config)
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
-        # self.resnet18 = models.resnet18(pretrained=True)
-        # resnet = models.resnet152(pretrained=True)
         resnet = models.resnet50(pretrained=True)
-        # ic(resnet)
         self.num_ftrs_resnet = resnet.fc.in_features
-        # for param in resnet.parameters():
-        #     param.requires_grad = False
         resnet.fc = nn.Flatten()
         ic(resnet)
         self.resnet = resnet
 
-        # self.alexnet = models.alexnet(pretrained=True)
-        # ic(self.alexnet)
-        # self.num_ftrs_alexnet = self.alexnet.classifier[6].in_features
-        # for param in resnet.parameters():
-        #     param.requires_grad = False
-        
-        # inception = models.inception_v3(pretrained=True)
+        if freeze:
+            for param in resnet.parameters():
+                param.requires_grad = False
 
         # TODO linear vs embedding for dim changing
         # TODO auto size
-        self.fc1 = nn.Linear(768, dense_dim)
-        self.fc2 = nn.Linear(dense_dim, dense_dim)
-        self.fc3 = nn.Linear(dense_dim, 1)
+        self.fc = nn.Linear(768, 1)
+        # self.fc2 = nn.Linear(dense_dim, dense_dim)
+        # self.fc3 = nn.Linear(dense_dim, 1)
         # TODO config modification
 
         self.lr = lr
@@ -96,7 +59,8 @@ class VisualBertModule(pl.LightningModule):
         self.include_top = include_top
         self.dropout_rate = dropout_rate
         self.dense_dim = dense_dim
-        # self.resnet18.freeze()
+        self.freeze = freeze
+        self.visual_bert_config = self.visual_bert.config
 
         self.save_hyperparameters()
     
@@ -122,13 +86,16 @@ class VisualBertModule(pl.LightningModule):
         return loss
 
 
-    
     def forward(self, batch):
+        """ Shut up """
         text = batch['text']
         image = batch['image']
         image_x = self.resnet(image)
-        # with torch.no_grad():
-            # image_x = self.resnet(image)
+        if self.freeze:
+            with torch.no_grad():
+                image_x = self.resnet(image)
+        else:
+            image_x = self.resnet(image)
         # ic(image_x.shape)
         image_x = image_x.view(image_x.shape[0], -1)
 
@@ -153,18 +120,15 @@ class VisualBertModule(pl.LightningModule):
             }
         )
 
-        x = self.model(**inputs)
+        if self.freeze:
+            with torch.no_grad():
+                x = self.visual_bert(**inputs)
+        else:
+            x = self.visual_bert(**inputs)
         x = x.pooler_output
         x = x.view(x.shape[0], -1)
 
-        x = self.fc1(x)
-        x = F.relu(x)
-        x = F.dropout(input=x, p=self.dropout_rate)
-
-        x = self.fc2(x)
-        x = F.relu(x)
-        x = F.dropout(input=x, p=self.dropout_rate)
-        x = self.fc3(x)
+        x = self.fc(x)
         x.squeeze_()
         return x
 
