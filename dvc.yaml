@@ -118,3 +118,35 @@ stages:
       - data/01_raw/hateful_memes
       - hateful_memes/models/baseline_algorithm.py
 
+  test_simple_text:
+    cmd: >
+        python -m hateful_memes.models.simple_text
+        --fast_dev_run True
+        | tee logs/test_simple_text.log 2>&1
+    deps:
+      - data/01_raw/hateful_memes
+      - hateful_memes/models/simple_text.py
+    outs:
+      - logs/test_simple_text.log
+
+  simple_text:
+    vars: 
+      - config/simple_text.yaml
+    cmd: >
+        python -m hateful_memes.models.simple_text
+        --batch_size ${batch_size}
+        --lr ${lr}
+        --embed_dim ${embed_dim}
+        --dense_dim ${dense_dim}
+        --max_length ${max_length}
+        --tokenizer_name ${tokenizer_name}
+        --grad_clip ${grad_clip}
+        --dropout_rate ${dropout_rate}
+        --epochs ${epochs}
+        --model_dir data/06_models/simple_text
+    deps:
+      - data/01_raw/hateful_memes
+      - logs/test_simple_image.log
+      - hateful_memes/models/simple_text.py
+    outs:
+      - data/06_models/simple_text
