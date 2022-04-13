@@ -7,6 +7,6 @@ def get_project_logger(*, project=None, save_dir=None, offline=False):
     # return True
     return [
         WandbLogger(project=project, offline=offline, log_model=not offline),
-        DvcLiveLogger(path=save_dir, report=None)
+        # DvcLiveLogger(path=save_dir, report=None)
     ]
 
