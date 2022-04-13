@@ -38,6 +38,12 @@ jobs:
         continue-on-error: true
         run: dvc pull 
 
+      - name: Train Electra
+        # continue-on-error: true
+        run: |
+          dvc repro --pull electra
+          dvc push -d electra
+
       - name: Train VisualBERT
         # continue-on-error: true
         run: |

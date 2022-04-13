@@ -121,3 +121,18 @@ stages:
       md5: 4a760a13a814f701caf47716b6758f6c.dir
       size: 1623290983
       nfiles: 1
+  test_electra:
+    cmd: "python -m hateful_memes.models.electra --batch_size 4  --fast_dev_run True\
+      \ | tee logs/test_electra.log 2>&1\n"
+    deps:
+    - path: data/01_raw/hateful_memes
+      md5: edc9355e84fe557ba8b0f8efa4b15b91.dir
+      size: 4232567214
+      nfiles: 12148
+    - path: hateful_memes/models/electra.py
+      md5: c73dc71f69484e0ffc0bbbb2015b35f8
+      size: 5095
+    outs:
+    - path: logs/test_electra.log
+      md5: 5c4f7c8674be34bb3df4288467ff998e
+      size: 124

@@ -31,6 +31,38 @@ stages:
     outs:
       - data/06_models/visual_bert
 
+  test_electra:
+    cmd: >
+        python -m hateful_memes.models.electra
+        --batch_size 4 
+        --fast_dev_run True
+        | tee logs/test_electra.log 2>&1
+    deps:
+      - data/01_raw/hateful_memes
+      - hateful_memes/models/electra.py
+    outs:
+      - logs/test_electra.log
+
+  electra:
+    vars:
+      - config/electra.yaml
+    cmd: >
+        python -m hateful_memes.models.electra
+        --batch_size ${batch_size}
+        --lr ${lr}
+        --epochs ${epochs}
+        --max_length ${max_length}
+        --dense_dim ${dense_dim}
+        --dropout_rate ${dropout_rate}
+        --gradient_clip_value ${gradient_clip_value}
+        --model_dir data/06_models/electra
+    deps:
+      - logs/test_electra.log
+      - data/01_raw/hateful_memes
+      - hateful_memes/models/electra.py
+    outs:
+      - data/06_models/electra
+
   test_simple_mlp_image:
     cmd: >
         python -m hateful_memes.models.simple_mlp_image
