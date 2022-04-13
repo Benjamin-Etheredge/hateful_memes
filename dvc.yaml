@@ -32,6 +32,10 @@ stages:
       - hateful_memes/models/visual_bert.py
     outs:
       - data/06_models/visual_bert
+    plots:
+      - data/08_reporting/visual_bert/scalars
+    metrics:
+      - data/08_reporting/visual_bert.json
 
   test_simple_mlp_image:
     cmd: >
@@ -65,6 +69,10 @@ stages:
       - hateful_memes/models/baseline.py
     outs:
       - data/06_models/simple_mlp_image
+    plots:
+      - data/08_reporting/simple_mlp_image/scalars
+    metrics:
+      - data/08_reporting/simple_mlp_image.json
 
   test_simple_image:
     cmd: >
@@ -99,6 +107,10 @@ stages:
       - hateful_memes/models/baseline.py
     outs:
       - data/06_models/simple_image
+    plots:
+      - data/08_reporting/simple_image/scalars
+    metrics:
+      - data/08_reporting/simple_image.json
 
   baseline:
     cmd: python -m hateful_memes.models.baseline_algorithm

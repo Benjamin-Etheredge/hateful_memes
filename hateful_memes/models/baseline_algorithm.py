@@ -54,8 +54,8 @@ if __name__ == '__main__':
     logger = get_project_logger(name='baseline_algorithm', save_dir='data/08_reporting/baseline', offline=True)
 
     trainer = pl.Trainer(
-        gpus=0, 
-        max_epochs=1, 
+        devices=1, 
+        accelerator='auto',
         logger=logger,
     )
     

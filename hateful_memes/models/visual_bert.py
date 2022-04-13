@@ -168,7 +168,8 @@ def main(batch_size, lr, max_length, dense_dim, dropout_rate,
             verbose=True)
 
     trainer = pl.Trainer(
-        gpus=1 if torch.cuda.is_available() else 0,
+        devices=1, 
+        accelerator='auto',
         max_epochs=epochs, 
         logger=logger,
         # logger=wandb_logger, 
