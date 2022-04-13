@@ -37,10 +37,7 @@ class ElectraModule(pl.LightningModule):
 
     def _shared_step(self, batch):
         y_hat = self.forward(batch)
-        ic(y_hat.shape)
-        ic(y_hat)
         y = batch['label']
-        ic(y)
         loss = F.binary_cross_entropy_with_logits(y_hat, y.to(y_hat.dtype))
         acc = torch.sum(torch.round(torch.sigmoid(y_hat)) == y.data) / (y.shape[0] * 1.0)
         return loss, acc
@@ -71,7 +68,8 @@ class ElectraModule(pl.LightningModule):
         x = self.ElectraModel(**inputs)
         x = x.logits
         x = F.softmax(x, dim=1)
-        x = self.fc1(x)
+        x = torch.index_select(x, 1, torch.tensor([1]))
+        # x = self.fc1(x)
         x.squeeze_()
 
         return x
@@ -131,7 +129,7 @@ def main(batch_size, lr, max_length, dense_dim, dropout_rate,
 
     trainer.fit(
         model, 
-        datamodule=MaeMaeDataModule(batch_size=batch_size)
+        datamodule=MaeMaeDataModule(batch_size=batch_size, train_num_workers=6, val_num_workers=6, test_num_workers=6)
     )
 
 if __name__ == "__main__":

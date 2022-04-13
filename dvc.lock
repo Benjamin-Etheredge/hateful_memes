@@ -92,15 +92,15 @@ stages:
       size: 115665641
       nfiles: 1
   baseline:
-    cmd: python hateful_memes/models/baseline_algorithm.py
+    cmd: python -m hateful_memes.models.baseline_algorithm
     deps:
     - path: data/01_raw/hateful_memes
-      md5: 8844b5201ff55743fcd36c40d7352a88.dir
+      md5: edc9355e84fe557ba8b0f8efa4b15b91.dir
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/models/baseline_algorithm.py
-      md5: 5e17b58d20060cd1a65ef64479ba2f60
-      size: 2160
+      md5: a980fed1ee6d679f5be3e00648e0ccbd
+      size: 2159
   visual_bert:
     cmd: "python -m hateful_memes.models.visual_bert --batch_size 16 --lr 1e-05 --epochs\
       \ 100 --max_length 512 --dense_dim 256 --dropout_rate 0.1 --gradient_clip_value\
