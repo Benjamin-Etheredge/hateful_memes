@@ -68,7 +68,7 @@ class ElectraModule(pl.LightningModule):
         x = self.ElectraModel(**inputs)
         x = x.logits
         x = F.softmax(x, dim=1)
-        x = torch.index_select(x, 1, torch.tensor([1]))
+        x = torch.index_select(x, 1, torch.tensor([1]).to(self.device))
         # x = self.fc1(x)
         x.squeeze_()
 
@@ -112,7 +112,8 @@ def main(batch_size, lr, max_length, dense_dim, dropout_rate,
     )
     
     trainer = pl.Trainer(
-        gpus=1 if torch.cuda.is_available() else 0,
+        devices=1,
+        accelerator='auto',
         max_epochs=epochs, 
         logger=logger,
         gradient_clip_val=gradient_clip_value,
