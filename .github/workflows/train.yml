@@ -27,9 +27,8 @@ jobs:
     timeout-minutes: 1440  # Increased job runtime since ML is slow
     steps:
       # HOTFIX: https://github.com/actions/checkout/issues/760
-      - name: Trust My Directory
-        run: export GIT_CEILING_DIRECTORIES=/__w
-        
+      - name: work around permission issue
+        run: git config --global --add safe.directory /__w/hateful_memes/hateful_memes
       - uses: actions/checkout@v2
 
       - name: Branch name
