@@ -110,10 +110,6 @@ def main(batch_size, lr, dense_dim, grad_clip,
         model,
         datamodule=MaeMaeDataModule(
             batch_size=batch_size,
-            # # train_num_workers=max(1, min(8, os.cpu_count()//4)),
-            # val_num_workers=max(1, min(8, os.cpu_count()//4))))
-            train_num_workers=4,
-            val_num_workers=4,
         )
     )
 

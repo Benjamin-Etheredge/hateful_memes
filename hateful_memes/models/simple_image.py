@@ -131,8 +131,6 @@ def main(batch_size, lr, dense_dim, grad_clip, dropout_rate,
         model, 
         datamodule=MaeMaeDataModule(
             batch_size=batch_size, 
-            train_num_workers=max(1, min(os.cpu_count()//2, 8)),
-            val_num_workers=max(1, min(os.cpu_count()//2, 8))
         )
     )
 
