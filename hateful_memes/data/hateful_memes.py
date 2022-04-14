@@ -232,7 +232,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
             shuffle=True,
             num_workers=self.train_num_workers,
             pin_memory=self.pin_memory,
-            drop_last=True,
+            drop_last=False,
             persistent_workers=True,
             # collate_fn=MaeMaeDataset.collate_batch,
         )
