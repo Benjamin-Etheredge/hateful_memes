@@ -124,6 +124,7 @@ def main(batch_size, lr, dense_dim, grad_clip, dropout_rate,
         logger=logger,
         max_epochs=epochs,
         gradient_clip_val=grad_clip,
+        track_grad_norm=2, 
         fast_dev_run=fast_dev_run, 
         callbacks=[checkpoint_callback, early_stopping])
     # TODO should I move module inside lightning module?

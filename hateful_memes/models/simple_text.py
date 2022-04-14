@@ -133,6 +133,7 @@ def main(batch_size, lr, num_layers, embed_dim, dense_dim, max_length, tokenizer
         logger=logger, 
         fast_dev_run=fast_dev_run,
         gradient_clip_val=grad_clip,
+        track_grad_norm=2, 
         callbacks=[checkpoint_callback, early_stopping])
     
     model = BaseTextMaeMaeModel(

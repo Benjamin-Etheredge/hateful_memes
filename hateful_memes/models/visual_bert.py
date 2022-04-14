@@ -175,6 +175,7 @@ def main(batch_size, lr, max_length, dense_dim, dropout_rate,
         # logger=wandb_logger, 
         gradient_clip_val=gradient_clip_value,
         callbacks=[checkpoint_callback, early_stopping],
+        track_grad_norm=2, 
         fast_dev_run=fast_dev_run,
         # detect_anomaly=True, # TODO explore more
         # callbacks=[checkpoint_callback])
