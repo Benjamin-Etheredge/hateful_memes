@@ -11,13 +11,14 @@ jsonargparse[signatures]
 transformers
 wandb
 pillow
-dvc[s3]
+dvc[s3]==2.10.0
 dvclive
 pandas
 numpy
 seaborn
 jupyter
 scikit-image
+fairseq
 
 nbstripout
 icecream
