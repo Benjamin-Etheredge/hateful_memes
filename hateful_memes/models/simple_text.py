@@ -32,7 +32,6 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
     ):
 
         super().__init__()
-
         
         # https://huggingface.co/docs/transformers/v4.18.0/en/model_doc/auto#transformers.AutoTokenizer
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(tokenizer_name)
@@ -72,9 +71,13 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
         x = F.dropout(x, self.dropout_rate)
         ic("post embed: ", x.shape)
         # ic(x.view(x.shape[0], 1, -1).shape)
-        x, _ = self.lstm(x)
+        x, (ht, ct) = self.lstm(x)
         ic("after lstm:", x.shape)
-        x = x[:, -1, :]
+        # x = x[:, -1, :]
+        ic(x[0])
+        ic(ht[0])
+        x = ht[-1]
+        ic("after after lstm:", x.shape)
         # x = x.view(x.shape[0], -1)
         ic(x.shape)
         x = self.l1(x)
@@ -138,6 +141,7 @@ def main(batch_size, lr, num_layers, embed_dim, dense_dim, max_length, tokenizer
         lr=lr,
         dense_dim=dense_dim,
         max_length=max_length,
+        num_layers=num_layers,
         dropout_rate=dropout_rate)
     trainer.fit(
         model, 

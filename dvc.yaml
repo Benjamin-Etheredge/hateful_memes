@@ -147,7 +147,7 @@ stages:
         --model_dir data/06_models/simple_text
     deps:
       - data/01_raw/hateful_memes
-      - logs/test_simple_image.log
+      - logs/test_simple_text.log
       - hateful_memes/models/simple_text.py
     outs:
       - data/06_models/simple_text
