@@ -6,7 +6,7 @@ stages:
         --fast_dev_run True
         --log_dir logs/test_simple_visual_bert_image_metrics
         --project test
-        | tee logs/test_visual_bert.log 2>&1
+        && echo "PASSED" > logs/test_visual_bert.log 
     deps:
       - data/01_raw/hateful_memes
       - hateful_memes/models/visual_bert.py
@@ -43,7 +43,7 @@ stages:
         --fast_dev_run True
         --log_dir logs/test_simple_mlp_image_metrics
         --project test
-        | tee logs/test_simple_mlp_image.log 2>&1
+        && echo "PASSED" > logs/test_simple_mlp_image.log 
     deps:
       - data/01_raw/hateful_memes
       - hateful_memes/models/simple_mlp_image.py
@@ -80,7 +80,7 @@ stages:
         --log_dir logs/test_simple_image_metrics
         --project test
         --fast_dev_run True
-        | tee logs/test_simple_image.log 2>&1
+        && echo "PASSED" > logs/test_simple_image.log
     deps:
       - data/01_raw/hateful_memes
       - hateful_memes/models/simple_image.py
@@ -122,7 +122,7 @@ stages:
     cmd: >
         python -m hateful_memes.models.simple_text
         --fast_dev_run True
-        | tee logs/test_simple_text.log 2>&1
+        && echo "PASSED" > logs/test_simple_text.log
     deps:
       - data/01_raw/hateful_memes
       - hateful_memes/models/simple_text.py
