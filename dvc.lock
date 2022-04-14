@@ -124,22 +124,22 @@ stages:
       size: 1620144243
       nfiles: 1
   simple_text:
-    cmd: "python -m hateful_memes.models.simple_text --batch_size 32 --lr 1e-05 --embed_dim\
-      \ 256 --dense_dim 128 --max_length 512 --tokenizer_name bert-base-uncased --grad_clip\
-      \ 1.0 --dropout_rate 0.1 --epochs 50 --model_dir data/06_models/simple_text\n"
+    cmd: "python -m hateful_memes.models.simple_text --batch_size 32 --lr 1e-05 --num_layers\
+      \ 2 --embed_dim 256 --dense_dim 128 --max_length 512 --tokenizer_name bert-base-uncased\
+      \ --grad_clip 1.0 --dropout_rate 0.1 --epochs 50 --model_dir data/06_models/simple_text\n"
     deps:
     - path: data/01_raw/hateful_memes
       md5: 8844b5201ff55743fcd36c40d7352a88.dir
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/models/simple_text.py
-      md5: 41309f5eb7e3c4de2e14a44ad78b5df5
-      size: 5092
+      md5: 3d60cb28c157c73c20a921702979f37b
+      size: 5164
     - path: logs/test_simple_image.log
       md5: 7f9a23b4bcd2e80ee2d833d32a4dce0a
       size: 1043
     outs:
     - path: data/06_models/simple_text
-      md5: 0243cc6ef26766af563ac431ef4c4663.dir
+      md5: 3b20fc399c84b72dd40da63553590581.dir
       size: 97933759
       nfiles: 1
