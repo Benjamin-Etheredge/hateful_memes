@@ -1,8 +1,7 @@
 import pytorch_lightning as pl
 import torch
 import click
-from transformers import ElectraTokenizerFast, ElectraForSequenceClassification
-import torchvision.models as models
+from transformers import ElectraTokenizerFast, ElectraModel, ElectraConfig
 from hateful_memes.data.hateful_memes import MaeMaeDataModule
 from torch.nn import functional as F
 from torch import nn
@@ -24,16 +23,17 @@ class ElectraModule(pl.LightningModule):
     ):
         super().__init__()
         self.tokenizer = ElectraTokenizerFast.from_pretrained("google/electra-small-discriminator")
-        self.ElectraModel = ElectraForSequenceClassification.from_pretrained("google/electra-small-discriminator")
-
-        self.fc1 = nn.Linear(2, 1)
-        # self.fc2 = nn.Linear(dense_dim, 1)
+        self.config = ElectraConfig()
+        self.ElectraModel = ElectraModel.from_pretrained("google/electra-small-discriminator", config=self.config)
 
         self.lr = lr
         self.max_length = max_length
         self.include_top = include_top
-        # self.dropout_rate = dropout_rate
-        # self.dense_dim = dense_dim
+        self.dropout_rate = dropout_rate
+        self.dense_dim = dense_dim
+
+        self.fc1 = nn.Linear(self.config.hidden_size * self.max_length, dense_dim)
+        self.fc2 = nn.Linear(dense_dim, 1)
 
     def _shared_step(self, batch):
         y_hat = self.forward(batch)
@@ -66,11 +66,17 @@ class ElectraModule(pl.LightningModule):
         inputs = inputs.to(self.device)
         
         x = self.ElectraModel(**inputs)
-        x = x.logits
-        x = F.softmax(x, dim=1)
-        x = torch.index_select(x, 1, torch.tensor([1]).to(self.device))
-        # x = self.fc1(x)
-        x.squeeze_()
+        x = x.last_hidden_state
+        x = x.view(x.shape[0], -1)
+
+        if self.include_top:
+            x = self.fc1(x)
+            x = F.relu(x)
+            x = F.dropout(input=x, p=self.dropout_rate)
+
+            x = self.fc2(x)
+
+            x.squeeze_()
 
         return x
 
@@ -78,9 +84,6 @@ class ElectraModule(pl.LightningModule):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
         return optimizer
     
-    
-
-
 @click.command()
 @click.option('--batch_size',          default=32,     help='Batch size')
 @click.option('--lr',                  default=1e-4,   help='Learning rate')
@@ -130,7 +133,7 @@ def main(batch_size, lr, max_length, dense_dim, dropout_rate,
 
     trainer.fit(
         model, 
-        datamodule=MaeMaeDataModule(batch_size=batch_size, train_num_workers=6, val_num_workers=6, test_num_workers=6)
+        datamodule=MaeMaeDataModule(batch_size=batch_size)
     )
 
 if __name__ == "__main__":
