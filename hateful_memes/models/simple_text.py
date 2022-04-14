@@ -1,5 +1,5 @@
 import torch
-from torch import nn
+from torch import dropout, nn
 from torch.nn import functional as F
 from pytorch_lightning.utilities.cli import LightningCLI
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -10,7 +10,7 @@ from pytorch_lightning.callbacks import EarlyStopping
 import transformers
 import click
 from icecream import ic
-# ic.disable()
+ic.disable()
 
 from hateful_memes.utils import get_project_logger
 from hateful_memes.models.baseline import BaseMaeMaeModel
@@ -26,6 +26,7 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
         embed_dim=512, 
         dense_dim=128, 
         max_length=128,
+        num_layers=2,
         # feature_extractor='bert-base-uncased',
         tokenizer_name='bert-base-uncased'
     ):
@@ -42,14 +43,21 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
 
         self.lr = lr
 
-        self.lstm = nn.LSTM(embed_dim, dense_dim, batch_first=True)
-        self.l1 = nn.Linear(embed_dim*max_length, dense_dim)
+        self.lstm = nn.LSTM(
+            embed_dim, 
+            dense_dim, 
+            batch_first=True, 
+            dropout=dropout_rate,
+            # proj_size=dense_dim,
+            num_layers=num_layers)
+        self.l1 = nn.Linear(dense_dim, dense_dim)
         self.l2 = nn.Linear(dense_dim, 1)
         # TODO consider 3 classes for offensive detection
 
         self.embed_dim = embed_dim
         self.max_length = max_length
         self.dropout_rate = dropout_rate
+        self.num_layers = num_layers
 
         self.save_hyperparameters()
     
@@ -61,11 +69,13 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
         ids = torch.tensor(input['input_ids']).to(self.device)
         ic(ids.shape)
         x = self.embedder(ids)
-        ic(x.shape)
-        x = self.lstm(x)
-        ic(x)
+        x = F.dropout(x, self.dropout_rate)
+        ic("post embed: ", x.shape)
+        # ic(x.view(x.shape[0], 1, -1).shape)
+        x, _ = self.lstm(x)
+        ic("after lstm:", x.shape)
+        x = x[:, -1, :]
         # x = x.view(x.shape[0], -1)
-        x = F.dropout(x, p=self.dropout_rate, training=self.training)
         ic(x.shape)
         x = self.l1(x)
         x = F.relu(x)
