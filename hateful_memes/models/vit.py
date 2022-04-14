@@ -68,7 +68,7 @@ class ViTModule(pl.LightningModule):
     
     def forward(self, batch):
         image = batch['image']
-        image = image.cpu()
+        # image = image.cpu()
         image = image.uniform_(0, 1)  
         image = [ToPILImage()(x_) for x_ in image]
 
