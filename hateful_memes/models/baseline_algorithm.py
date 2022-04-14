@@ -39,13 +39,13 @@ class Affirmative(Base):
     """ Return 1 for all inputs """
     def forward(self, x):
         batch_size = x.size(0)
-        return torch.ones(batch_size)
+        return torch.ones(batch_size).to(self.device)
     
 
 class Negative(Base):
     def forward(self, x):
         batch_size = x.size(0)
-        return torch.zeros(batch_size)
+        return torch.zeros(batch_size).to(self.device)
        
 
 from pytorch_lightning.loggers import WandbLogger

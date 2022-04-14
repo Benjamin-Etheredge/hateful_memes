@@ -94,15 +94,15 @@ stages:
       size: 115665641
       nfiles: 1
   baseline:
-    cmd: python hateful_memes/models/baseline_algorithm.py
+    cmd: python -m hateful_memes.models.baseline_algorithm
     deps:
     - path: data/01_raw/hateful_memes
       md5: 8844b5201ff55743fcd36c40d7352a88.dir
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/models/baseline_algorithm.py
-      md5: 5e17b58d20060cd1a65ef64479ba2f60
-      size: 2160
+      md5: 5b5bbee254ba72de45450417e2b0efc5
+      size: 2214
   visual_bert:
     cmd: "python -m hateful_memes.models.visual_bert --batch_size 16 --lr 1e-05 --epochs\
       \ 100 --max_length 512 --dense_dim 256 --dropout_rate 0.1 --gradient_clip_value\
@@ -143,3 +143,18 @@ stages:
       md5: 3b20fc399c84b72dd40da63553590581.dir
       size: 97933759
       nfiles: 1
+  test_simple_text:
+    cmd: "python -m hateful_memes.models.simple_text --fast_dev_run True | tee logs/test_simple_text.log\
+      \ 2>&1\n"
+    deps:
+    - path: data/01_raw/hateful_memes
+      md5: 8844b5201ff55743fcd36c40d7352a88.dir
+      size: 4232567214
+      nfiles: 12148
+    - path: hateful_memes/models/simple_text.py
+      md5: 3d60cb28c157c73c20a921702979f37b
+      size: 5164
+    outs:
+    - path: logs/test_simple_text.log
+      md5: 9c10c3426f35c4788dc9013b2bc7a750
+      size: 3635
