@@ -51,7 +51,7 @@ class Negative(Base):
 from pytorch_lightning.loggers import WandbLogger
 if __name__ == '__main__':
     pl.seed_everything(42)
-    logger = get_project_logger(name='baseline_algorithm', save_dir='data/08_reporting/baseline', offline=True)
+    logger = get_project_logger(project='baseline_algorithm', save_dir='data/08_reporting/baseline', offline=True)
 
     trainer = pl.Trainer(
         devices=1, 
