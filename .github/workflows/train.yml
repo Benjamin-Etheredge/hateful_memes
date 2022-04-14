@@ -63,7 +63,12 @@ jobs:
         run: |
           dvc repro --pull simple_mlp_image
           dvc push -d simple_mlp_image
-      
+            
+      - name: Train Simple Text Model
+        run: |
+          dvc repro --pull simple_text
+          dvc push -d simple_text
+
       - name: Commit run
         run: |
           cml ci

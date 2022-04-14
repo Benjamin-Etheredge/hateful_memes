@@ -167,6 +167,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
         img_transforms=None, 
         txt_transforms=None,
         val_split: float = 0.2,
+        num_workers=None,
         train_num_workers=8,
         val_num_workers=8,
         test_num_workers=8,
@@ -182,9 +183,12 @@ class MaeMaeDataModule(pl.LightningDataModule):
         self.txt_transforms = txt_transforms
         self.val_split = val_split
 
-        self.train_num_workers = train_num_workers
-        self.val_num_workers = val_num_workers
-        self.test_num_workers = test_num_workers
+        if num_workers is None:
+            num_workers = max(1, min(os.cpu_count()//2, 8))
+
+        self.train_num_workers = num_workers
+        self.val_num_workers = num_workers
+        self.test_num_workers = num_workers
         self.pin_memory = pin_memory
 
         self.tokenizer = None
@@ -228,7 +232,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
             shuffle=True,
             num_workers=self.train_num_workers,
             pin_memory=self.pin_memory,
-            drop_last=True,
+            drop_last=False,
             persistent_workers=True,
             # collate_fn=MaeMaeDataset.collate_batch,
         )

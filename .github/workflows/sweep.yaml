@@ -7,7 +7,7 @@ on:
       sweep_id:
         description: "Sweep Info from wandb - meme-team/{project}/{sweep_id}"
         required: true
-    gpu_size:
+      gpu_size:
         description: 'GPU Size'
         required: true
         default: 'large' 
@@ -30,6 +30,8 @@ jobs:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
       options: --gpus all --shm-size=8G
     steps:
+      - name: work around permission issue
+        run: git config --global --add safe.directory /__w/hateful_memes/hateful_memes
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.head_ref }} # https://github.com/stefanzweifel/git-auto-commit-action
@@ -59,6 +61,8 @@ jobs:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
       options: --gpus all --shm-size=8G
     steps:
+      - name: work around permission issue
+        run: git config --global --add safe.directory /__w/hateful_memes/hateful_memes
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.head_ref }} # https://github.com/stefanzweifel/git-auto-commit-action
