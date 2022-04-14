@@ -130,12 +130,12 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/models/electra.py
-      md5: 576f7377fe25964c2a2023735e133130
-      size: 4798
+      md5: 58bde83a1bc578e5ec0114387f440ffb
+      size: 4860
     outs:
     - path: logs/test_electra.log
-      md5: 4804f2472fa6f7e8920715a941b7daf7
-      size: 2946
+      md5: 8b1acfb7e80b54d30531faea6c8a9d43
+      size: 3594
   electra:
     cmd: "python -m hateful_memes.models.electra --batch_size 16 --lr 1e-05 --epochs\
       \ 100 --max_length 512 --dense_dim 256 --dropout_rate 0.1 --gradient_clip_value\
@@ -146,13 +146,13 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/models/electra.py
-      md5: 576f7377fe25964c2a2023735e133130
-      size: 4798
+      md5: 58bde83a1bc578e5ec0114387f440ffb
+      size: 4860
     - path: logs/test_electra.log
-      md5: 4804f2472fa6f7e8920715a941b7daf7
-      size: 2946
+      md5: 8b1acfb7e80b54d30531faea6c8a9d43
+      size: 3594
     outs:
     - path: data/06_models/electra
-      md5: 51d8a23dcd93e86ecfaf985cda2df6b5.dir
-      size: 162809269
+      md5: 58babc85a0d5aa3ce73ff2277a848136.dir
+      size: 564668665
       nfiles: 1
