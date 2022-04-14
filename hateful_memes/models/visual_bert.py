@@ -49,9 +49,8 @@ class VisualBertModule(pl.LightningModule):
 
         # TODO linear vs embedding for dim changing
         # TODO auto size
-        self.fc = nn.Linear(768, 1)
-        # self.fc2 = nn.Linear(dense_dim, dense_dim)
-        # self.fc3 = nn.Linear(dense_dim, 1)
+        self.fc1 = nn.Linear(768, dense_dim)
+        self.fc2 = nn.Linear(dense_dim, 1)
         # TODO config modification
 
         self.lr = lr
@@ -59,7 +58,7 @@ class VisualBertModule(pl.LightningModule):
         self.include_top = include_top
         self.dropout_rate = dropout_rate
         self.dense_dim = dense_dim
-        self.freeze = freeze
+        self.to_freeze = freeze
         self.visual_bert_config = self.visual_bert.config
 
         self.save_hyperparameters()
@@ -91,7 +90,7 @@ class VisualBertModule(pl.LightningModule):
         text = batch['text']
         image = batch['image']
         image_x = self.resnet(image)
-        if self.freeze:
+        if self.to_freeze:
             with torch.no_grad():
                 image_x = self.resnet(image)
         else:
@@ -112,6 +111,7 @@ class VisualBertModule(pl.LightningModule):
             truncation=True, 
             max_length=self.max_length)
         inputs = inputs.to(self.device)
+
         inputs.update(
             {
                 "visual_embeds": image_x,
@@ -120,16 +120,22 @@ class VisualBertModule(pl.LightningModule):
             }
         )
 
-        if self.freeze:
+        if self.to_freeze:
             with torch.no_grad():
                 x = self.visual_bert(**inputs)
         else:
             x = self.visual_bert(**inputs)
+
         x = x.pooler_output
         x = x.view(x.shape[0], -1)
 
-        x = self.fc(x)
         x.squeeze_()
+        x = self.fc1(x)
+        x = F.relu(x)
+        x = F.dropout(x, p=self.dropout_rate)
+        x = self.fc2(x)
+        x.squeeze_()
+        # x = F.sigmoid(x)
         return x
 
     def configure_optimizers(self):
@@ -137,6 +143,7 @@ class VisualBertModule(pl.LightningModule):
 
 
 @click.command()
+@click.option('--freeze', default=True, help='Freeze models')
 @click.option('--batch_size', default=32, help='Batch size')
 @click.option('--lr', default=1e-4, help='Learning rate')
 @click.option('--max_length', default=128, help='Max length')
@@ -148,23 +155,24 @@ class VisualBertModule(pl.LightningModule):
 @click.option('--fast_dev_run', default=False, help='Fast dev run')
 @click.option('--log_dir', default="data/08_reporting/visual_bert", help='Log dir')
 @click.option('--project', default="visual-bert", help='Project')
-def main(batch_size, lr, max_length, dense_dim, dropout_rate, 
+def main(freeze, batch_size, lr, max_length, dense_dim, dropout_rate, 
          epochs, model_dir, gradient_clip_value, fast_dev_run, 
          log_dir, project):
     """ train model """
 
     logger = get_project_logger(project=project, save_dir=log_dir, offline=fast_dev_run)
     checkpoint_callback = ModelCheckpoint(
-        monitor="val/acc", 
-        mode="max", 
+        monitor="val/loss", 
+        mode="min", 
         dirpath=model_dir, 
-        filename="{epoch}-{step}-{val_acc:.4f}",
+        # filename="{epoch}-{step}-{val/loss:.2f}",
         verbose=True,
         save_top_k=1)
+
     early_stopping = EarlyStopping(
-            monitor='val/acc', 
+            monitor='val/loss', 
             patience=10, 
-            mode='max', 
+            mode='min', 
             verbose=True)
 
     trainer = pl.Trainer(
@@ -184,6 +192,7 @@ def main(batch_size, lr, max_length, dense_dim, dropout_rate,
     )
     
     model = VisualBertModule(
+        freeze=freeze,
         lr=lr, 
         max_length=max_length, 
         dense_dim=dense_dim, 
