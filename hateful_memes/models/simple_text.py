@@ -90,6 +90,7 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
 @click.command()
 @click.option('--batch_size', default=32, help='Batch size')
 @click.option('--lr', default=1e-4, help='Learning rate')
+@click.option('--num_layers', default=2, help='Num Layers')
 @click.option('--embed_dim', default=64, help='Dense dim')
 @click.option('--dense_dim', default=256, help='Dense dim')
 @click.option('--max_length', default=128, help='Max length')
@@ -103,7 +104,7 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
 @click.option('--project', default="simple-text", help='Project name')
 @click.option('--monitor_metric', default="val/loss", help='Metric to monitor')
 @click.option('--monitor_metric_mode', default="min", help='Min or max')
-def main(batch_size, lr, embed_dim, dense_dim, max_length, tokenizer_name,
+def main(batch_size, lr, num_layers, embed_dim, dense_dim, max_length, tokenizer_name,
          grad_clip, dropout_rate, epochs, model_dir, fast_dev_run,
          log_dir, project, monitor_metric, monitor_metric_mode):
 

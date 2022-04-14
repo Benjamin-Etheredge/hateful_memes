@@ -136,6 +136,7 @@ stages:
         python -m hateful_memes.models.simple_text
         --batch_size ${batch_size}
         --lr ${lr}
+        --num_layers ${num_layers}
         --embed_dim ${embed_dim}
         --dense_dim ${dense_dim}
         --max_length ${max_length}
