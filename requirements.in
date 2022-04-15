@@ -18,7 +18,6 @@ numpy
 seaborn
 jupyter
 scikit-image
-fairseq
 
 nbstripout
 icecream
