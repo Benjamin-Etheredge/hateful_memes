@@ -23,6 +23,7 @@ class SimpleMLPImageMaeMaeModel(BaseMaeMaeModel):
         lr=0.003, 
         dense_dim=128, 
         dropout_rate=0.1,
+        include_top=True,
 
     ):
         super().__init__()
@@ -35,6 +36,8 @@ class SimpleMLPImageMaeMaeModel(BaseMaeMaeModel):
         self.lr = lr
         self.dense_dim = dense_dim
         self.dropout_rate = dropout_rate
+        self.include_top = include_top
+        self.last_hidden_size = dense_dim
         self.save_hyperparameters()
 
     def forward(self, batch):
@@ -50,9 +53,10 @@ class SimpleMLPImageMaeMaeModel(BaseMaeMaeModel):
         x = F.relu(x)
         x = F.dropout(input=x, p=self.dropout_rate)
 
-        x = self.l3(x)
+        if self.include_top:
+            x = self.l3(x)
+            x = F.sigmoid(x)
 
-        x = torch.sigmoid(x)
         x = torch.squeeze(x)
         return x
 
