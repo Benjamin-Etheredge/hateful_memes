@@ -2,7 +2,6 @@ from typing import Union
 from pathlib import Path
 from xml.etree.ElementInclude import include
 import pandas as pd
-from skimage import io, transform
 import torch
 from PIL import Image,ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True # TODO 
@@ -13,6 +12,7 @@ from icecream import ic
 from multiprocessing import Pool
 import os
 import transformers
+from torchvision import transforms as T
 
 
 def create_vocab_tokenizer(root_dir):
@@ -116,7 +116,7 @@ class MaeMaeDataset(torch.utils.data.Dataset):
     # TODO vocab is broken between train and test
     def base_img_transforms(self):
         return T.Compose([
-            #transforms.RandomHorizontalFlip()
+            # T.RandomHorizontalFlip(),
             # transforms.ToPILImage(mode='RGB'),
             T.Resize(size=(224,224)),
             T.ToTensor(),
@@ -157,7 +157,6 @@ class MaeMaeDataset(torch.utils.data.Dataset):
     #     return lambda x: self.vocab(self.tokenizer(x))
 
 
-from torchvision import transforms as T
 class MaeMaeDataModule(pl.LightningDataModule):
     def __init__(
         self, 
