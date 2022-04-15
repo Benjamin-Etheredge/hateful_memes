@@ -1,19 +1,19 @@
 stages:
-  test_visual_bert:
+  test_vit:
     cmd: >
         python -m hateful_memes.models.vit
         --batch_size 4 
         --fast_dev_run True
         --log_dir logs/test_simple_vit_image_metrics
         --project test
-        | tee logs/test_vit.log 2>&1
+        && echo "PASSED" > logs/test_vit.log
     deps:
       - data/01_raw/hateful_memes
       - hateful_memes/models/vit.py
     outs:
       - logs/test_vit.log
 
-  visual_bert:
+  vit:
     vars:
       - config/vit.yaml
     cmd: >
