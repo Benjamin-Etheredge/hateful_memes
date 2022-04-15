@@ -41,6 +41,7 @@ class SimpleImageMaeMaeModel(BaseMaeMaeModel):
         self.dense_dim = dense_dim
         self.dropout_rate = dropout_rate
         self.batch_norm = batch_norm
+        self.last_hidden_size = dense_dim
         self.save_hyperparameters()
 
     def forward(self, batch):

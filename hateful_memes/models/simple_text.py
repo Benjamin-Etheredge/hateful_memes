@@ -16,6 +16,7 @@ from hateful_memes.utils import get_project_logger
 from hateful_memes.models.baseline import BaseMaeMaeModel
 from hateful_memes.data.hateful_memes import MaeMaeDataset
 from hateful_memes.data.hateful_memes import MaeMaeDataModule
+import wandb 
 
 class BaseTextMaeMaeModel(BaseMaeMaeModel):
     def __init__(
@@ -28,7 +29,8 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
         max_length=128,
         num_layers=2,
         # feature_extractor='bert-base-uncased',
-        tokenizer_name='bert-base-uncased'
+        tokenizer_name='bert-base-uncased',
+        include_top=True,
     ):
 
         super().__init__()
@@ -57,6 +59,8 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
         self.max_length = max_length
         self.dropout_rate = dropout_rate
         self.num_layers = num_layers
+        self.include_top = include_top
+        self.last_hidden_size = dense_dim
 
         self.save_hyperparameters()
     
@@ -82,8 +86,9 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
         ic(x.shape)
         x = self.l1(x)
         x = F.relu(x)
-        x = self.l2(x)
-        x = torch.sigmoid(x)
+        if self.include_top:
+            x = self.l2(x)
+            x = torch.sigmoid(x)
         x = torch.squeeze(x)
         ic(x.shape)
         return x
