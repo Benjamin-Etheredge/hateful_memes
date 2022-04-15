@@ -26,6 +26,9 @@ jobs:
 
     timeout-minutes: 1440  # Increased job runtime since ML is slow
     steps:
+      # HOTFIX: https://github.com/actions/checkout/issues/760
+      - name: work around permission issue
+        run: git config --global --add safe.directory /__w/hateful_memes/hateful_memes
       - uses: actions/checkout@v2
 
       - name: Branch name
@@ -60,7 +63,12 @@ jobs:
         run: |
           dvc repro --pull simple_mlp_image
           dvc push -d simple_mlp_image
-      
+            
+      - name: Train Simple Text Model
+        run: |
+          dvc repro --pull simple_text
+          dvc push -d simple_text
+
       - name: Commit run
         run: |
           cml ci
