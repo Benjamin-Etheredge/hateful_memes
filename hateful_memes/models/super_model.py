@@ -15,7 +15,7 @@ from hateful_memes.utils import get_checkpoint_path
 
 from icecream import ic
 from hateful_memes.models import *
-ic.enable()
+ic.disable()
 
 
 class SuperModel(pl.LightningModule):

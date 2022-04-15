@@ -69,6 +69,13 @@ jobs:
           dvc repro --pull simple_text
           dvc push -d simple_text
 
+      - name: Train Super Model
+        run: |
+          dvc pull -d super_model
+          dvc pull --run-cache super_model
+          dvc repro super_model
+          dvc push -d super_model
+
       - name: Commit run
         run: |
           cml ci
