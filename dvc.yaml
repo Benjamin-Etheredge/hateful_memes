@@ -162,6 +162,8 @@ stages:
     deps:
       - data/01_raw/hateful_memes
       - hateful_memes/models/super_model.py
+      - data/06_models/simple_image
+      - data/06_models/simple_text
     outs:
       - logs/test_super_model.log
 
@@ -170,6 +172,10 @@ stages:
       - config/super_model.yaml
     cmd: >
         python -m hateful_memes.models.super_model
+        --simple_image_chkpt data/06_models/simple_image
+        --simple_mlp_image_chkpt data/06_models/simple_mlp_image
+        --simple_text_chkpt data/06_models/simple_text
+        --visual_bert_chkpt data/06_models/visual_bert
         --batch_size ${batch_size}
         --lr ${lr}
         --num_dense_layers ${num_layers}
@@ -181,5 +187,9 @@ stages:
       - data/01_raw/hateful_memes
       - logs/test_super_model.log
       - hateful_memes/models/super_model.py
+      - data/06_models/simple_image
+      - data/06_models/simple_mlp_image
+      - data/06_models/simple_text
+      - data/06_models/visual_bert
     outs:
       - data/06_models/super_model
