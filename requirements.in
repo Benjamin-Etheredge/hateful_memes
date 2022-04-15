@@ -26,10 +26,13 @@ seaborn
 jupyter
 scikit-image
 <<<<<<< HEAD
+<<<<<<< HEAD
 plotly
 =======
 fairseq
 >>>>>>> 5fc05b5 (Adding in external dependencies for OFA)
+=======
+>>>>>>> eb88252 (Starting to fill out test notebook, fixed fairseq dependency, committing changes to OFA fork.)
 
 nbstripout
 icecream
