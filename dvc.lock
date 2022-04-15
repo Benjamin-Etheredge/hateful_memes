@@ -158,3 +158,38 @@ stages:
     - path: logs/test_simple_text.log
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
+  test_vit:
+    cmd: "python -m hateful_memes.models.vit --batch_size 4  --fast_dev_run True --log_dir\
+      \ logs/test_simple_vit_image_metrics --project test && echo \"PASSED\" > logs/test_vit.log\n"
+    deps:
+    - path: data/01_raw/hateful_memes
+      md5: 8844b5201ff55743fcd36c40d7352a88.dir
+      size: 4232567214
+      nfiles: 12148
+    - path: hateful_memes/models/vit.py
+      md5: 78c6c0e51ea3ea33e051a41dc247e38d
+      size: 5224
+    outs:
+    - path: logs/test_vit.log
+      md5: 15de982d1dc99ce52d089868a579de34
+      size: 7
+  vit:
+    cmd: "python -m hateful_memes.models.vit --batch_size 64 --lr 1e-05 --epochs 50\
+      \ --max_length 512 --dense_dim 128 --dropout_rate 0.1 --gradient_clip_value\
+      \ 1.0 --model_dir data/06_models/vit\n"
+    deps:
+    - path: data/01_raw/hateful_memes
+      md5: 8844b5201ff55743fcd36c40d7352a88.dir
+      size: 4232567214
+      nfiles: 12148
+    - path: hateful_memes/models/vit.py
+      md5: 78c6c0e51ea3ea33e051a41dc247e38d
+      size: 5224
+    - path: logs/test_vit.log
+      md5: 15de982d1dc99ce52d089868a579de34
+      size: 7
+    outs:
+    - path: data/06_models/vit
+      md5: 858a736c9f774653c76a9896d6154ccb.dir
+      size: 1265447801
+      nfiles: 1
