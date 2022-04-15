@@ -69,6 +69,11 @@ jobs:
           dvc repro --pull simple_text
           dvc push -d simple_text
 
+      - name: Train ViT
+        run: |
+          dvc repro --pull vit
+          dvc push -d vit
+
       - name: Commit run
         run: |
           cml ci
