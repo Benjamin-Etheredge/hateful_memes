@@ -1,18 +1,20 @@
-from matplotlib.pyplot import autoscale
-import pytorch_lightning as pl
-import torch
 import click
-from transformers import BertTokenizer, VisualBertModel
-import torchvision.models as models
-from hateful_memes.data.hateful_memes import MaeMaeDataModule
-from hateful_memes.utils import get_project_logger
+from icecream import ic
+
+import torch
 from torch.nn import functional as F
 from torch import nn
-from dvclive.lightning import DvcLiveLogger
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+import torchvision.models as models
+
+from transformers import BertTokenizer, VisualBertModel
+
+import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
-from pytorch_lightning.loggers import WandbLogger
-from icecream import ic
+
+from hateful_memes.data.hateful_memes import MaeMaeDataModule
+from hateful_memes.utils import get_project_logger
 
 
 class VisualBertModule(pl.LightningModule):
@@ -140,7 +142,11 @@ class VisualBertModule(pl.LightningModule):
         return x
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=self.lr)
+        optimizer= torch.optim.Adam(self.parameters(), lr=self.lr)
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": ReduceLROnPlateau(optimizer, patience=3, verbose=True),
+        }
 
 
 @click.command()

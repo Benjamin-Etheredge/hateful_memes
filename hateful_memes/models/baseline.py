@@ -1,16 +1,16 @@
 import os
+from icecream import ic
 
 import torch
-from pytorch_lightning import LightningModule, Trainer
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+
 from torch import nn
 from torch.nn import functional as F
-from torch.utils.data import DataLoader, random_split
 from torchmetrics import Accuracy
 from torchvision import transforms
 from torchvision import transforms as T
-from icecream import ic
-from pytorch_lightning.loggers import WandbLogger
-from pytorch_lightning.callbacks import ModelCheckpoint
+
+from pytorch_lightning import LightningModule
 
 
 class BaseMaeMaeModel(LightningModule):
@@ -43,4 +43,8 @@ class BaseMaeMaeModel(LightningModule):
         return loss
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=self.lr)
+        optimizer= torch.optim.Adam(self.parameters(), lr=self.lr)
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": ReduceLROnPlateau(optimizer, patience=3, verbose=True),
+        }

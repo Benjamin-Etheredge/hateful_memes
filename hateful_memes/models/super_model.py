@@ -3,19 +3,25 @@ import torch
 import click
 from transformers import BertTokenizer, VisualBertModel
 import torchvision.models as models
-from hateful_memes.data.hateful_memes import MaeMaeDataModule
-from hateful_memes.utils import get_project_logger
+
 from torch.nn import functional as F
 from torch import nn
+
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 from dvclive.lightning import DvcLiveLogger
+
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.loggers import WandbLogger
-from hateful_memes.utils import get_checkpoint_path
 
 from icecream import ic
-from hateful_memes.models import *
 ic.disable()
+
+from hateful_memes.models import *
+from hateful_memes.data.hateful_memes import MaeMaeDataModule
+from hateful_memes.utils import get_project_logger
+from hateful_memes.utils import get_checkpoint_path
+
 
 
 class SuperModel(pl.LightningModule):
@@ -143,7 +149,12 @@ class SuperModel(pl.LightningModule):
         return x
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=self.lr)
+        optimizer= torch.optim.Adam(self.parameters(), lr=self.lr)
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": ReduceLROnPlateau(optimizer, patience=3, verbose=True),
+        }
+
 
 
 @click.command()
