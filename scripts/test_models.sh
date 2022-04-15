@@ -1,4 +1,4 @@
 #!/bin/bash
 
-dvc pull -f --glob test-*
-dvc repro --glob test-*
+# dvc pull -f --glob test-*
+dvc repro -f -s --glob test_*

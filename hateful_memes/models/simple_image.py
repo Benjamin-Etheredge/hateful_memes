@@ -81,7 +81,6 @@ class SimpleImageMaeMaeModel(BaseMaeMaeModel):
 
         if self.include_top:
             x = self.l3(x)
-            x = F.sigmoid(x)
 
         x = torch.squeeze(x)
         return x

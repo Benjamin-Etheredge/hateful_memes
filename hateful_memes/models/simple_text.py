@@ -86,9 +86,10 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
         ic(x.shape)
         x = self.l1(x)
         x = F.relu(x)
+
         if self.include_top:
             x = self.l2(x)
-            x = torch.sigmoid(x)
+
         x = torch.squeeze(x)
         ic(x.shape)
         return x
