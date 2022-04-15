@@ -114,20 +114,21 @@ def main(batch_size, lr, max_length, dense_dim, dropout_rate,
 
     logger = get_project_logger(project=project, save_dir=log_dir, offline=fast_dev_run)
     checkpoint_callback = ModelCheckpoint(
-        monitor="val/acc", 
-        mode="max", 
+        monitor="val/loss", 
+        mode="min", 
         dirpath=model_dir, 
         filename="{epoch}-{step}-{val_acc:.4f}",
         verbose=True,
         save_top_k=1)
     early_stopping = EarlyStopping(
-            monitor='val/acc', 
+            monitor='val/loss', 
             patience=10, 
-            mode='max', 
+            mode='min', 
             verbose=True)
 
     trainer = pl.Trainer(
-        gpus=1 if torch.cuda.is_available() else 0,
+        devices=1,
+        accelerator='auto',
         max_epochs=epochs, 
         logger=logger,
         gradient_clip_val=gradient_clip_value,
