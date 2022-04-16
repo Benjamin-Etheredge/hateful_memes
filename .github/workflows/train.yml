@@ -78,9 +78,10 @@ jobs:
           dvc push -d simple_text
 
       - name: Train Super Model
+        continue-on-error: true
         run: |
-          dvc pull -a -d super_model
-          dvc pull --run-cache super_model
+          # dvc pull -a -d super_model
+          # dvc pull --run-cache super_model
           dvc repro super_model
           dvc push -d super_model
 
