@@ -69,7 +69,7 @@ jobs:
           dvc pull -a -d simple_mlp_image
           dvc pull --run-cache simple_mlp_image
           dvc repro simple_mlp_image
-          dvc push -d simple_mlp_image
+          dvc push --run-d simple_mlp_image
             
       - name: Train Simple Text Model
         run: |
