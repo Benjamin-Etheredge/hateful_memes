@@ -47,21 +47,13 @@ jobs:
         continue-on-error: true
         run: dvc pull 
 
-      - name: Train VisualBERT
-        # continue-on-error: true
-        run: |
-          dvc pull -a -d visual_bert
-          dvc pull --run-cache visual_bert
-          dvc repro visual_bert
-          dvc push -d visual_bert
-
       - name: Train Simple Image Model
         # continue-on-error: true
         run: |
           dvc pull -a -d simple_image
           dvc pull --run-cache simple_image
           dvc repro simple_image
-          dvc push -d simple_image
+          dvc push --run-cache -d simple_image
 
       - name: Train Simple MLP Image Model
         # continue-on-error: true
@@ -69,14 +61,22 @@ jobs:
           dvc pull -a -d simple_mlp_image
           dvc pull --run-cache simple_mlp_image
           dvc repro simple_mlp_image
-          dvc push --run-d simple_mlp_image
+          dvc push --run-cache -d simple_mlp_image
             
       - name: Train Simple Text Model
         run: |
           dvc pull -a -d simple_text
           dvc pull --run-cache simple_text
           dvc repro simple_text
-          dvc push -d simple_text
+          dvc push --run-cache -d simple_text
+
+      - name: Train VisualBERT
+        # continue-on-error: true
+        run: |
+          dvc pull -a -d visual_bert
+          dvc pull --run-cache visual_bert
+          dvc repro visual_bert
+          dvc push --run-cache -d visual_bert
 
       - name: Train Super Model
         continue-on-error: true
@@ -84,7 +84,7 @@ jobs:
           # dvc pull -a -d super_model
           # dvc pull --run-cache super_model
           dvc repro super_model
-          dvc push -d super_model
+          dvc push --run-cache -d super_model
 
       - name: Commit run
         run: |
