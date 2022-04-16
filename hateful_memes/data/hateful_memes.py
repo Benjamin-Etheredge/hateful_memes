@@ -119,8 +119,9 @@ class MaeMaeDataset(torch.utils.data.Dataset):
             # T.RandomHorizontalFlip(),
             # transforms.ToPILImage(mode='RGB'),
             T.Resize(size=(224,224)),
-            T.ToTensor(),
-            # transforms.Normalize(mean=[0.485, 0.456, 0.406],
+            T.ToTensor(), # this already seems to scale okay
+
+            # T.Normalize(mean=[0.485, 0.456, 0.406],
             #                       std=[0.229, 0.224, 0.225]),
         ])
 
@@ -231,7 +232,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
             shuffle=True,
             num_workers=self.train_num_workers,
             pin_memory=self.pin_memory,
-            drop_last=False,
+            drop_last=True,
             persistent_workers=True,
             # collate_fn=MaeMaeDataset.collate_batch,
         )
@@ -259,33 +260,33 @@ class MaeMaeDataModule(pl.LightningDataModule):
             # collate_fn=self.collate_batch,
         ) 
 
-    def collate_batch(self, batch):
-        img_list, labels_list, raw_text, text_list, offsets = [], [], [], [], [0]
-        # ic(batch)
-        # if type(batch) == list:
-            # ic(batch)
-        for item in batch:
-            img_list.append(item['image'])
-            labels_list.append(item['label'])
+    # def collate_batch(self, batch):
+    #     img_list, labels_list, raw_text, text_list, offsets = [], [], [], [], [0]
+    #     # ic(batch)
+    #     # if type(batch) == list:
+    #         # ic(batch)
+    #     for item in batch:
+    #         img_list.append(item['image'])
+    #         labels_list.append(item['label'])
 
-            _text = item['text']
-            processed_text = torch.tensor(self.text_pipeline(_text), dtype=torch.int64)
-            raw_text.append(_text)
-            text_list.append(processed_text)
-            offsets.append(processed_text.size(0))
+    #         _text = item['text']
+    #         processed_text = torch.tensor(self.text_pipeline(_text), dtype=torch.int64)
+    #         raw_text.append(_text)
+    #         text_list.append(processed_text)
+    #         offsets.append(processed_text.size(0))
 
-        img_list = torch.torch(img_list)
+    #     img_list = torch.torch(img_list)
         
-        labels_list = torch.tensor(labels_list, dtype=torch.int32)
-        offsets = torch.tensor(offsets[:-1]).cumsum(dim=0)
-        text_list = torch.cat(text_list)
-        return dict(
-            text_features=text_list,
-            text_offset=offsets,
-            label=labels_list,
-            image=img_list,
-            text=raw_text,
-        )
+    #     labels_list = torch.tensor(labels_list, dtype=torch.int32)
+    #     offsets = torch.tensor(offsets[:-1]).cumsum(dim=0)
+    #     text_list = torch.cat(text_list)
+    #     return dict(
+    #         text_features=text_list,
+    #         text_offset=offsets,
+    #         label=labels_list,
+    #         image=img_list,
+    #         text=raw_text,
+    #     )
             
 # def create_transformer(img_transforms=None, text_transforms=None):
 #     def wrapper_transformer(sample: Dict):
