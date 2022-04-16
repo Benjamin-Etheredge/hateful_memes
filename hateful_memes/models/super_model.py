@@ -110,7 +110,9 @@ class SuperModel(BaseMaeMaeModel):
         ic(x.shape)
         x = self.dense_model(x)
         ic(x.shape)
-        x = self.final_layer(x)
+        if self.include_top:
+            x = self.final_layer(x)
+
         ic(x.shape)
         x.squeeze_()
         ic(x.shape)
