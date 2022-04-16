@@ -1,266 +1,83 @@
-from statistics import mode
-import torch
-from torch.utils.data.sampler import SequentialSampler
-from torch.utils.data import DataLoader
-import torch.nn.functional as torch_func
 import pytorch_lightning as pl
-from pytorch_lightning.callbacks import StochasticWeightAveraging
 import math
 from models.OFA.fairseq.fairseq.dataclass.configs import FairseqConfig
 from models.OFA.fairseq.fairseq.dataclass.utils import convert_namespace_to_omegaconf
 from models.OFA.fairseq.fairseq import (tasks, utils, options)
-from models.OFA.models.ofa.ofa import OFAModel
 from models.OFA.trainer import Trainer
 from models.OFA.utils import checkpoint_utils
 from typing import Dict, Optional, Any, List, Tuple, Callable
 import numpy as np
 import argparse
 
-OFA_TASK = tasks.setup_task("snli_ve")
 
-# For SWA callback in Trainer
-class ExponentialMovingAverage:
-    def __init__(self, alpha:float):
-        self.alpha = alpha
-    def __call__(self, averaged_model_parameter: torch.Tensor, model_parameter: torch.Tensor, num_averaged: torch.LongTensor
-        ) -> torch.FloatTensor:
-        ema_avg = self.alpha * averaged_model_parameter + (1.0 - self.alpha) * model_parameter
-        return ema_avg
-
-class HatefulOFADataModule(pl.LightningDataModule):
-    def __init__(self, fs_cfg:FairseqConfig, ofa_model:OFAModel, ofa_task=OFA_TASK,
-                 train_transforms=None, val_transforms=None, test_transforms=None, dims=None):
-        super().__init__(train_transforms, val_transforms, test_transforms, dims)
-        self.fs_cfg = fs_cfg
-        self.ofa_task = ofa_task
-
-        self.max_positions = utils.resolve_max_positions(
-            self.ofa_task.max_positions(),
-            ofa_model.max_positions(),
-            self.fs_cfg.dataset.max_tokens,
-        )
-
-    def prepare_data(self) -> None:
-        self.ofa_task.load_dataset("train", combine=True, epoch=1)
-        self.ofa_task.load_dataset("valid", combine=True, epoch=1)     
-        return super().prepare_data()
-
-    def setup(self, stage: Optional[str] = None) -> None:
-        self.train_dataset = self.ofa_task.dataset("train")
-        self.val_dataset = self.ofa_task.dataset("valid")
-        return super().setup(stage)
-
-    def train_transforms(self):
-        return super().train_transforms
-
-    def train_dataloader(self) -> DataLoader:
-        # Create data loader
-        train_itr = DataLoader(
-            self.train_dataset,
-            collate_fn=self.train_dataset.collater,
-            batch_sampler=SequentialSampler,
-            num_workers=self.fs_cfg.dataset.num_workers,
-            timeout=0,
-            pin_memory=True,
-        )
-        return train_itr
-
-    def val_dataloader(self) -> DataLoader:
-        # Create data loader
-        val_itr = DataLoader(
-            self.val_dataset,
-            collate_fn=self.val_dataset.collater,
-            batch_sampler=SequentialSampler,
-            num_workers=self.fs_cfg.dataset.num_workers,
-            timeout=0,
-            pin_memory=True,
-        )
-        return val_itr
-
-    def teardown(self, stage: Optional[str] = None) -> None:
-        return super().teardown(stage)
-
-class HatefulOFA(pl.LightningModule):
+class hateful_ofa(pl.LightningModule):
     """OFA finetuned for Hateful Memes"""
-    def __init__(self, cfg:FairseqConfig, ofa_task=OFA_TASK,                 
-                 adamw_eps=1e-8, adamw_betas=(0.9, 0.999), adamw_decay=0.01) -> None:
+    def __init__(self, cfg:FairseqConfig) -> None:
         super().__init__()
-        self.ofa_model = ofa_task.build_model(cfg.model)
-        # Injest loss function configuration params
-        tgt_dict = ofa_task.target_dictionary
-        self.padding_idx = tgt_dict.pad() if tgt_dict is not None else -100
-        self.ign_prefix_sz = 0
-        if hasattr(cfg, 'ignore_prefix_size'):
-            self.ign_prefix_sz = cfg.ignore_prefix_size
-        self.label_smoothing = 0.0
-        if hasattr(cfg, 'label_smoothing'):
-            self.label_smoothing = cfg.label_smoothing
-        # Hyperparameters
-        self.save_hyperparameters("adamw_eps", "adamw_betas", "adamw_decay")
-        # Try to load params from checkpoint
-        filename = cfg.checkpoint.restore_file   
-        load_on_all_ranks = False  # Unless distributed training
-        state = checkpoint_utils.load_checkpoint_to_cpu(
-            filename, load_on_all_ranks=load_on_all_ranks
-        )
-        try:
-            self.ofa_model.load_state_dict(
-                state["model"], strict=True, model_cfg=cfg.model
-            )
-        except Exception:
-            raise Exception(
-                "Cannot load model parameters from checkpoint {}; "
-                "please ensure that the architectures match.".format(filename)
-            )
-
-    """Forward function"""
-    def forward(self, batch) -> torch.Tensor:
-        net_output = self.ofa_model(**batch['net_input'])
-        return net_output
-
-    """Loss function"""
-    def _get_lprobs(self, net_output):
-        lprobs = self.ofa_model.get_normalized_probs(net_output, log_probs=True)
-        return lprobs
-
-    def _get_targets(self, batch):
-        targets = batch["target"]
-        return targets
-
-    def _prep_lprobs_targets_for_loss(self, ign_prefix_sz, padding_idx, net_output, batch):
-        constraint_masks = None
-        if "constraint_masks" in batch and batch["constraint_masks"] is not None:
-            constraint_masks = batch["constraint_masks"]
-            net_output[0].masked_fill_(~constraint_masks, -math.inf)
-        lprobs = self._get_lprobs(net_output)
-        targets = self._get_targets(batch)
-        if ign_prefix_sz > 0:
-            lprobs = lprobs[:, ign_prefix_sz :, :].contiguous()
-            targets = targets[:, ign_prefix_sz :].contiguous()
-            if constraint_masks is not None:
-                constraint_masks = constraint_masks[:, ign_prefix_sz :, :].contiguous()
-        if constraint_masks is not None:
-            constraint_masks = constraint_masks.view(-1, constraint_masks.size(-1))
-            constraint_masks = constraint_masks[targets != padding_idx]
-        lprobs = lprobs.view(-1, lprobs.size(-1))
-        lprobs = lprobs[targets != padding_idx]
-        targets = targets.view(-1)
-        targets = targets[targets != padding_idx]
-        return lprobs.view(-1, lprobs.size(-1)), targets.view(-1), constraint_masks
-
-    def _label_smoothed_nll_loss(
-            lprobs, target, epsilon, constraint_masks=None
-        ):
-        if target.dim() == lprobs.dim() - 1:
-            target = target.unsqueeze(-1)
-        nll_loss = -lprobs.gather(dim=-1, index=target).squeeze(-1)
-        if constraint_masks is not None:
-            smooth_loss = -lprobs.masked_fill(~constraint_masks, 0).sum(dim=-1, keepdim=True).squeeze(-1)
-            eps_i = epsilon / (constraint_masks.sum(1) - 1 + 1e-6)
+        # FairSeq task        
+        task = tasks.setup_task(cfg.task)
+        # OFA model
+        model = task.build_model(cfg.model)
+        # Training criterion
+        criterion = task.build_criterion(cfg.criterion)
+        # Load valid dataset (we load training data below, based on the latest checkpoint)
+        # We load the valid dataset AFTER building the model
+        # data_utils.raise_if_valid_subsets_unintentionally_ignored(cfg)
+        if cfg.dataset.combine_valid_subsets:
+            task.load_dataset("valid", combine=True, epoch=1)
         else:
-            smooth_loss = -lprobs.sum(dim=-1, keepdim=True).squeeze(-1)
-            eps_i = epsilon / (lprobs.size(-1) - 1)
-        loss = (1.0 - epsilon - eps_i) * nll_loss + eps_i * smooth_loss
-        loss = loss.sum()
-        return loss
+            for valid_sub_split in cfg.dataset.valid_subset.split(","):
+                task.load_dataset(valid_sub_split, combine=False, epoch=1) 
+        # Custom Trainer class
+        quantizer = None  # Unless distributed training
+        trainer = Trainer(cfg, task, model, criterion, quantizer)
+        # Load the latest checkpoint if one is available and restore the corresponding train iterator
+        extra_state, epoch_itr = checkpoint_utils.load_checkpoint(
+            cfg.checkpoint,
+            trainer,
+            # don't cache epoch iterators for sharded datasets
+            disable_iterator_cache=True,
+        )
+        # Max epochs
+        max_epoch = cfg.optimization.max_epoch or math.inf
+        if max_epoch > 0 and max_epoch != math.inf:
+            total_num_updates = sum(
+                math.ceil(len(epoch_itr) / cfg.optimization.update_freq[i])
+                if i < len(cfg.optimization.update_freq) else
+                math.ceil(len(epoch_itr) / cfg.optimization.update_freq[-1])
+                for i in range(max_epoch)
+            )
+            trainer.lr_reinit(total_num_updates, trainer.get_num_updates())
+ 
+    def forward(self, *args, **kwargs) -> Any:
+        return super().forward(*args, **kwargs)
 
-    """Training and validation"""
-    def _shared_step(self, batch) -> torch.Tensor:
-        # Get raw output, y_hat
-        net_output = self.ofa_model(batch)
-        targets_0 = self._get_targets(batch)
-        # Prep for loss function
-        ign_prefix_sz = self.ign_prefix_sz
-        padding_idx = self.padding_idx
-        lprobs, targets, constraints_masks = self._prep_lprobs_targets_for_loss(ign_prefix_sz, 
-                                                                                padding_idx,
-                                                                                net_output, 
-                                                                                targets_0)
-        # Calculate label-smoothed CE loss
-        label_smoothing = self.label_smoothing
-        loss = self._label_smoothed_nll_loss(lprobs, targets, 
-                                             epsilon=label_smoothing,
-                                             constraint_masks=constraints_masks)
-        return loss
+    def training_step(self, *args, **kwargs) -> STEP_OUTPUT:
+        # forward and backward
+        model.train()
+        loss, sample_size, logging_output = criterion(model, sample, update_num=update_num)
+        optimizer.backward(loss)
+        return loss, sample_size, logging_output
 
-    """Training"""
-    def training_step(self, batch) -> torch.Tensor:
-        loss = self._shared_step(batch)
-        return loss
+    def validation_step(self, *args, **kwargs) -> Optional[STEP_OUTPUT]:
+        return super().validation_step(*args, **kwargs)
 
-    """Validation"""
-    def validation_step(self, batch) -> torch.Tensor:
-        loss = self._shared_step(batch)
-        return loss
-
-    """Testing"""
     def test_step(self, *args, **kwargs) -> Optional[STEP_OUTPUT]:
-        # TODO EMA
         return super().test_step(*args, **kwargs)
 
-    """Inference"""
     def predict_step(self, batch: Any, batch_idx: int, dataloader_idx: Optional[int] = None) -> Any:
-        # TODO EMA
         return super().predict_step(batch, batch_idx, dataloader_idx)
 
-    """Optimizer"""
     def configure_optimizers(self):
-        # TODO OFA originally scales gradients by batch size
-        
-        params = self.parameters()  
-        optim = torch.optim.AdamW(
-            params,
-            betas=self.hparams.adamw_betas, 
-            eps=self.hparams.adamw_eps, 
-            weight_decay=self.hparams.adamw_decay
-        )
-        # OFA uses polynomial decay lr scheduler, but cosine annealing with WR was shown to get better results?
-        lr_sched = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
-            optimizer=optim,
-            T_0=1,
-            T_mult=2    
-        )
-        optim_dict = {
-        "optimizer": optim,
-        "lr_scheduler": {
-            "scheduler": lr_sched,
-            "monitor": "metric_to_track",
-            "frequency": "indicates how often the metric is updated"
-            # If "monitor" references validation metrics, then "frequency" should be set to a
-            # multiple of "trainer.check_val_every_n_epoch".
-            },
-        }
-        return optim_dict
-
-# TODO click arguments 
+        return super().configure_optimizers()
+    
 def main(
              modify_parser: Optional[Callable[[argparse.ArgumentParser], None]] = None
         ):
-    # Injest CLI arguments
     parser = options.get_training_parser()
     args = options.parse_args_and_arch(parser, modify_parser=modify_parser)
     cfg = convert_namespace_to_omegaconf(args)
-    # utils.import_user_module(cfg.common)
+    utils.import_user_module(cfg.common)
     np.random.seed(cfg.common.seed)
     utils.set_torch_seed(cfg.common.seed)
-    
-    # Set up for training
-    ## First build the model
-    hateful_ofa_model = HatefulOFA(cfg)
-    ## Second load the datasets using the task
-    hateful_ofa_data = HatefulOFADataModule(cfg, hateful_ofa_model.ofa_model)
-    ## Third set up training strategy
-    max_epoch = cfg.optimization.max_epoch or math.inf
-    ema_fn = ExponentialMovingAverage(alpha=0.1)
-    grad_norm_clip = cfg.optimization.clip_norm
-    hateful_ofa_trainer = pl.Trainer(
-        max_epochs=max_epoch,
-        callbacks=[StochasticWeightAveraging(avg_fn=ema_fn)],
-        gradient_clip_val=grad_norm_clip)
 
-    # Training
-    hateful_ofa_trainer.fit(hateful_ofa_model, datamodule=hateful_ofa_data)
-
-if __name__ == '__main__':
-    arguments = parse_arguments()
-    main(*arguments)
