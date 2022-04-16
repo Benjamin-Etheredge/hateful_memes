@@ -43,8 +43,8 @@ class BaseMaeMaeModel(LightningModule):
         self.train_acc(y_hat, y)
         self.train_f1(y_hat, y)
         self.train_auroc(y_hat, y)
-        self.log("train/loss", loss, on_step=True, on_epoch=True)
-        self.log("train/accuracy", self.train_acc, on_step=False, on_epoch=True)
+        self.log("train/loss", loss, on_step=False, on_epoch=True)
+        self.log("train/acc", self.train_acc, on_step=False, on_epoch=True)
         self.log("train/f1", self.train_f1, on_step=False, on_epoch=True)
         self.log("train/auroc", self.train_auroc, on_step=False, on_epoch=True)
 
@@ -59,7 +59,7 @@ class BaseMaeMaeModel(LightningModule):
         self.val_f1(y_hat, y)
         self.val_auroc(y_hat, y)
 
-        self.log("val/loss", loss, on_step=True, on_epoch=True)
+        self.log("val/loss", loss, on_step=False, on_epoch=True)
         self.log("val/accuracy", self.val_acc, on_step=False, on_epoch=True)
         self.log("val/f1", self.val_f1, on_step=False, on_epoch=True)
         self.log("val/auroc", self.val_auroc, on_step=False, on_epoch=True)

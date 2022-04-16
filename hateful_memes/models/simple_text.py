@@ -9,7 +9,7 @@ from icecream import ic
 ic.disable()
 
 from hateful_memes.utils import get_project_logger
-from hateful_memes.models.baseline import BaseMaeMaeModel, base_train
+from hateful_memes.models.base import BaseMaeMaeModel, base_train
 
 
 class BaseTextMaeMaeModel(BaseMaeMaeModel):

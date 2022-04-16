@@ -9,6 +9,7 @@ stages:
         && echo "PASSED" > logs/test_visual_bert.log 
     deps:
       - data/01_raw/hateful_memes
+      - hatefule_memes/models/base.py
       - hateful_memes/models/visual_bert.py
     outs:
       - logs/test_visual_bert.log
@@ -29,6 +30,7 @@ stages:
     deps:
       - logs/test_visual_bert.log
       - data/01_raw/hateful_memes
+      - hatefule_memes/models/base.py
       - hateful_memes/models/visual_bert.py
     outs:
       - data/06_models/visual_bert
@@ -46,6 +48,7 @@ stages:
         && echo "PASSED" > logs/test_simple_mlp_image.log 
     deps:
       - data/01_raw/hateful_memes
+      - hatefule_memes/models/base.py
       - hateful_memes/models/simple_mlp_image.py
     outs:
       - logs/test_simple_mlp_image.log
@@ -65,8 +68,8 @@ stages:
     deps:
       - logs/test_simple_mlp_image.log
       - data/01_raw/hateful_memes
+      - hateful_memes/models/base.py
       - hateful_memes/models/simple_mlp_image.py
-      - hateful_memes/models/baseline.py
     outs:
       - data/06_models/simple_mlp_image
     # plots:
@@ -83,6 +86,7 @@ stages:
         && echo "PASSED" > logs/test_simple_image.log
     deps:
       - data/01_raw/hateful_memes
+      - hateful_memes/models/base.py
       - hateful_memes/models/simple_image.py
     outs:
       - logs/test_simple_image.log
@@ -104,7 +108,7 @@ stages:
       - logs/test_simple_image.log
       - data/01_raw/hateful_memes
       - hateful_memes/models/simple_image.py
-      - hateful_memes/models/baseline.py
+      - hateful_memes/models/base.py
     outs:
       - data/06_models/simple_image
     # plots:
@@ -125,6 +129,7 @@ stages:
         && echo "PASSED" > logs/test_simple_text.log
     deps:
       - data/01_raw/hateful_memes
+      - hateful_memes/models/base.py
       - hateful_memes/models/simple_text.py
     outs:
       - logs/test_simple_text.log
@@ -148,6 +153,7 @@ stages:
     deps:
       - data/01_raw/hateful_memes
       - logs/test_simple_text.log
+      - hateful_memes/models/base.py
       - hateful_memes/models/simple_text.py
     outs:
       - data/06_models/simple_text
@@ -161,6 +167,7 @@ stages:
         && echo "PASSED" > logs/test_super_model.log
     deps:
       - data/01_raw/hateful_memes
+      - hateful_memes/models/base.py
       - hateful_memes/models/super_model.py
       - data/06_models/simple_image
       - data/06_models/simple_text
@@ -186,6 +193,7 @@ stages:
     deps:
       - data/01_raw/hateful_memes
       - logs/test_super_model.log
+      - hateful_memes/models/base.py
       - hateful_memes/models/super_model.py
       - data/06_models/simple_image
       - data/06_models/simple_mlp_image

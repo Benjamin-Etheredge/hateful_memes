@@ -1,6 +1,6 @@
 import click
 
-from hateful_memes.models.baseline import BaseMaeMaeModel, base_train
+from hateful_memes.models.base import BaseMaeMaeModel, base_train
 from torch import nn
 from torch.nn import functional as F
 import torch
