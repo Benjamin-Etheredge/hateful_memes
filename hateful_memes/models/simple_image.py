@@ -13,7 +13,7 @@ from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning import LightningModule, Trainer
 
-from hateful_memes.models.baseline import BaseMaeMaeModel
+from hateful_memes.models.baseline import BaseMaeMaeModel, base_train
 from hateful_memes.data.hateful_memes import MaeMaeDataModule
 from hateful_memes.utils import get_project_logger
 
@@ -88,57 +88,30 @@ class SimpleImageMaeMaeModel(BaseMaeMaeModel):
 
 # Model to process text
 @click.command()
-@click.option('--batch_size', default=32, help='Batch size')
+# Model args
 @click.option('--lr', default=1e-4, help='Learning rate')
 @click.option('--dense_dim', default=256, help='Dense dim')
-@click.option('--grad_clip', default=1.0, help='Gradient clipping')
 @click.option('--dropout_rate', default=0.1, help='Dropout rate')
 @click.option('--batch_norm', default=False, help='Batch norm')
+# Trainer args
+@click.option('--grad_clip', default=1.0, help='Gradient clipping')
+@click.option('--batch_size', default=32, help='Batch size')
 @click.option('--epochs', default=100, help='Epochs')
 @click.option('--model_dir', default='/tmp', help='Model path')
 @click.option('--fast_dev_run', default=False, help='Fast dev run')
 @click.option('--log_dir', default="data/08_reporting/simple_image", help='Log dir')
 @click.option('--project', default="simple-image", help='Project')
-def main(batch_size, lr, dense_dim, grad_clip, dropout_rate, 
-         batch_norm, epochs, model_dir, fast_dev_run, log_dir, project):
+def main(lr, dense_dim, dropout_rate, batch_norm,
+         **train_kwargs):
     """ Train model """
-    logger = get_project_logger(project=project, save_dir=log_dir, offline=fast_dev_run)
-
-    checkpoint_callback = ModelCheckpoint(
-        monitor="val/acc", 
-        mode="max", 
-        dirpath=model_dir, 
-        filename="{epoch}-{step}-{val_acc:.4f}",
-        verbose=True,
-        save_top_k=1)
-    early_stopping = EarlyStopping(
-            monitor='val/acc', 
-            patience=10, 
-            mode='max', 
-            verbose=True)
-
     model = SimpleImageMaeMaeModel(
         lr=lr, 
         dense_dim=dense_dim, 
         dropout_rate=dropout_rate,
         batch_norm=batch_norm)
 
-    trainer = Trainer(
-        devices=1, 
-        accelerator='auto',
-        logger=logger,
-        max_epochs=epochs,
-        gradient_clip_val=grad_clip,
-        track_grad_norm=2, 
-        fast_dev_run=fast_dev_run, 
-        callbacks=[checkpoint_callback, early_stopping])
-    # TODO should I move module inside lightning module?
-    trainer.fit(
-        model, 
-        datamodule=MaeMaeDataModule(
-            batch_size=batch_size, 
-        )
-    )
+    base_train(model=model, **train_kwargs)
+
 
 if __name__ == "__main__":
     pl.seed_everything(42)

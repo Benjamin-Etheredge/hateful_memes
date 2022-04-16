@@ -1,19 +1,10 @@
-import os
 import click
-from dvclive.lightning import DvcLiveLogger
-from pytorch_lightning.loggers import WandbLogger
-from pytorch_lightning import LightningModule, Trainer
 
-from hateful_memes.models.baseline import BaseMaeMaeModel
-from hateful_memes.data.hateful_memes import MaeMaeDataModule
-from hateful_memes.utils import get_project_logger
-from pytorch_lightning.utilities.cli import LightningCLI
-from pytorch_lightning.callbacks import ModelCheckpoint
+from hateful_memes.models.baseline import BaseMaeMaeModel, base_train
 from torch import nn
 from torch.nn import functional as F
 import torch
 import pytorch_lightning as pl
-from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
 
 class SimpleMLPImageMaeMaeModel(BaseMaeMaeModel):
@@ -59,6 +50,7 @@ class SimpleMLPImageMaeMaeModel(BaseMaeMaeModel):
         x = torch.squeeze(x)
         return x
 
+
 # Model to process text
 @click.command()
 @click.option('--batch_size', default=32, help='Batch size')
@@ -71,50 +63,16 @@ class SimpleMLPImageMaeMaeModel(BaseMaeMaeModel):
 @click.option('--fast_dev_run', type=bool, default=False, help='Fast dev run')
 @click.option('--log_dir', default="data/08_reporting/simple_mlp_image", help='Fast dev run')
 @click.option('--project', default="simple-mlp-image", help='Fast dev run')
-
-def main(batch_size, lr, dense_dim, grad_clip,
-         dropout_rate, epochs, model_dir, fast_dev_run,
-         log_dir, project):
+def main(lr, dense_dim, dropout_rate,
+         **train_kwargs):
     """ shut up pylint """
-    logger = get_project_logger(project=project, save_dir=log_dir, offline=fast_dev_run)
-    early_stopping = EarlyStopping(
-            monitor='val/acc', 
-            patience=10, 
-            mode='max', 
-            verbose=True)
-
-    checkpoint_callback = ModelCheckpoint(
-        monitor="val/acc", 
-        mode="max", 
-        dirpath=model_dir, 
-        filename="{epoch}-{step}-{val_acc:.4f}",
-        verbose=True,
-        save_top_k=1)
-
     model = SimpleMLPImageMaeMaeModel(
         lr=lr, 
         dense_dim=dense_dim, 
         dropout_rate=dropout_rate)
 
-    trainer = Trainer(
-        logger=logger,
-        max_epochs=epochs,
-        gradient_clip_val=grad_clip,
-        # gpus=1 if torch.cuda.is_available() else 0,
-        devices=1,
-        accelerator='auto',
-        fast_dev_run=fast_dev_run, 
-        callbacks=[checkpoint_callback, early_stopping],
-        track_grad_norm=2
-        )
+    base_train(model=model, **train_kwargs)
 
-    # TODO should I move module inside lightning module?
-    trainer.fit(
-        model,
-        datamodule=MaeMaeDataModule(
-            batch_size=batch_size,
-        )
-    )
 
 if __name__ == "__main__":
     pl.seed_everything(42)

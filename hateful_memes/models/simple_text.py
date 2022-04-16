@@ -1,10 +1,6 @@
 import torch
-from torch import dropout, nn
+from torch import nn
 from torch.nn import functional as F
-from pytorch_lightning.utilities.cli import LightningCLI
-from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning import LightningModule, Trainer
-from pytorch_lightning.callbacks import EarlyStopping
 
 
 import transformers
@@ -13,10 +9,8 @@ from icecream import ic
 ic.disable()
 
 from hateful_memes.utils import get_project_logger
-from hateful_memes.models.baseline import BaseMaeMaeModel
-from hateful_memes.data.hateful_memes import MaeMaeDataset
-from hateful_memes.data.hateful_memes import MaeMaeDataModule
-import wandb 
+from hateful_memes.models.baseline import BaseMaeMaeModel, base_train
+
 
 class BaseTextMaeMaeModel(BaseMaeMaeModel):
     def __init__(
@@ -97,11 +91,11 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
 
 # Model to process text
 @click.command()
-@click.option('--batch_size', default=32, help='Batch size')
 @click.option('--lr', default=1e-4, help='Learning rate')
 @click.option('--num_layers', default=2, help='Num Layers')
 @click.option('--embed_dim', default=64, help='Dense dim')
 @click.option('--dense_dim', default=256, help='Dense dim')
+@click.option('--batch_size', default=32, help='Batch size')
 @click.option('--max_length', default=128, help='Max length')
 @click.option('--tokenizer_name', default="bert-base-uncased", help='Tokinizer Name')
 @click.option('--grad_clip', default=1.0, help='Gradient clipping')
@@ -113,35 +107,10 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
 @click.option('--project', default="simple-text", help='Project name')
 @click.option('--monitor_metric', default="val/loss", help='Metric to monitor')
 @click.option('--monitor_metric_mode', default="min", help='Min or max')
-def main(batch_size, lr, num_layers, embed_dim, dense_dim, max_length, tokenizer_name,
-         grad_clip, dropout_rate, epochs, model_dir, fast_dev_run,
-         log_dir, project, monitor_metric, monitor_metric_mode):
+def main(lr, num_layers, embed_dim, dense_dim, max_length, tokenizer_name, dropout_rate,
+         **train_kwargs):
 
     """ Train Text model """
-    logger = get_project_logger(project=project, save_dir=log_dir, offline=fast_dev_run)
-
-    checkpoint_callback = ModelCheckpoint(
-        monitor=monitor_metric, 
-        mode=monitor_metric_mode, 
-        dirpath=model_dir, #"data/06_models/hateful_memes", 
-        save_top_k=1)
-
-    early_stopping = EarlyStopping(
-            monitor=monitor_metric,
-            patience=10, 
-            mode=monitor_metric_mode,
-            verbose=True)
-
-    trainer = Trainer(
-        devices=1, 
-        accelerator='auto',
-        max_epochs=epochs, 
-        logger=logger, 
-        fast_dev_run=fast_dev_run,
-        gradient_clip_val=grad_clip,
-        track_grad_norm=2, 
-        callbacks=[checkpoint_callback, early_stopping])
-    
     model = BaseTextMaeMaeModel(
         embed_dim=embed_dim,
         tokenizer_name=tokenizer_name,
@@ -150,9 +119,8 @@ def main(batch_size, lr, num_layers, embed_dim, dense_dim, max_length, tokenizer
         max_length=max_length,
         num_layers=num_layers,
         dropout_rate=dropout_rate)
-    trainer.fit(
-        model, 
-        datamodule=MaeMaeDataModule(batch_size=batch_size))
+    
+    base_train(model=model, **train_kwargs)
 
 
 if __name__ == "__main__":
