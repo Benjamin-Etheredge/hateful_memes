@@ -133,6 +133,7 @@ def base_train(
         # detect_anomaly=True,
         callbacks=[checkpoint_callback, early_stopping, stw])
 
+    data = MaeMaeDataModule(batch_size=batch_size)
 
     if not fast_dev_run:
         # TODO should I move datamodule inside lightning module?
@@ -140,7 +141,7 @@ def base_train(
             model, 
             scale_batch_size_kwargs=dict(max_trials=6),
             lr_find_kwargs=dict(num_training=100),
-            datamodule=MaeMaeDataModule(batch_size=batch_size)
+            datamodule=data,
         )
 
         ic.enable()
@@ -153,7 +154,7 @@ def base_train(
         # model.hparams.lr = new_lr
         # model.lr = new_lr
 
-    trainer.fit(model, datamodule=MaeMaeDataModule(batch_size=batch_size))
+    trainer.fit(model, datamodule=data)
 
     # # Setup data for predictions
     # data = MaeMaeDataModule(batch_size=batch_size)
