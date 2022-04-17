@@ -133,22 +133,25 @@ def base_train(
         # detect_anomaly=True,
         callbacks=[checkpoint_callback, early_stopping, stw])
 
-    # TODO should I move datamodule inside lightning module?
-    result = trainer.tune(
-        model, 
-        scale_batch_size_kwargs=dict(max_trials=8),
-        lr_find_kwargs=dict(num_training=100),
-        datamodule=MaeMaeDataModule(batch_size=batch_size))
 
-    ic.enable()
-    ic(result)
-    lr_find = result['lr_find']
-    plt = lr_find.plot(suggest=True)
-    wandb.log({"lr_plot": plt})
+    if not fast_dev_run:
+        # TODO should I move datamodule inside lightning module?
+        result = trainer.tune(
+            model, 
+            scale_batch_size_kwargs=dict(max_trials=8),
+            lr_find_kwargs=dict(num_training=100),
+            datamodule=MaeMaeDataModule(batch_size=batch_size)
+        )
 
-    # new_lr = trainer.tuner.lr_find.suggestion()
-    # model.hparams.lr = new_lr
-    # model.lr = new_lr
+        ic.enable()
+        ic(result)
+        lr_find = result['lr_find']
+        plt = lr_find.plot(suggest=True)
+        wandb.log({"lr_plot": plt})
+
+        # new_lr = trainer.tuner.lr_find.suggestion()
+        # model.hparams.lr = new_lr
+        # model.lr = new_lr
 
     trainer.fit(model, datamodule=MaeMaeDataModule(batch_size=batch_size))
 
