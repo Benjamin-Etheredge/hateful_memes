@@ -6,7 +6,6 @@ from torch.nn import functional as F
 import transformers
 import click
 from icecream import ic
-ic.disable()
 
 from hateful_memes.utils import get_project_logger
 from hateful_memes.models.base import BaseMaeMaeModel, base_train
@@ -59,25 +58,15 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
         self.save_hyperparameters()
     
     def forward(self, batch):
-        ic()
         text_features = batch['text']
         input = self.tokenizer(text_features, padding='max_length', truncation=True, max_length=self.max_length)
-        # ic(input)
         ids = torch.tensor(input['input_ids']).to(self.device)
-        ic(ids.shape)
         x = self.embedder(ids)
         x = F.dropout(x, self.dropout_rate)
-        ic("post embed: ", x.shape)
-        # ic(x.view(x.shape[0], 1, -1).shape)
         x, (ht, ct) = self.lstm(x)
-        ic("after lstm:", x.shape)
         # x = x[:, -1, :]
-        ic(x[0])
-        ic(ht[0])
         x = ht[-1]
-        ic("after after lstm:", x.shape)
         # x = x.view(x.shape[0], -1)
-        ic(x.shape)
         x = self.l1(x)
         x = F.relu(x)
 
@@ -85,7 +74,6 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
             x = self.l2(x)
 
         x = torch.squeeze(x)
-        ic(x.shape)
         return x
 
 
