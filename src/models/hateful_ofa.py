@@ -1,3 +1,4 @@
+import torch
 import pytorch_lightning as pl
 import math
 from models.OFA.fairseq.fairseq.dataclass.configs import FairseqConfig
@@ -10,7 +11,39 @@ import numpy as np
 import argparse
 
 
-class hateful_ofa(pl.LightningModule):
+class HatefulOFADataModule(pl.LightningDataModule):
+    def __init__(self, data_dir:str, fs_cfg:FairseqConfig, 
+                 train_transforms=None, val_transforms=None, test_transforms=None, dims=None):
+        super().__init__(train_transforms, val_transforms, test_transforms, dims)
+        self.fs_cfg = fs_cfg
+        self.fs_task = tasks.setup_task(self.fs_cfg.task)
+
+    def prepare_data(self) -> None:
+        return super().prepare_data()
+        self.fs_task.load_dataset()        
+
+    def setup(self, stage: Optional[str] = None) -> None:
+        # Create data loader
+        itr = torch.utils.data.DataLoader(
+            self.dataset,
+            collate_fn=self.collate_fn,
+            batch_sampler=batches[offset:],
+            num_workers=self.num_workers,
+            timeout=self.timeout,
+            pin_memory=True,
+        )
+        return super().setup(stage)
+
+    def train_transforms(self):
+        return super().train_transforms
+
+    def val_dataloader(self) -> EVAL_DATALOADERS:
+        return super().val_dataloader()
+
+    def teardown(self, stage: Optional[str] = None) -> None:
+        return super().teardown(stage)
+
+class HatefulOFA(pl.LightningModule):
     """OFA finetuned for Hateful Memes"""
     def __init__(self, cfg:FairseqConfig) -> None:
         super().__init__()
