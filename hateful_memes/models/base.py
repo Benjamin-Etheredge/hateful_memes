@@ -11,8 +11,9 @@ from torchvision import transforms as T
 import torchmetrics
 
 from pytorch_lightning import LightningModule
-from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
+from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint, StochasticWeightAveraging
 from pytorch_lightning import Trainer
+import wandb
 
 from hateful_memes.utils import get_project_logger
 from hateful_memes.data.hateful_memes import MaeMaeDataModule
@@ -115,6 +116,8 @@ def base_train(
             mode=monitor_metric_mode,
             verbose=True)
 
+    stw = StochasticWeightAveraging()
+
     trainer = Trainer(
         devices=1, 
         accelerator='auto',
@@ -123,12 +126,56 @@ def base_train(
         gradient_clip_val=grad_clip,
         track_grad_norm=2, 
         fast_dev_run=fast_dev_run, 
-        callbacks=[checkpoint_callback, early_stopping])
+        auto_lr_find=True,
+        auto_scale_batch_size='power',
+        precision=16,
+        amp_backend='native',
+        # detect_anomaly=True,
+        callbacks=[checkpoint_callback, early_stopping, stw])
 
-    # TODO should I move module inside lightning module?
-    trainer.fit(
+    # TODO should I move datamodule inside lightning module?
+    result = trainer.tune(
         model, 
-        datamodule=MaeMaeDataModule(
-            batch_size=batch_size, 
-        )
-    )
+        scale_batch_size_kwargs=dict(max_trials=8),
+        lr_find_kwargs=dict(num_training=100),
+        datamodule=MaeMaeDataModule(batch_size=batch_size))
+
+    ic.enable()
+    ic(result)
+    lr_find = result['lr_find']
+    plt = lr_find.plot(suggest=True)
+    wandb.log({"lr_plot": plt})
+
+    # new_lr = trainer.tuner.lr_find.suggestion()
+    # model.hparams.lr = new_lr
+    # model.lr = new_lr
+
+    trainer.fit(model, datamodule=MaeMaeDataModule(batch_size=batch_size))
+
+    # # Setup data for predictions
+    # data = MaeMaeDataModule(batch_size=batch_size)
+    # data.setup(None)
+    # train_data = data.train_dataloader(shuffle=False, drop_last=False)
+    # train_labels = []
+    # for batch in train_data:
+    #     train_labels += batch['label']
+    # val_data = data.val_dataloader()
+    # val_labels = []
+    # for batch in val_data:
+    #     val_labels += batch['label']
+
+    # train_pred, val_pred = trainer.predict(model, dataloaders=[train_data, val_data])
+    # ic(train_pred, val_pred)
+
+    # train_cm = wandb.plot.confusion_matrix(
+    #     y_true=train_labels,
+    #     preds=train_pred,
+    #     class_names=['not hateful', 'hateful'],
+    # )
+    # val_cm = wandb.plot.confusion_matrix(
+    #     y_true=val_labels,
+    #     preds=val_pred,
+    #     class_names=['not hateful', 'hateful'],
+    # )
+    # wandb.log({"train_cm": train_cm})
+    # wandb.log({"val_cm": val_cm})
