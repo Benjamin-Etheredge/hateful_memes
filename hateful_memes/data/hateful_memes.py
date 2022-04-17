@@ -171,7 +171,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
         train_num_workers=8,
         val_num_workers=8,
         test_num_workers=8,
-        pin_memory=True,
+        pin_memory=False,
         collate_fn=None,
         # tokenizer=None,
     ):
@@ -194,6 +194,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
         self.tokenizer = None
         self.vocab = None
         self.collate_fn = collate_fn
+        self.save_hyperparameters()
     
     def prepare_data(self) -> None:
         return super().prepare_data()
@@ -225,15 +226,15 @@ class MaeMaeDataModule(pl.LightningDataModule):
         # else:
         #     return self.collate_fn
 
-    def train_dataloader(self):
+    def train_dataloader(self, shuffle=True, drop_last=True):
         return torch.utils.data.DataLoader(
             self.train_dataset,
             batch_size=self.batch_size,
-            shuffle=True,
+            shuffle=shuffle,
             num_workers=self.train_num_workers,
             pin_memory=self.pin_memory,
-            drop_last=True,
-            persistent_workers=True,
+            drop_last=drop_last,
+            persistent_workers=False,
             # collate_fn=MaeMaeDataset.collate_batch,
         )
 
@@ -244,7 +245,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
             shuffle=False,
             num_workers=self.val_num_workers,
             pin_memory=self.pin_memory,
-            persistent_workers=True,
+            persistent_workers=False,
             # collate_fn=MaeMaeDataset.collate_batch,
             # collate_fn=self.collate_batch, = None
         )
