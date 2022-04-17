@@ -1,6 +1,5 @@
 import os
 from pytorch_lightning.loggers import WandbLogger, CSVLogger
-from dvclive.lightning import DvcLiveLogger
 
 
 def get_project_logger(*, project=None, save_dir=None, offline=False):

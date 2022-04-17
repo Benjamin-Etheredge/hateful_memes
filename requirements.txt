@@ -113,11 +113,7 @@ dulwich==0.20.35
 dvc[s3]==2.10.0
     # via -r requirements.in
 dvc-render==0.0.4
-    # via
-    #   dvc
-    #   dvclive
-dvclive @ git+https://github.com/Benjamin-Etheredge/dvclive
-    # via -r requirements.in
+    # via dvc
 entrypoints==0.4
     # via
     #   jupyter-client
@@ -359,6 +355,8 @@ pillow==9.1.0
     #   torchvision
 pip-tools==6.5.1
     # via -r requirements.in
+plotly==5.7.0
+    # via -r requirements.in
 ply==3.11
     # via dvc
 prometheus-client==0.13.1
@@ -525,6 +523,7 @@ six==1.16.0
     #   flatten-dict
     #   google-auth
     #   grpcio
+    #   plotly
     #   promise
     #   python-dateutil
     #   sacremoses
@@ -539,6 +538,8 @@ tabulate==0.8.9
     # via
     #   dvc
     #   dvc-render
+tenacity==8.0.1
+    # via plotly
 tensorboard==2.8.0
     # via
     #   pytorch-lightning
