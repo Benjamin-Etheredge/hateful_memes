@@ -138,7 +138,7 @@ def base_train(
         # TODO should I move datamodule inside lightning module?
         result = trainer.tune(
             model, 
-            scale_batch_size_kwargs=dict(max_trials=8),
+            scale_batch_size_kwargs=dict(max_trials=6),
             lr_find_kwargs=dict(num_training=100),
             datamodule=MaeMaeDataModule(batch_size=batch_size)
         )
