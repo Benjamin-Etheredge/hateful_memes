@@ -128,8 +128,8 @@ def base_train(
         fast_dev_run=fast_dev_run, 
         auto_lr_find=True,
         auto_scale_batch_size='power',
-        precision=16,
-        amp_backend='native',
+        # precision=16,
+        # amp_backend='native',
         # detect_anomaly=True,
         callbacks=[checkpoint_callback, early_stopping, stw])
 
