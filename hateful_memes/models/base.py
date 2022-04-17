@@ -131,7 +131,8 @@ def base_train(
         # precision=16,
         # amp_backend='native',
         # detect_anomaly=True,
-        callbacks=[checkpoint_callback, early_stopping, stw])
+        callbacks=[checkpoint_callback, early_stopping])
+        # callbacks=[checkpoint_callback, early_stopping, stw])
 
     data = MaeMaeDataModule(batch_size=batch_size)
 
