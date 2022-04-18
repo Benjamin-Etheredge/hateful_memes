@@ -33,13 +33,15 @@ stages:
 
   test_electra:
     cmd: >
-        python -m hateful_memes.models.electra
+        python -m hateful_memes.models.auto_text_model
         --batch_size 4 
         --fast_dev_run True
+        --model_name 'google/electra-small-discriminator'
+        --model_name_simple 'Electra'
         | tee logs/test_electra.log 2>&1
     deps:
       - data/01_raw/hateful_memes
-      - hateful_memes/models/electra.py
+      - hateful_memes/models/auto_text_model.py
     outs:
       - logs/test_electra.log
 
@@ -55,13 +57,51 @@ stages:
         --dense_dim ${dense_dim}
         --dropout_rate ${dropout_rate}
         --gradient_clip_value ${gradient_clip_value}
+        --model_name 'google/electra-small-discriminator'
+        --model_name_simple 'Electra'
         --model_dir data/06_models/electra
     deps:
       - logs/test_electra.log
       - data/01_raw/hateful_memes
-      - hateful_memes/models/electra.py
+      - hateful_memes/models/auto_text_model.py
     outs:
       - data/06_models/electra
+
+  test_distilbert:
+    cmd: >
+        python -m hateful_memes.models.auto_text_model
+        --batch_size 4 
+        --fast_dev_run True
+        --model_name 'distilbert-base-uncased-finetuned-sst-2-english'
+        --model_name_simple 'Distilbert'
+        | tee logs/test_distilbert.log 2>&1
+    deps:
+      - data/01_raw/hateful_memes
+      - hateful_memes/models/auto_text_model.py
+    outs:
+      - logs/test_distilbert.log
+
+  distilbert:
+    vars:
+      - config/distilbert.yaml
+    cmd: >
+        python -m hateful_memes.models.distilbert
+        --batch_size ${batch_size}
+        --lr ${lr}
+        --epochs ${epochs}
+        --max_length ${max_length}
+        --dense_dim ${dense_dim}
+        --dropout_rate ${dropout_rate}
+        --gradient_clip_value ${gradient_clip_value}
+        --model_name 'distilbert-base-uncased-finetuned-sst-2-english'
+        --model_name_simple 'Distilbert'
+        --model_dir data/06_models/distilbert
+    deps:
+      - logs/test_distilbert.log
+      - data/01_raw/hateful_memes
+      - hateful_memes/models/auto_text_model.py
+    outs:
+      - data/06_models/distilbert
 
   test_simple_mlp_image:
     cmd: >

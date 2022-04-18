@@ -5,5 +5,5 @@ max_length: 512
 dense_dim: 256
 dropout_rate: 0.1
 gradient_clip_value: 1.0
-model_name: 'google/electra-small-discriminator'
-model_name_simple: 'Electra'
+model_name: 'distilbert-base-uncased-finetuned-sst-2-english' 
+model_name_simple: 'Distilbert' 

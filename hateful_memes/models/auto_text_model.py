@@ -1,7 +1,8 @@
+from pyexpat import model
 import pytorch_lightning as pl
 import torch
 import click
-from transformers import ElectraTokenizerFast, ElectraModel, ElectraConfig
+from transformers import AutoTokenizer, AutoModel, AutoConfig
 from hateful_memes.data.hateful_memes import MaeMaeDataModule
 from torch.nn import functional as F
 from torch import nn
@@ -11,7 +12,7 @@ from pytorch_lightning.loggers import WandbLogger
 from icecream import ic
 
 
-class ElectraModule(pl.LightningModule):
+class AutoTextModule(pl.LightningModule):
 
     def __init__(
         self, 
@@ -20,11 +21,12 @@ class ElectraModule(pl.LightningModule):
         include_top=True,
         dropout_rate=0.0,
         dense_dim=256,
+        model_name='google/electra-small-discriminator',
     ):
         super().__init__()
-        self.tokenizer = ElectraTokenizerFast.from_pretrained("google/electra-small-discriminator")
-        self.config = ElectraConfig()
-        self.ElectraModel = ElectraModel.from_pretrained("google/electra-small-discriminator", config=self.config)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.config = AutoConfig.from_pretrained(model_name)
+        self.model = AutoModel.from_pretrained(model_name, config=self.config)
 
         self.lr = lr
         self.max_length = max_length
@@ -65,7 +67,7 @@ class ElectraModule(pl.LightningModule):
         )
         inputs = inputs.to(self.device)
         
-        x = self.ElectraModel(**inputs)
+        x = self.model(**inputs)
         x = x.last_hidden_state
         x = x.view(x.shape[0], -1)
 
@@ -85,18 +87,21 @@ class ElectraModule(pl.LightningModule):
         return optimizer
     
 @click.command()
-@click.option('--batch_size',          default=32,     help='Batch size')
-@click.option('--lr',                  default=1e-4,   help='Learning rate')
-@click.option('--max_length',          default=128,    help='Max length')
-@click.option('--dense_dim',           default=256,    help='Dense dim')
-@click.option('--dropout_rate',        default=0.1,    help='Dropout rate')
-@click.option('--epochs',              default=10,     help='Epochs')
-@click.option('--model_dir',           default='/tmp', help='Save dir')
-@click.option('--gradient_clip_value', default=1.0,    help='Gradient clip')
-@click.option('--fast_dev_run',        default=False,  help='Fast dev run')
+@click.option('--batch_size', default=32, help='Batch size')
+@click.option('--lr', default=1e-4, help='Learning rate')
+@click.option('--max_length', default=128, help='Max length')
+@click.option('--dense_dim', default=256, help='Dense dim')
+@click.option('--dropout_rate', default=0.1, help='Dropout rate')
+@click.option('--epochs', default=10, help='Epochs')
+@click.option('--model_dir', default='/tmp', help='Save dir')
+@click.option('--gradient_clip_value', default=1.0, help='Gradient clip')
+@click.option('--fast_dev_run', default=False, help='Fast dev run')
+@click.option('--model_name', default='google/electra-small-discriminator', help='Model name')
+@click.option('--model_name_simple', default='Electra', help='Simple model name for wandb')
 def main(batch_size, lr, max_length, dense_dim, dropout_rate, 
-         epochs, model_dir, gradient_clip_value, fast_dev_run):
-    logger = None if fast_dev_run else WandbLogger(project="electra")
+         epochs, model_dir, gradient_clip_value, fast_dev_run, model_name,
+         model_name_simple):
+    logger = None if fast_dev_run else WandbLogger(project=model_name_simple)
 
     checkpoint_callback = ModelCheckpoint(
         monitor="val/acc", 
@@ -124,11 +129,12 @@ def main(batch_size, lr, max_length, dense_dim, dropout_rate,
         fast_dev_run=fast_dev_run,
     )
     
-    model = ElectraModule(
+    model = AutoTextModule(
         lr=lr, 
         max_length=max_length, 
         dense_dim=dense_dim, 
-        dropout_rate=dropout_rate
+        dropout_rate=dropout_rate,
+        model_name=model_name,
     )
 
     trainer.fit(
