@@ -1,6 +1,7 @@
 **.env
 **.png
 **.egg-info
+**.DS_Store
 **/__pycache__
 lightning_logs/
 wandb/
@@ -8,3 +9,5 @@ mmf/
 /dvclive.json
 dist/
 .vscode/
+fairface/fair_face_models/
+fairface/dlib_models/
