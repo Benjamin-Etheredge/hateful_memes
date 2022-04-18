@@ -6,8 +6,8 @@ stages:
       \ echo \"PASSED\" > logs/test_visual_bert.log \n"
     deps:
     - path: data/01_raw/hateful_memes
-      md5: 8844b5201ff55743fcd36c40d7352a88.dir
-      size: 4232567214
+      md5: 3a4bb5f8ed1125c8e6421023ae62074a.dir
+      size: 4231948718
       nfiles: 12148
     - path: hateful_memes/models/visual_bert.py
       md5: 2f23830b2ed7f76c4badbb70bed328ca
@@ -21,8 +21,8 @@ stages:
       \ --project test --fast_dev_run True && echo \"PASSED\" > logs/test_simple_image.log\n"
     deps:
     - path: data/01_raw/hateful_memes
-      md5: 8844b5201ff55743fcd36c40d7352a88.dir
-      size: 4232567214
+      md5: 3a4bb5f8ed1125c8e6421023ae62074a.dir
+      size: 4231948718
       nfiles: 12148
     - path: hateful_memes/models/simple_image.py
       md5: 5d4db119dc8c17940ad3d5db184ac669
@@ -60,8 +60,8 @@ stages:
       \ \n"
     deps:
     - path: data/01_raw/hateful_memes
-      md5: 8844b5201ff55743fcd36c40d7352a88.dir
-      size: 4232567214
+      md5: 3a4bb5f8ed1125c8e6421023ae62074a.dir
+      size: 4231948718
       nfiles: 12148
     - path: hateful_memes/models/simple_mlp_image.py
       md5: fa9afbc3e24f309b124631f9811c6577
@@ -163,12 +163,12 @@ stages:
       \ logs/test_simple_vit_image_metrics --project test && echo \"PASSED\" > logs/test_vit.log\n"
     deps:
     - path: data/01_raw/hateful_memes
-      md5: 8844b5201ff55743fcd36c40d7352a88.dir
-      size: 4232567214
+      md5: 3a4bb5f8ed1125c8e6421023ae62074a.dir
+      size: 4231948718
       nfiles: 12148
     - path: hateful_memes/models/vit.py
-      md5: 78c6c0e51ea3ea33e051a41dc247e38d
-      size: 5224
+      md5: b7f7ffc8655a57ca8154d60052f9c775
+      size: 5191
     outs:
     - path: logs/test_vit.log
       md5: 15de982d1dc99ce52d089868a579de34
@@ -193,3 +193,19 @@ stages:
       md5: 858a736c9f774653c76a9896d6154ccb.dir
       size: 1265447801
       nfiles: 1
+  test_beit:
+    cmd: "python -m hateful_memes.models.beit --batch_size 4  --fast_dev_run True\
+      \ --log_dir logs/test_simple_beit_image_metrics --project test && echo \"PASSED\"\
+      \ > logs/test_beit.log\n"
+    deps:
+    - path: data/01_raw/hateful_memes
+      md5: 3a4bb5f8ed1125c8e6421023ae62074a.dir
+      size: 4231948718
+      nfiles: 12148
+    - path: hateful_memes/models/beit.py
+      md5: 94ca2de1611ce6df25ef539f581d2e08
+      size: 5212
+    outs:
+    - path: logs/test_beit.log
+      md5: 15de982d1dc99ce52d089868a579de34
+      size: 7

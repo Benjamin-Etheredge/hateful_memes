@@ -27,7 +27,7 @@ class ViTModule(pl.LightningModule):
         dropout_rate=0.0,
         dense_dim=256,
     ):
-        """ Visual Bert Model """
+
         super().__init__()
         
         self.feature_extractor = ViTFeatureExtractor.from_pretrained('google/vit-base-patch16-224')
