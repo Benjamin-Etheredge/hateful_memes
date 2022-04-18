@@ -183,8 +183,8 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/models/vit.py
-      md5: 78c6c0e51ea3ea33e051a41dc247e38d
-      size: 5224
+      md5: b7f7ffc8655a57ca8154d60052f9c775
+      size: 5191
     - path: logs/test_vit.log
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
@@ -209,3 +209,23 @@ stages:
     - path: logs/test_beit.log
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
+  beit:
+    cmd: "python -m hateful_memes.models.beit --batch_size 64 --lr 1e-05 --epochs\
+      \ 50 --max_length 512 --dense_dim 128 --dropout_rate 0.1 --gradient_clip_value\
+      \ 1.0 --model_dir data/06_models/beit\n"
+    deps:
+    - path: data/01_raw/hateful_memes
+      md5: 8844b5201ff55743fcd36c40d7352a88.dir
+      size: 4232567214
+      nfiles: 12148
+    - path: hateful_memes/models/beit.py
+      md5: 94ca2de1611ce6df25ef539f581d2e08
+      size: 5212
+    - path: logs/test_beit.log
+      md5: 15de982d1dc99ce52d089868a579de34
+      size: 7
+    outs:
+    - path: data/06_models/beit
+      md5: 64ac6fcae08d57f791aa3882f2a6bac3.dir
+      size: 1332868759
+      nfiles: 1
