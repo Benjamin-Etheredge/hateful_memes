@@ -47,6 +47,12 @@ jobs:
           dvc repro --pull electra
           dvc push -d electra
 
+      - name: Train Distilbert
+        # continue-on-error: true
+        run: |
+          dvc repro --pull distilbert
+          dvc push -d distilbert
+
       - name: Train VisualBERT
         # continue-on-error: true
         run: |
