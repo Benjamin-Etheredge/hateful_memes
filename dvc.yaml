@@ -49,7 +49,7 @@ stages:
     vars:
       - config/electra.yaml
     cmd: >
-        python -m hateful_memes.models.electra
+        python -m hateful_memes.models.auto_text_model
         --batch_size ${batch_size}
         --lr ${lr}
         --epochs ${epochs}
@@ -85,7 +85,7 @@ stages:
     vars:
       - config/distilbert.yaml
     cmd: >
-        python -m hateful_memes.models.distilbert
+        python -m hateful_memes.models.auto_text_model
         --batch_size ${batch_size}
         --lr ${lr}
         --epochs ${epochs}
