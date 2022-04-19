@@ -78,6 +78,7 @@ click==8.1.2
     #   pip-tools
     #   sacremoses
     #   wandb
+cmake==3.22.4
 colorama==0.4.4
     # via
     #   dvc
@@ -102,6 +103,8 @@ diskcache==5.4.0
     # via dvc
 distro==1.7.0
     # via dvc
+dlib-bin
+    # via cmake
 docker-pycreds==0.4.0
     # via wandb
 docstring-parser==0.13

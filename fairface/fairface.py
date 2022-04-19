@@ -13,14 +13,14 @@ class FairFaceModel():
         self.max_length = max_length
         self.device = device
 
-        cnn_face_detector_fp = os.path.join('.', 'master', 'dlib_models', 'mmod_human_face_detector.dat')
+        cnn_face_detector_fp = os.path.join('.', 'master', 'models', 'mmod_human_face_detector.dat')
         self.cnn_face_detector = dlib.cnn_face_detection_model_v1(cnn_face_detector_fp)
-        sp_fp = os.path.join('.', 'master', 'dlib_models','shape_predictor_5_face_landmarks.dat')
+        sp_fp = os.path.join('.', 'master', 'models','shape_predictor_5_face_landmarks.dat')
         self.sp = dlib.shape_predictor(sp_fp)
 
         self.model_fair_4 = torchvision.models.resnet34(pretrained=True)
         self.model_fair_4.fc = nn.Linear(self.model_fair_4.fc.in_features, 18)
-        model_fair_4_fp = os.path.join('.', 'master', 'fair_face_models', 'res34_fair_align_multi_4_20190809.pt')
+        model_fair_4_fp = os.path.join('.', 'master', 'models', 'res34_fair_align_multi_4_20190809.pt')
         self.model_fair_4.load_state_dict(
             torch.load(model_fair_4_fp, map_location=self.device)
         )

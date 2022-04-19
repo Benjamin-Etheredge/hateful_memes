@@ -151,13 +151,3 @@ stages:
       - hateful_memes/models/simple_text.py
     outs:
       - data/06_models/simple_text
-
-  test_fairface:
-    cmd: >
-        python -m fairface.fairface
-        && echo "PASSED" > logs/test_fairface.log
-    deps:
-      - fairface/master/test
-      - fairface/models
-    outs:
-      - logs/test_fairface.log
