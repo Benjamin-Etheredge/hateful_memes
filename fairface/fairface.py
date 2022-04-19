@@ -39,8 +39,8 @@ class FairFaceModel():
         dets = self.cnn_face_detector(image, 1)
         num_faces = len(dets)
 
-        # Find the 5 face landmarks we need to do the alignment.
         images = []
+        # Find the 5 face landmarks we need to do the alignment.
         if num_faces > 0:
             faces = dlib.full_object_detections()
             for detection in dets:
@@ -86,12 +86,13 @@ class FairFaceModel():
 
 def main():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    image_fp = os.path.join('.', 'master', 'test', 'test_image.jpg') 
+    image_fp = os.path.join('.', 'master', 'test', 'race_Latino.jpg') 
     image = dlib.load_rgb_image(image_fp)
 
     model = FairFaceModel(device=device)
 
     outs = model.forward(image)
+    ic(outs)
 
 if __name__ == "__main__":
     pl.seed_everything(42)
