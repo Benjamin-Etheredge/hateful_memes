@@ -130,18 +130,21 @@ def base_train(
         auto_scale_batch_size='power',
         # precision=16,
         # amp_backend='native',
-        # detect_anomaly=True,
+        detect_anomaly=True,
         callbacks=[checkpoint_callback, early_stopping])
         # callbacks=[checkpoint_callback, early_stopping, stw])
 
     data = MaeMaeDataModule(batch_size=batch_size)
+    ic(model.lr)
 
     if not fast_dev_run:
         # TODO should I move datamodule inside lightning module?
         result = trainer.tune(
             model, 
             scale_batch_size_kwargs=dict(max_trials=6),
-            lr_find_kwargs=dict(num_training=100),
+            lr_find_kwargs=dict(
+                num_training=1000, 
+                update_attr=True),
             datamodule=data,
         )
 
@@ -150,11 +153,14 @@ def base_train(
         lr_find = result['lr_find']
         plt = lr_find.plot(suggest=True)
         wandb.log({"lr_plot": plt})
-
         # new_lr = trainer.tuner.lr_find.suggestion()
-        # model.hparams.lr = new_lr
-        # model.lr = new_lr
+        # ic(new_lr)
 
+    #     # new_lr = trainer.tuner.lr_find.suggestion()
+    #     # model.hparams.lr = new_lr
+    #     # model.lr = new_lr
+
+    ic(model.lr)
     trainer.fit(model, datamodule=data)
 
     # # Setup data for predictions
