@@ -33,9 +33,11 @@ class SimpleImageMaeMaeModel(BaseMaeMaeModel):
         self.conv1 = nn.Conv2d(3, 16, 3, 1)
         self.conv2 = nn.Conv2d(16, 32, 3, 1)
         self.conv3 = nn.Conv2d(32, 64, 3, 1)
+        self.conv4 = nn.Conv2d(64, 128, 3, 1)
+        self.conv5 = nn.Conv2d(128, 256, 3, 1)
         # TODO better batch norm usage and remove bias
 
-        self.l1 = nn.Linear(43264, dense_dim)
+        self.l1 = nn.Linear(6400, dense_dim)
         self.l2 = nn.Linear(dense_dim, dense_dim)
         self.l3 = nn.Linear(dense_dim, 1)
 
@@ -64,6 +66,18 @@ class SimpleImageMaeMaeModel(BaseMaeMaeModel):
         x = F.max_pool2d(x, 2)
 
         x = self.conv3(x)
+        # if self.batch_norm:
+            # x = F.batch_norm(x, training=self.training)
+        x = F.relu(x)
+        x = F.max_pool2d(x, 2)
+
+        x = self.conv4(x)
+        # if self.batch_norm:
+            # x = F.batch_norm(x, training=self.training)
+        x = F.relu(x)
+        x = F.max_pool2d(x, 2)
+
+        x = self.conv5(x)
         # if self.batch_norm:
             # x = F.batch_norm(x, training=self.training)
         x = F.relu(x)
