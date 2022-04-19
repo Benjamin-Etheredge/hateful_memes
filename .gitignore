@@ -9,5 +9,3 @@ mmf/
 /dvclive.json
 dist/
 .vscode/
-fairface/fair_face_models/
-fairface/dlib_models/
