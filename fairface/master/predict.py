@@ -25,8 +25,8 @@ def rect_to_bb(rect):
 	return (x, y, w, h)
 
 def detect_face(image_paths,  SAVE_DETECTED_AT, default_max_size=800,size = 300, padding = 0.25):
-    cnn_face_detector = dlib.cnn_face_detection_model_v1('dlib_models/mmod_human_face_detector.dat')
-    sp = dlib.shape_predictor('dlib_models/shape_predictor_5_face_landmarks.dat')
+    cnn_face_detector = dlib.cnn_face_detection_model_v1('models/mmod_human_face_detector.dat')
+    sp = dlib.shape_predictor('models/shape_predictor_5_face_landmarks.dat')
     base = 2000  # largest width and height
     for index, image_path in enumerate(image_paths):
         if index % 1000 == 0:
@@ -64,14 +64,14 @@ def predict_age_gender_race(save_prediction_at, imgs_path = 'cropped_faces/'):
 
     model_fair_7 = torchvision.models.resnet34(pretrained=True)
     model_fair_7.fc = nn.Linear(model_fair_7.fc.in_features, 18)
-    model_fair_7_fp = os.path.join('.', 'fair_face_models', 'res34_fair_align_multi_7_20190809.pt')
+    model_fair_7_fp = os.path.join('.', 'models', 'res34_fair_align_multi_7_20190809.pt')
     model_fair_7.load_state_dict(torch.load(model_fair_7_fp, map_location=device))
     model_fair_7 = model_fair_7.to(device)
     model_fair_7.eval()
 
     model_fair_4 = torchvision.models.resnet34(pretrained=True)
     model_fair_4.fc = nn.Linear(model_fair_4.fc.in_features, 18)
-    model_fair_4_fp = os.path.join('.', 'fair_face_models', 'res34_fair_align_multi_4_20190809.pt')
+    model_fair_4_fp = os.path.join('.', 'models', 'res34_fair_align_multi_4_20190809.pt')
     model_fair_4.load_state_dict(torch.load(model_fair_4_fp, map_location=device))
     model_fair_4 = model_fair_4.to(device)
     model_fair_4.eval()
