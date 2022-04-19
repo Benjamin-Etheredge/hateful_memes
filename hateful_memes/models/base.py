@@ -126,7 +126,7 @@ def base_train(
         gradient_clip_val=grad_clip,
         track_grad_norm=2, 
         fast_dev_run=fast_dev_run, 
-        auto_lr_find=True,
+        # auto_lr_find=True,
         auto_scale_batch_size='power',
         # precision=16,
         # amp_backend='native',
@@ -148,11 +148,11 @@ def base_train(
             datamodule=data,
         )
 
-        ic.enable()
-        ic(result)
-        lr_find = result['lr_find']
-        plt = lr_find.plot(suggest=True)
-        wandb.log({"lr_plot": plt})
+        # ic.enable()
+        # ic(result)
+        # lr_find = result['lr_find']
+        # plt = lr_find.plot(suggest=True)
+        # wandb.log({"lr_plot": plt})
         # new_lr = trainer.tuner.lr_find.suggestion()
         # ic(new_lr)
 
