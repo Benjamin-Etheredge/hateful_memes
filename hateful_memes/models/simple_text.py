@@ -1,21 +1,15 @@
 import torch
-from torch import dropout, nn
+from torch import nn
 from torch.nn import functional as F
-from pytorch_lightning.utilities.cli import LightningCLI
-from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning import LightningModule, Trainer
-from pytorch_lightning.callbacks import EarlyStopping
 
 
 import transformers
 import click
 from icecream import ic
-ic.disable()
 
 from hateful_memes.utils import get_project_logger
-from hateful_memes.models.baseline import BaseMaeMaeModel
-from hateful_memes.data.hateful_memes import MaeMaeDataset
-from hateful_memes.data.hateful_memes import MaeMaeDataModule
+from hateful_memes.models.base import BaseMaeMaeModel, base_train
+
 
 class BaseTextMaeMaeModel(BaseMaeMaeModel):
     def __init__(
@@ -28,7 +22,8 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
         max_length=128,
         num_layers=2,
         # feature_extractor='bert-base-uncased',
-        tokenizer_name='bert-base-uncased'
+        tokenizer_name='bert-base-uncased',
+        include_top=True,
     ):
 
         super().__init__()
@@ -57,45 +52,38 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
         self.max_length = max_length
         self.dropout_rate = dropout_rate
         self.num_layers = num_layers
+        self.include_top = include_top
+        self.last_hidden_size = dense_dim
 
         self.save_hyperparameters()
     
     def forward(self, batch):
-        ic()
         text_features = batch['text']
         input = self.tokenizer(text_features, padding='max_length', truncation=True, max_length=self.max_length)
-        # ic(input)
         ids = torch.tensor(input['input_ids']).to(self.device)
-        ic(ids.shape)
         x = self.embedder(ids)
         x = F.dropout(x, self.dropout_rate)
-        ic("post embed: ", x.shape)
-        # ic(x.view(x.shape[0], 1, -1).shape)
         x, (ht, ct) = self.lstm(x)
-        ic("after lstm:", x.shape)
         # x = x[:, -1, :]
-        ic(x[0])
-        ic(ht[0])
         x = ht[-1]
-        ic("after after lstm:", x.shape)
         # x = x.view(x.shape[0], -1)
-        ic(x.shape)
         x = self.l1(x)
         x = F.relu(x)
-        x = self.l2(x)
-        x = torch.sigmoid(x)
+
+        if self.include_top:
+            x = self.l2(x)
+
         x = torch.squeeze(x)
-        ic(x.shape)
         return x
 
 
 # Model to process text
 @click.command()
-@click.option('--batch_size', default=32, help='Batch size')
 @click.option('--lr', default=1e-4, help='Learning rate')
 @click.option('--num_layers', default=2, help='Num Layers')
 @click.option('--embed_dim', default=64, help='Dense dim')
 @click.option('--dense_dim', default=256, help='Dense dim')
+@click.option('--batch_size', default=32, help='Batch size')
 @click.option('--max_length', default=128, help='Max length')
 @click.option('--tokenizer_name', default="bert-base-uncased", help='Tokinizer Name')
 @click.option('--grad_clip', default=1.0, help='Gradient clipping')
@@ -107,35 +95,10 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
 @click.option('--project', default="simple-text", help='Project name')
 @click.option('--monitor_metric', default="val/loss", help='Metric to monitor')
 @click.option('--monitor_metric_mode', default="min", help='Min or max')
-def main(batch_size, lr, num_layers, embed_dim, dense_dim, max_length, tokenizer_name,
-         grad_clip, dropout_rate, epochs, model_dir, fast_dev_run,
-         log_dir, project, monitor_metric, monitor_metric_mode):
+def main(lr, num_layers, embed_dim, dense_dim, max_length, tokenizer_name, dropout_rate,
+         **train_kwargs):
 
     """ Train Text model """
-    logger = get_project_logger(project=project, save_dir=log_dir, offline=fast_dev_run)
-
-    checkpoint_callback = ModelCheckpoint(
-        monitor=monitor_metric, 
-        mode=monitor_metric_mode, 
-        dirpath=model_dir, #"data/06_models/hateful_memes", 
-        save_top_k=1)
-
-    early_stopping = EarlyStopping(
-            monitor=monitor_metric,
-            patience=10, 
-            mode=monitor_metric_mode,
-            verbose=True)
-
-    trainer = Trainer(
-        devices=1, 
-        accelerator='auto',
-        max_epochs=epochs, 
-        logger=logger, 
-        fast_dev_run=fast_dev_run,
-        gradient_clip_val=grad_clip,
-        track_grad_norm=2, 
-        callbacks=[checkpoint_callback, early_stopping])
-    
     model = BaseTextMaeMaeModel(
         embed_dim=embed_dim,
         tokenizer_name=tokenizer_name,
@@ -144,9 +107,8 @@ def main(batch_size, lr, num_layers, embed_dim, dense_dim, max_length, tokenizer
         max_length=max_length,
         num_layers=num_layers,
         dropout_rate=dropout_rate)
-    trainer.fit(
-        model, 
-        datamodule=MaeMaeDataModule(batch_size=batch_size))
+    
+    base_train(model=model, **train_kwargs)
 
 
 if __name__ == "__main__":

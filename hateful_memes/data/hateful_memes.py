@@ -2,7 +2,6 @@ from typing import Union
 from pathlib import Path
 from xml.etree.ElementInclude import include
 import pandas as pd
-from skimage import io, transform
 import torch
 from PIL import Image,ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True # TODO 
@@ -13,6 +12,7 @@ from icecream import ic
 from multiprocessing import Pool
 import os
 import transformers
+from torchvision import transforms as T
 
 
 def create_vocab_tokenizer(root_dir):
@@ -116,11 +116,12 @@ class MaeMaeDataset(torch.utils.data.Dataset):
     # TODO vocab is broken between train and test
     def base_img_transforms(self):
         return T.Compose([
-            #transforms.RandomHorizontalFlip()
+            # T.RandomHorizontalFlip(),
             # transforms.ToPILImage(mode='RGB'),
             T.Resize(size=(224,224)),
-            T.ToTensor(),
-            # transforms.Normalize(mean=[0.485, 0.456, 0.406],
+            T.ToTensor(), # this already seems to scale okay
+
+            # T.Normalize(mean=[0.485, 0.456, 0.406],
             #                       std=[0.229, 0.224, 0.225]),
         ])
 
@@ -157,7 +158,6 @@ class MaeMaeDataset(torch.utils.data.Dataset):
     #     return lambda x: self.vocab(self.tokenizer(x))
 
 
-from torchvision import transforms as T
 class MaeMaeDataModule(pl.LightningDataModule):
     def __init__(
         self, 
@@ -171,7 +171,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
         train_num_workers=8,
         val_num_workers=8,
         test_num_workers=8,
-        pin_memory=True,
+        pin_memory=False,
         collate_fn=None,
         # tokenizer=None,
     ):
@@ -194,6 +194,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
         self.tokenizer = None
         self.vocab = None
         self.collate_fn = collate_fn
+        self.save_hyperparameters()
     
     def prepare_data(self) -> None:
         return super().prepare_data()
@@ -225,15 +226,15 @@ class MaeMaeDataModule(pl.LightningDataModule):
         # else:
         #     return self.collate_fn
 
-    def train_dataloader(self):
+    def train_dataloader(self, shuffle=True, drop_last=True):
         return torch.utils.data.DataLoader(
             self.train_dataset,
             batch_size=self.batch_size,
-            shuffle=True,
+            shuffle=shuffle,
             num_workers=self.train_num_workers,
             pin_memory=self.pin_memory,
-            drop_last=False,
-            persistent_workers=True,
+            drop_last=drop_last,
+            persistent_workers=False,
             # collate_fn=MaeMaeDataset.collate_batch,
         )
 
@@ -244,7 +245,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
             shuffle=False,
             num_workers=self.val_num_workers,
             pin_memory=self.pin_memory,
-            persistent_workers=True,
+            persistent_workers=False,
             # collate_fn=MaeMaeDataset.collate_batch,
             # collate_fn=self.collate_batch, = None
         )
@@ -260,33 +261,33 @@ class MaeMaeDataModule(pl.LightningDataModule):
             # collate_fn=self.collate_batch,
         ) 
 
-    def collate_batch(self, batch):
-        img_list, labels_list, raw_text, text_list, offsets = [], [], [], [], [0]
-        # ic(batch)
-        # if type(batch) == list:
-            # ic(batch)
-        for item in batch:
-            img_list.append(item['image'])
-            labels_list.append(item['label'])
+    # def collate_batch(self, batch):
+    #     img_list, labels_list, raw_text, text_list, offsets = [], [], [], [], [0]
+    #     # ic(batch)
+    #     # if type(batch) == list:
+    #         # ic(batch)
+    #     for item in batch:
+    #         img_list.append(item['image'])
+    #         labels_list.append(item['label'])
 
-            _text = item['text']
-            processed_text = torch.tensor(self.text_pipeline(_text), dtype=torch.int64)
-            raw_text.append(_text)
-            text_list.append(processed_text)
-            offsets.append(processed_text.size(0))
+    #         _text = item['text']
+    #         processed_text = torch.tensor(self.text_pipeline(_text), dtype=torch.int64)
+    #         raw_text.append(_text)
+    #         text_list.append(processed_text)
+    #         offsets.append(processed_text.size(0))
 
-        img_list = torch.torch(img_list)
+    #     img_list = torch.torch(img_list)
         
-        labels_list = torch.tensor(labels_list, dtype=torch.int32)
-        offsets = torch.tensor(offsets[:-1]).cumsum(dim=0)
-        text_list = torch.cat(text_list)
-        return dict(
-            text_features=text_list,
-            text_offset=offsets,
-            label=labels_list,
-            image=img_list,
-            text=raw_text,
-        )
+    #     labels_list = torch.tensor(labels_list, dtype=torch.int32)
+    #     offsets = torch.tensor(offsets[:-1]).cumsum(dim=0)
+    #     text_list = torch.cat(text_list)
+    #     return dict(
+    #         text_features=text_list,
+    #         text_offset=offsets,
+    #         label=labels_list,
+    #         image=img_list,
+    #         text=raw_text,
+    #     )
             
 # def create_transformer(img_transforms=None, text_transforms=None):
 #     def wrapper_transformer(sample: Dict):

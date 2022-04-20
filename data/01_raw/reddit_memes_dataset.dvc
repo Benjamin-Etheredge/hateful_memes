@@ -1,0 +1,5 @@
+outs:
+- md5: a55e8ac840be8dcbdfe83d225b106627.dir
+  size: 203525919
+  nfiles: 960
+  path: reddit_memes_dataset
