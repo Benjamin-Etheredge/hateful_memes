@@ -1,4 +1,72 @@
 stages:
+  test_beit:
+    cmd: >
+        python -m hateful_memes.models.beit
+        --batch_size 4 
+        --fast_dev_run True
+        --log_dir logs/test_simple_beit_image_metrics
+        --project test
+        && echo "PASSED" > logs/test_beit.log
+    deps:
+      - data/01_raw/hateful_memes
+      - hateful_memes/models/beit.py
+    outs:
+      - logs/test_beit.log
+
+  beit:
+    vars:
+      - config/beit.yaml
+    cmd: >
+        python -m hateful_memes.models.beit
+        --batch_size ${batch_size}
+        --lr ${lr}
+        --epochs ${epochs}
+        --max_length ${max_length}
+        --dense_dim ${dense_dim}
+        --dropout_rate ${dropout_rate}
+        --gradient_clip_value ${gradient_clip_value}
+        --model_dir data/06_models/beit
+    deps:
+      - logs/test_beit.log
+      - data/01_raw/hateful_memes
+      - hateful_memes/models/beit.py
+    outs:
+      - data/06_models/beit
+
+  test_vit:
+    cmd: >
+        python -m hateful_memes.models.vit
+        --batch_size 4 
+        --fast_dev_run True
+        --log_dir logs/test_simple_vit_image_metrics
+        --project test
+        && echo "PASSED" > logs/test_vit.log
+    deps:
+      - data/01_raw/hateful_memes
+      - hateful_memes/models/vit.py
+    outs:
+      - logs/test_vit.log
+
+  vit:
+    vars:
+      - config/vit.yaml
+    cmd: >
+        python -m hateful_memes.models.vit
+        --batch_size ${batch_size}
+        --lr ${lr}
+        --epochs ${epochs}
+        --max_length ${max_length}
+        --dense_dim ${dense_dim}
+        --dropout_rate ${dropout_rate}
+        --gradient_clip_value ${gradient_clip_value}
+        --model_dir data/06_models/vit
+    deps:
+      - logs/test_vit.log
+      - data/01_raw/hateful_memes
+      - hateful_memes/models/vit.py
+    outs:
+      - data/06_models/vit
+
   test_visual_bert:
     cmd: >
         python -m hateful_memes.models.visual_bert

@@ -76,6 +76,16 @@ jobs:
           dvc repro super_model
           dvc push --run-cache -d super_model
 
+      - name: Train ViT
+        run: |
+          dvc repro --pull vit
+          dvc push -d vit
+
+      - name: Train BEit
+        run: |
+          dvc repro --pull beit
+          dvc push -d beit
+
       - name: Commit run
         run: |
           cml ci
