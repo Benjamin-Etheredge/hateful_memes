@@ -8,3 +8,5 @@ mmf/
 /dvclive.json
 dist/
 .vscode/
+
+*.ckpt

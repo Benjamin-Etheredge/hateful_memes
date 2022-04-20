@@ -1,21 +1,24 @@
-from matplotlib.pyplot import autoscale
-import pytorch_lightning as pl
-import torch
 import click
-from transformers import BertTokenizer, VisualBertModel
-import torchvision.models as models
-from hateful_memes.data.hateful_memes import MaeMaeDataModule
-from hateful_memes.utils import get_project_logger
-from torch.nn import functional as F
-from torch import nn
-from dvclive.lightning import DvcLiveLogger
-from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.callbacks.early_stopping import EarlyStopping
-from pytorch_lightning.loggers import WandbLogger
 from icecream import ic
 
+import torch
+from torch.nn import functional as F
+from torch import nn
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+import torchvision.models as models
 
-class VisualBertModule(pl.LightningModule):
+from transformers import BertTokenizer, VisualBertModel
+
+import pytorch_lightning as pl
+from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+
+from hateful_memes.data.hateful_memes import MaeMaeDataModule
+from hateful_memes.models.base import BaseMaeMaeModel
+from hateful_memes.utils import get_project_logger
+
+
+class VisualBertModule(BaseMaeMaeModel):
     """ Visual Bert Model """
 
     def __init__(
@@ -60,31 +63,10 @@ class VisualBertModule(pl.LightningModule):
         self.dense_dim = dense_dim
         self.to_freeze = freeze
         self.visual_bert_config = self.visual_bert.config
+        self.last_hidden_size = dense_dim
 
         self.save_hyperparameters()
     
-    def _shared_step(self, batch):
-        y_hat = self.forward(batch)
-        y = batch['label']
-        # loss = F.binary_cross_entropy(y_hat, y.to(y_hat.dtype))
-        # acc = torch.sum(torch.round(y_hat) == y.data) / (y.shape[0] * 1.0)
-        loss = F.binary_cross_entropy_with_logits(y_hat, y.to(y_hat.dtype))
-        acc = torch.sum(torch.round(torch.sigmoid(y_hat)) == y.data) / (y.shape[0] * 1.0)
-        return loss, acc
-
-    def validation_step(self, batch, batch_idx):
-        loss, acc = self._shared_step(batch)
-        self.log("val/loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, batch_size=batch['image'].size(0))
-        self.log("val/acc", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True, batch_size=batch['image'].size(0))
-        return loss
-    
-    def training_step(self, batch, batch_idx):
-        loss, acc = self._shared_step(batch)
-        self.log("train/loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, batch_size=batch['image'].size(0))
-        self.log("train/acc", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True, batch_size=batch['image'].size(0))
-        return loss
-
-
     def forward(self, batch):
         """ Shut up """
         text = batch['text']
@@ -95,13 +77,9 @@ class VisualBertModule(pl.LightningModule):
                 image_x = self.resnet(image)
         else:
             image_x = self.resnet(image)
-        # ic(image_x.shape)
+
         image_x = image_x.view(image_x.shape[0], -1)
 
-        # ic(image_x.shape)
-        # image_x = self.fc(image_x)
-        # image_x = F.relu(image_x)
-        # ic(image_x.shape)
         image_x = image_x.unsqueeze(1)
 
         inputs = self.tokenizer(
@@ -133,13 +111,12 @@ class VisualBertModule(pl.LightningModule):
         x = self.fc1(x)
         x = F.relu(x)
         x = F.dropout(x, p=self.dropout_rate)
-        x = self.fc2(x)
-        x.squeeze_()
-        # x = F.sigmoid(x)
-        return x
 
-    def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=self.lr)
+        if self.include_top:
+            x = self.fc2(x)
+
+        x.squeeze_()
+        return x
 
 
 @click.command()

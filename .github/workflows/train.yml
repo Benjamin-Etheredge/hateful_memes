@@ -7,6 +7,7 @@ on:
         - '**.py'
         - 'config/*yaml'
         - 'dvc.yaml'
+        - .github/workflows/train.yml
 # defaults:
 #     run:
 #       shell: bash
@@ -44,30 +45,36 @@ jobs:
 
       - name: Pull everything else
         continue-on-error: true
-        run: dvc pull 
-
-      - name: Train VisualBERT
-        # continue-on-error: true
-        run: |
-          dvc repro --pull visual_bert
-          dvc push -d visual_bert
+        run: dvc pull -a --run-cache
 
       - name: Train Simple Image Model
         # continue-on-error: true
         run: |
-          dvc repro --pull simple_image
-          dvc push -d simple_image
+          dvc repro simple_image
+          dvc push --run-cache -d simple_image
 
       - name: Train Simple MLP Image Model
         # continue-on-error: true
         run: |
-          dvc repro --pull simple_mlp_image
-          dvc push -d simple_mlp_image
+          dvc repro simple_mlp_image
+          dvc push --run-cache -d simple_mlp_image
             
       - name: Train Simple Text Model
         run: |
-          dvc repro --pull simple_text
-          dvc push -d simple_text
+          dvc repro simple_text
+          dvc push --run-cache -d simple_text
+
+      - name: Train VisualBERT
+        # continue-on-error: true
+        run: |
+          dvc repro visual_bert
+          dvc push --run-cache -d visual_bert
+
+      - name: Train Super Model
+        continue-on-error: true
+        run: |
+          dvc repro super_model
+          dvc push --run-cache -d super_model
 
       - name: Commit run
         run: |
