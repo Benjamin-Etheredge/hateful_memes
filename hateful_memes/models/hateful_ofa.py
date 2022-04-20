@@ -1,8 +1,10 @@
+from statistics import mode
 import torch
 from torch.utils.data.sampler import SequentialSampler
 from torch.utils.data import DataLoader
 import torch.nn.functional as torch_func
 import pytorch_lightning as pl
+from pytorch_lightning.callbacks import StochasticWeightAveraging
 import math
 from models.OFA.fairseq.fairseq.dataclass.configs import FairseqConfig
 from models.OFA.fairseq.fairseq.dataclass.utils import convert_namespace_to_omegaconf
@@ -16,16 +18,26 @@ import argparse
 
 OFA_TASK = tasks.setup_task("snli_ve")
 
+# For SWA callback in Trainer
+class ExponentialMovingAverage:
+    def __init__(self, alpha:float):
+        self.alpha = alpha
+    def __call__(self, averaged_model_parameter: torch.Tensor, model_parameter: torch.Tensor, num_averaged: torch.LongTensor
+        ) -> torch.FloatTensor:
+        ema_avg = self.alpha * averaged_model_parameter + (1.0 - self.alpha) * model_parameter
+        return ema_avg
+
 class HatefulOFADataModule(pl.LightningDataModule):
-    def __init__(self, fs_cfg:FairseqConfig, ofa_model:OFAModel, ofa_task=OFA_TASK, 
+    def __init__(self, fs_cfg:FairseqConfig, ofa_model:OFAModel, ofa_task=OFA_TASK,
                  train_transforms=None, val_transforms=None, test_transforms=None, dims=None):
         super().__init__(train_transforms, val_transforms, test_transforms, dims)
         self.fs_cfg = fs_cfg
         self.ofa_task = ofa_task
+
         self.max_positions = utils.resolve_max_positions(
             self.ofa_task.max_positions(),
             ofa_model.max_positions(),
-            self.cfg.dataset.max_tokens,
+            self.fs_cfg.dataset.max_tokens,
         )
 
     def prepare_data(self) -> None:
@@ -70,13 +82,23 @@ class HatefulOFADataModule(pl.LightningDataModule):
 
 class HatefulOFA(pl.LightningModule):
     """OFA finetuned for Hateful Memes"""
-    def __init__(self, cfg:FairseqConfig, ofa_task=OFA_TASK) -> None:
+    def __init__(self, cfg:FairseqConfig, ofa_task=OFA_TASK,                 
+                 adamw_eps=1e-8, adamw_betas=(0.9, 0.999), adamw_decay=0.01) -> None:
         super().__init__()
         self.ofa_model = ofa_task.build_model(cfg.model)
         # Injest loss function configuration params
-        # TODO
+        tgt_dict = ofa_task.target_dictionary
+        self.padding_idx = tgt_dict.pad() if tgt_dict is not None else -100
+        self.ign_prefix_sz = 0
+        if hasattr(cfg, 'ignore_prefix_size'):
+            self.ign_prefix_sz = cfg.ignore_prefix_size
+        self.label_smoothing = 0.0
+        if hasattr(cfg, 'label_smoothing'):
+            self.label_smoothing = cfg.label_smoothing
+        # Hyperparameters
+        self.save_hyperparameters("adamw_eps", "adamw_betas", "adamw_decay")
         # Try to load params from checkpoint
-        filename = cfg.checkpoint.restore_file  # TODO make sure this is right
+        filename = cfg.checkpoint.restore_file   
         load_on_all_ranks = False  # Unless distributed training
         state = checkpoint_utils.load_checkpoint_to_cpu(
             filename, load_on_all_ranks=load_on_all_ranks
@@ -92,100 +114,123 @@ class HatefulOFA(pl.LightningModule):
             )
 
     """Forward function"""
+    def forward(self, batch) -> torch.Tensor:
+        net_output = self.ofa_model(**batch['net_input'])
+        return net_output
+
+    """Loss function"""
     def _get_lprobs(self, net_output):
         lprobs = self.ofa_model.get_normalized_probs(net_output, log_probs=True)
         return lprobs
-    
-    def forward(self, batch) -> torch.Tensor:
-        net_output = self.ofa_model(**batch['net_input'])
-        lprobs = self._get_lprobs(net_output)
-        return lprobs
 
-    """Loss function"""
     def _get_targets(self, batch):
         targets = batch["target"]
         return targets
 
-    def _prep_lprobs_targets_for_loss(self, ignore_prefix_size, lprobs, targets):
-        if ignore_prefix_size > 0:
-            if getattr(lprobs, "batch_first", False):
-                lprobs = lprobs[:, ignore_prefix_size :, :].contiguous()
-                targets = targets[:, ignore_prefix_size :].contiguous()
-            else:
-                lprobs = lprobs[ignore_prefix_size :, :, :].contiguous()
-                targets = targets[ignore_prefix_size :, :].contiguous()
-        return lprobs.view(-1, lprobs.size(-1)), targets.view(-1)
+    def _prep_lprobs_targets_for_loss(self, ign_prefix_sz, padding_idx, net_output, batch):
+        constraint_masks = None
+        if "constraint_masks" in batch and batch["constraint_masks"] is not None:
+            constraint_masks = batch["constraint_masks"]
+            net_output[0].masked_fill_(~constraint_masks, -math.inf)
+        lprobs = self._get_lprobs(net_output)
+        targets = self._get_targets(batch)
+        if ign_prefix_sz > 0:
+            lprobs = lprobs[:, ign_prefix_sz :, :].contiguous()
+            targets = targets[:, ign_prefix_sz :].contiguous()
+            if constraint_masks is not None:
+                constraint_masks = constraint_masks[:, ign_prefix_sz :, :].contiguous()
+        if constraint_masks is not None:
+            constraint_masks = constraint_masks.view(-1, constraint_masks.size(-1))
+            constraint_masks = constraint_masks[targets != padding_idx]
+        lprobs = lprobs.view(-1, lprobs.size(-1))
+        lprobs = lprobs[targets != padding_idx]
+        targets = targets.view(-1)
+        targets = targets[targets != padding_idx]
+        return lprobs.view(-1, lprobs.size(-1)), targets.view(-1), constraint_masks
 
-    def _label_smoothed_nll_loss(lprobs, target, epsilon, ignore_index=None, reduce=True):
+    def _label_smoothed_nll_loss(
+            lprobs, target, epsilon, constraint_masks=None
+        ):
         if target.dim() == lprobs.dim() - 1:
             target = target.unsqueeze(-1)
-        nll_loss = -lprobs.gather(dim=-1, index=target)
-        smooth_loss = -lprobs.sum(dim=-1, keepdim=True)
-        if ignore_index is not None:
-            pad_mask = target.eq(ignore_index)
-            nll_loss.masked_fill_(pad_mask, 0.0)
-            smooth_loss.masked_fill_(pad_mask, 0.0)
+        nll_loss = -lprobs.gather(dim=-1, index=target).squeeze(-1)
+        if constraint_masks is not None:
+            smooth_loss = -lprobs.masked_fill(~constraint_masks, 0).sum(dim=-1, keepdim=True).squeeze(-1)
+            eps_i = epsilon / (constraint_masks.sum(1) - 1 + 1e-6)
         else:
-            nll_loss = nll_loss.squeeze(-1)
-            smooth_loss = smooth_loss.squeeze(-1)
-        if reduce:
-            nll_loss = nll_loss.sum()
-            smooth_loss = smooth_loss.sum()
-        eps_i = epsilon / (lprobs.size(-1) - 1)
+            smooth_loss = -lprobs.sum(dim=-1, keepdim=True).squeeze(-1)
+            eps_i = epsilon / (lprobs.size(-1) - 1)
         loss = (1.0 - epsilon - eps_i) * nll_loss + eps_i * smooth_loss
+        loss = loss.sum()
+        return loss
+
+    """Training and validation"""
+    def _shared_step(self, batch) -> torch.Tensor:
+        # Get raw output, y_hat
+        net_output = self.ofa_model(batch)
+        targets_0 = self._get_targets(batch)
+        # Prep for loss function
+        ign_prefix_sz = self.ign_prefix_sz
+        padding_idx = self.padding_idx
+        lprobs, targets, constraints_masks = self._prep_lprobs_targets_for_loss(ign_prefix_sz, 
+                                                                                padding_idx,
+                                                                                net_output, 
+                                                                                targets_0)
+        # Calculate label-smoothed CE loss
+        label_smoothing = self.label_smoothing
+        loss = self._label_smoothed_nll_loss(lprobs, targets, 
+                                             epsilon=label_smoothing,
+                                             constraint_masks=constraints_masks)
         return loss
 
     """Training"""
     def training_step(self, batch) -> torch.Tensor:
-        # Get y, y_hat
-        lprobs_0 = self(batch)
-        targets_0 = self._get_targets(batch)
-        # Prep for loss function
-        ign_prefix_sz = self.loss_cfg.ignore_prefix_size
-        lprobs, targets = self._prep_lprobs_targets_for_loss(ign_prefix_sz, lprobs_0, targets_0)
-        # Get loss function params
-        label_smoothing = self.loss_cfg.label_smoothing
-        ignore_idx = self.loss_cfg.ignore_index
-        reduce = self.loss_cfg.reduce
-        # Calculate label-smoothed CE loss
-        loss = self._label_smoothed_nll_loss(lprobs, targets, 
-                                             epsilon=label_smoothing,
-                                             ignore_index=ignore_idx,
-                                             reduce=reduce)
+        loss = self._shared_step(batch)
         return loss
 
     """Validation"""
     def validation_step(self, batch) -> torch.Tensor:
-        # Get y, y_hat
-        lprobs_0 = self(batch)
-        targets_0 = self._get_targets(batch)
-        # Prep for loss function
-        ign_prefix_sz = self.loss_cfg.ignore_prefix_size
-        lprobs, targets = self._prep_lprobs_targets_for_loss(ign_prefix_sz, lprobs_0, targets_0)
-        # Get loss function params
-        label_smoothing = self.loss_cfg.label_smoothing
-        ignore_idx = self.loss_cfg.ignore_index
-        reduce = self.loss_cfg.reduce
-        # Calculate label-smoothed CE loss
-        loss = self._label_smoothed_nll_loss(lprobs, targets, 
-                                             epsilon=label_smoothing,
-                                             ignore_index=ignore_idx,
-                                             reduce=reduce)
+        loss = self._shared_step(batch)
         return loss
 
     """Testing"""
     def test_step(self, *args, **kwargs) -> Optional[STEP_OUTPUT]:
+        # TODO EMA
         return super().test_step(*args, **kwargs)
 
     """Inference"""
     def predict_step(self, batch: Any, batch_idx: int, dataloader_idx: Optional[int] = None) -> Any:
+        # TODO EMA
         return super().predict_step(batch, batch_idx, dataloader_idx)
 
     """Optimizer"""
     def configure_optimizers(self):
         # TODO OFA originally scales gradients by batch size
-        return super().configure_optimizers()
-
+        
+        params = self.parameters()  
+        optim = torch.optim.AdamW(
+            params,
+            betas=self.hparams.adamw_betas, 
+            eps=self.hparams.adamw_eps, 
+            weight_decay=self.hparams.adamw_decay
+        )
+        # OFA uses polynomial decay lr scheduler, but cosine annealing with WR was shown to get better results?
+        lr_sched = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
+            optimizer=optim,
+            T_0=1,
+            T_mult=2    
+        )
+        optim_dict = {
+        "optimizer": optim,
+        "lr_scheduler": {
+            "scheduler": lr_sched,
+            "monitor": "metric_to_track",
+            "frequency": "indicates how often the metric is updated"
+            # If "monitor" references validation metrics, then "frequency" should be set to a
+            # multiple of "trainer.check_val_every_n_epoch".
+            },
+        }
+        return optim_dict
 
 # TODO click arguments 
 def main(
@@ -204,9 +249,14 @@ def main(
     hateful_ofa_model = HatefulOFA(cfg)
     ## Second load the datasets using the task
     hateful_ofa_data = HatefulOFADataModule(cfg, hateful_ofa_model.ofa_model)
-    ## Third set up training strategy TODO
+    ## Third set up training strategy
     max_epoch = cfg.optimization.max_epoch or math.inf
-    hateful_ofa_trainer = pl.Trainer()
+    ema_fn = ExponentialMovingAverage(alpha=0.1)
+    grad_norm_clip = cfg.optimization.clip_norm
+    hateful_ofa_trainer = pl.Trainer(
+        max_epochs=max_epoch,
+        callbacks=[StochasticWeightAveraging(avg_fn=ema_fn)],
+        gradient_clip_val=grad_norm_clip)
 
     # Training
     hateful_ofa_trainer.fit(hateful_ofa_model, datamodule=hateful_ofa_data)
