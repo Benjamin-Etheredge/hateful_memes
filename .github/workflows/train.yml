@@ -78,11 +78,13 @@ jobs:
           dvc push --run-cache -d super_model
 
       - name: Train ViT
+        continue-on-error: true
         run: |
           dvc repro --pull vit
           dvc push -d vit
 
       - name: Train BEit
+        continue-on-error: true
         run: |
           dvc repro --pull beit
           dvc push -d beit
