@@ -32,6 +32,7 @@ class VisualBertModule(BaseMaeMaeModel):
         if freeze:
             for param in self.visual_bert.parameters():
                 param.requires_grad = False
+            self.visual_bert.eval()
         ic(self.visual_bert)
         ic(self.visual_bert.config)
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
@@ -44,6 +45,7 @@ class VisualBertModule(BaseMaeMaeModel):
         if freeze:
             for param in resnet.parameters():
                 param.requires_grad = False
+            resnet.eval()
 
         # TODO linear vs embedding for dim changing
         # TODO auto size
@@ -124,7 +126,7 @@ class VisualBertModule(BaseMaeMaeModel):
 @click.option('--batch_size', default=32, help='Batch size')
 @click.option('--epochs', default=10, help='Epochs')
 @click.option('--model_dir', default='/tmp', help='Save dir')
-@click.option('--gradient_clip_value', default=1.0, help='Gradient clip')
+@click.option('--grad_clip', default=1.0, help='Gradient clip')
 @click.option('--fast_dev_run', default=False, help='Fast dev run')
 @click.option('--log_dir', default="data/08_reporting/visual_bert", help='Log dir')
 @click.option('--project', default="visual-bert", help='Project')
