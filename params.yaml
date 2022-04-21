@@ -1,0 +1,90 @@
+visual_bert:
+  batch_size: 16
+  source: src/models/visual_bert.py
+  lr: 1e-5
+  epochs: 50
+  max_length: 512
+  dense_dim: 256
+  dropout_rate: 0.1
+  gradient_clip_value: 1.0
+
+simple_mlp_image:
+  batch_size: 64
+  lr: 1e-5
+  epochs: 50
+  dense_dim: 128
+  dropout_rate: 0.1
+  gradient_clip_value: 1.0
+
+simple_image:
+  batch_size: 64
+  lr: 1e-5
+  epochs: 50
+  dense_dim: 128
+  dropout_rate: 0.1
+  gradient_clip_value: 1.0
+  batch_norm: true
+
+# These are the arguments used for SNLI_VE fine-tuning
+hateful_ofa:
+  data: src/models/OFA/dataset/snli_ve_data/snli_ve_train.tsv
+  selected-cols: 0,2,3,4,5
+  bpe-dir: src/models/OFA/utils/BPE
+  user-dir: src/models/OFA/ofa_module
+  restore-file: src/models/OFA/checkpoints/snli_ve_large_best.pt
+  reset-optimizer: True  #Maybe unused
+  reset-dataloader: True #Maybe unused 
+  reset-meters: True #Maybe unused  
+  save-dir: data/06_models
+  task: snli_ve
+  arch: ofa_large
+  criterion: adjust_label_smoothed_cross_entropy  #Maybe unused
+  label-smoothing: 0.0
+  batch-size: 4
+  update-freq: 8  #Maybe unused
+  encoder-normalize-before: True
+  decoder-normalize-before: True
+  share-decoder-input-output-embed: True
+  share-all-embeddings: True
+  layernorm-embedding: True
+  patch-layernorm-embedding: True
+  code-layernorm-embedding: True
+  resnet-drop-path-rate: 0.0
+  encoder-drop-path-rate: 0.2
+  decoder-drop-path-rate: 0.2
+  dropout: 0.1
+  attention-dropout: 0.0
+  weight-decay: 0.01
+  optimizer: adam  #Maybe unused
+  adam-betas: "(0.9,0.999)"
+  adam-eps: 1e-08
+  clip-norm: 1.0
+  lr-scheduler: polynomial_decay   #Maybe unused
+  lr: 2e-5  #This was maybe supposed to be 3e-5, but the script overwrote it with 2e-5?
+  max-epoch: 6  #Ditto: was supposed to be 5, but got overwritten with 6
+  warmup-ratio: 0.06  #Maybe unused
+  log-format: simple  #Maybe unused
+  log-interval: 10  #Maybe unused
+  fixed-validation-seed: 7
+  keep-best-checkpoints: 1  #Maybe unused
+  save-interval: 1  #Maybe unused
+  validate-interval: 1  #Maybe unused
+  save-interval-updates: 500   #Maybe unused
+  validate-interval-updates: 500  #Maybe unused
+  best-checkpoint-metric: snli_score  #Maybe unused
+  maximize-best-checkpoint-metric: True  #Maybe unused
+  max-src-length: 80
+  max-tgt-length: 20
+  find-unused-parameters: True
+  add-type-embedding: True
+  scale-attn: True
+  scale-fc: True
+  scale-heads: True
+  disable-entangle: True
+  num-bins: 1000
+  patch-image-size: 480
+  prompt-type: "prev_output"
+  add-caption: True
+  fp16: True
+  fp16-scale-window: 512
+  num-workers: =0 > ${log_file} 2>&1
