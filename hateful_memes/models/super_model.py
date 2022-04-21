@@ -25,13 +25,14 @@ class SuperModel(BaseMaeMaeModel):
         dropout_rate=0.0,
         dense_dim=256,
         num_dense_layers=2,
-        freeze=False,
+        freeze=True,
         visual_bert_chkpt=None,
         resnet_chkpt=None,
         simple_image_chkpt=False,
         simple_mlp_image_chkpt=None,
         simple_text_chkpt=None,
         vit_chkpt=None,
+        beit_chkpt=None,
     ):
         """ Super Model """
         super().__init__()
@@ -63,8 +64,12 @@ class SuperModel(BaseMaeMaeModel):
         
         if vit_chkpt:
             vit_chkpt = get_checkpoint_path(vit_chkpt)
-            self.models.append(ViTModule.load_from_checkpoint(vit_chkpt))
+            self.models.append(BaseITModule.load_from_checkpoint(vit_chkpt))
         
+        if beit_chkpt:
+            beit_chkpt = get_checkpoint_path(beit_chkpt)
+            self.models.append(BaseITModule.load_from_checkpoint(beit_chkpt))
+
         assert len(self.models) > 1, "Not enough models loaded"
         
         for model in self.models:
@@ -138,6 +143,7 @@ class SuperModel(BaseMaeMaeModel):
 @click.option('--simple_mlp_image_chkpt')
 @click.option('--simple_text_chkpt')
 @click.option('--vit_chkpt')
+@click.option('--beit_chkpt')
 @click.option('--batch_size', default=32, help='Batch size')
 @click.option('--epochs', default=10, help='Epochs')
 @click.option('--model_dir', default='/tmp', help='Save dir')
@@ -145,7 +151,7 @@ class SuperModel(BaseMaeMaeModel):
 @click.option('--project', default="super-model", help='Project')
 def main(freeze, lr, num_dense_layers, dense_dim, dropout_rate,
          visual_bert_chkpt, simple_image_chkpt, simple_mlp_image_chkpt, simple_text_chkpt,
-         vit_chkpt, **train_kwargs):
+         vit_chkpt, beit_chkpt, **train_kwargs):
     """ train model """
 
     model = SuperModel(
@@ -158,7 +164,8 @@ def main(freeze, lr, num_dense_layers, dense_dim, dropout_rate,
         simple_image_chkpt=simple_image_chkpt,
         simple_mlp_image_chkpt=simple_mlp_image_chkpt,
         simple_text_chkpt=simple_text_chkpt,
-        vit_chkpt=vit_chkpt
+        vit_chkpt=vit_chkpt,
+        beit_chkpt=beit_chkpt,
         )
     base_train(model=model, **train_kwargs)
     

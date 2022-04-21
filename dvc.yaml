@@ -106,10 +106,6 @@ stages:
       - hateful_memes/models/visual_bert.py
     outs:
       - data/06_models/visual_bert
-    # plots:
-    #   - data/08_reporting/visual_bert/scalars
-    # metrics:
-    #   - data/08_reporting/visual_bert.json
 
   test_simple_mlp_image:
     cmd: >
@@ -144,10 +140,6 @@ stages:
       - hateful_memes/models/simple_mlp_image.py
     outs:
       - data/06_models/simple_mlp_image
-    # plots:
-    #   - data/08_reporting/simple_mlp_image/scalars
-    # metrics:
-    #   - data/08_reporting/simple_mlp_image.json
 
   test_simple_image:
     cmd: >
@@ -183,10 +175,6 @@ stages:
       - hateful_memes/models/base.py
     outs:
       - data/06_models/simple_image
-    # plots:
-    #   - data/08_reporting/simple_image/scalars
-    # metrics:
-    #   - data/08_reporting/simple_image.json
 
   baseline:
     cmd: python -m hateful_memes.models.baseline_algorithm
@@ -255,6 +243,8 @@ stages:
         --simple_mlp_image_chkpt data/06_models/simple_mlp_image
         --simple_text_chkpt data/06_models/simple_text
         --visual_bert_chkpt data/06_models/visual_bert
+        --vit_chkpt data/06_models/vit
+        --beit_chkpt data/06_models/beit
         --batch_size ${batch_size}
         --lr ${lr}
         --num_dense_layers ${num_layers}
@@ -271,5 +261,7 @@ stages:
       - data/06_models/simple_mlp_image
       - data/06_models/simple_text
       - data/06_models/visual_bert
+      - data/06_models/vit
+      - data/06_models/beit
     outs:
       - data/06_models/super_model
