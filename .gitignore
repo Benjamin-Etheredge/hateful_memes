@@ -7,5 +7,9 @@ wandb/
 mmf/
 /dvclive.json
 dist/
-hateful_memes/models/.DS_Store
+
 *.log
+.vscode/
+
+*.ckpt
+

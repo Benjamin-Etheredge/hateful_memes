@@ -1,12 +1,83 @@
 stages:
+  test_beit:
+    cmd: >
+        python -m hateful_memes.models.beit
+        --batch_size 4 
+        --fast_dev_run True
+        --log_dir logs/test_simple_beit_image_metrics
+        --project test
+        && echo "PASSED" > logs/test_beit.log
+    deps:
+      - data/01_raw/hateful_memes
+      - hateful_memes/models/beit.py
+    outs:
+      - logs/test_beit.log
+
+  beit:
+    vars:
+      - config/beit.yaml
+    cmd: >
+        python -m hateful_memes.models.beit
+        --batch_size ${batch_size}
+        --lr ${lr}
+        --epochs ${epochs}
+        --max_length ${max_length}
+        --dense_dim ${dense_dim}
+        --dropout_rate ${dropout_rate}
+        --gradient_clip_value ${gradient_clip_value}
+        --model_dir data/06_models/beit
+    deps:
+      - logs/test_beit.log
+      - data/01_raw/hateful_memes
+      - hateful_memes/models/beit.py
+    outs:
+      - data/06_models/beit
+
+  test_vit:
+    cmd: >
+        python -m hateful_memes.models.vit
+        --batch_size 4 
+        --fast_dev_run True
+        --log_dir logs/test_simple_vit_image_metrics
+        --project test
+        && echo "PASSED" > logs/test_vit.log
+    deps:
+      - data/01_raw/hateful_memes
+      - hateful_memes/models/vit.py
+    outs:
+      - logs/test_vit.log
+
+  vit:
+    vars:
+      - config/vit.yaml
+    cmd: >
+        python -m hateful_memes.models.vit
+        --batch_size ${batch_size}
+        --lr ${lr}
+        --epochs ${epochs}
+        --max_length ${max_length}
+        --dense_dim ${dense_dim}
+        --dropout_rate ${dropout_rate}
+        --gradient_clip_value ${gradient_clip_value}
+        --model_dir data/06_models/vit
+    deps:
+      - logs/test_vit.log
+      - data/01_raw/hateful_memes
+      - hateful_memes/models/vit.py
+    outs:
+      - data/06_models/vit
+
   test_visual_bert:
     cmd: >
         python -m hateful_memes.models.visual_bert
         --batch_size 4 
         --fast_dev_run True
-        | tee logs/test_visual_bert.log 2>&1
+        --log_dir logs/test_simple_visual_bert_image_metrics
+        --project test
+        && echo "PASSED" > logs/test_visual_bert.log 
     deps:
       - data/01_raw/hateful_memes
+      - hateful_memes/models/base.py
       - hateful_memes/models/visual_bert.py
     outs:
       - logs/test_visual_bert.log
@@ -27,9 +98,14 @@ stages:
     deps:
       - logs/test_visual_bert.log
       - data/01_raw/hateful_memes
+      - hateful_memes/models/base.py
       - hateful_memes/models/visual_bert.py
     outs:
       - data/06_models/visual_bert
+    # plots:
+    #   - data/08_reporting/visual_bert/scalars
+    # metrics:
+    #   - data/08_reporting/visual_bert.json
 
   test_electra:
     vars:
@@ -111,9 +187,12 @@ stages:
     cmd: >
         python -m hateful_memes.models.simple_mlp_image
         --fast_dev_run True
-        > logs/test_simple_mlp_image.log 2>&1
+        --log_dir logs/test_simple_mlp_image_metrics
+        --project test
+        && echo "PASSED" > logs/test_simple_mlp_image.log 
     deps:
       - data/01_raw/hateful_memes
+      - hateful_memes/models/base.py
       - hateful_memes/models/simple_mlp_image.py
     outs:
       - logs/test_simple_mlp_image.log
@@ -133,18 +212,25 @@ stages:
     deps:
       - logs/test_simple_mlp_image.log
       - data/01_raw/hateful_memes
+      - hateful_memes/models/base.py
       - hateful_memes/models/simple_mlp_image.py
-      - hateful_memes/models/baseline.py
     outs:
       - data/06_models/simple_mlp_image
+    # plots:
+    #   - data/08_reporting/simple_mlp_image/scalars
+    # metrics:
+    #   - data/08_reporting/simple_mlp_image.json
 
   test_simple_image:
     cmd: >
         python -m hateful_memes.models.simple_image
+        --log_dir logs/test_simple_image_metrics
+        --project test
         --fast_dev_run True
-        | tee logs/test_simple_image.log 2>&1
+        && echo "PASSED" > logs/test_simple_image.log
     deps:
       - data/01_raw/hateful_memes
+      - hateful_memes/models/base.py
       - hateful_memes/models/simple_image.py
     outs:
       - logs/test_simple_image.log
@@ -166,9 +252,13 @@ stages:
       - logs/test_simple_image.log
       - data/01_raw/hateful_memes
       - hateful_memes/models/simple_image.py
-      - hateful_memes/models/baseline.py
+      - hateful_memes/models/base.py
     outs:
       - data/06_models/simple_image
+    # plots:
+    #   - data/08_reporting/simple_image/scalars
+    # metrics:
+    #   - data/08_reporting/simple_image.json
 
   baseline:
     cmd: python -m hateful_memes.models.baseline_algorithm
@@ -176,3 +266,82 @@ stages:
       - data/01_raw/hateful_memes
       - hateful_memes/models/baseline_algorithm.py
 
+  test_simple_text:
+    cmd: >
+        python -m hateful_memes.models.simple_text
+        --fast_dev_run True
+        && echo "PASSED" > logs/test_simple_text.log
+    deps:
+      - data/01_raw/hateful_memes
+      - hateful_memes/models/base.py
+      - hateful_memes/models/simple_text.py
+    outs:
+      - logs/test_simple_text.log
+
+  simple_text:
+    vars: 
+      - config/simple_text.yaml
+    cmd: >
+        python -m hateful_memes.models.simple_text
+        --batch_size ${batch_size}
+        --lr ${lr}
+        --num_layers ${num_layers}
+        --embed_dim ${embed_dim}
+        --dense_dim ${dense_dim}
+        --max_length ${max_length}
+        --tokenizer_name ${tokenizer_name}
+        --grad_clip ${grad_clip}
+        --dropout_rate ${dropout_rate}
+        --epochs ${epochs}
+        --model_dir data/06_models/simple_text
+    deps:
+      - data/01_raw/hateful_memes
+      - logs/test_simple_text.log
+      - hateful_memes/models/base.py
+      - hateful_memes/models/simple_text.py
+    outs:
+      - data/06_models/simple_text
+
+  test_super_model:
+    cmd: >
+        python -m hateful_memes.models.super_model
+        --simple_image_chkpt data/06_models/simple_image
+        --simple_text_chkpt data/06_models/simple_text
+        --fast_dev_run True
+        && echo "PASSED" > logs/test_super_model.log
+    deps:
+      - data/01_raw/hateful_memes
+      - hateful_memes/models/base.py
+      - hateful_memes/models/super_model.py
+      - data/06_models/simple_image
+      - data/06_models/simple_text
+    outs:
+      - logs/test_super_model.log
+
+  super_model:
+    vars: 
+      - config/super_model.yaml
+    cmd: >
+        python -m hateful_memes.models.super_model
+        --simple_image_chkpt data/06_models/simple_image
+        --simple_mlp_image_chkpt data/06_models/simple_mlp_image
+        --simple_text_chkpt data/06_models/simple_text
+        --visual_bert_chkpt data/06_models/visual_bert
+        --batch_size ${batch_size}
+        --lr ${lr}
+        --num_dense_layers ${num_layers}
+        --dense_dim ${dense_dim}
+        --dropout_rate ${dropout_rate}
+        --epochs ${epochs}
+        --model_dir data/06_models/super_model
+    deps:
+      - data/01_raw/hateful_memes
+      - logs/test_super_model.log
+      - hateful_memes/models/base.py
+      - hateful_memes/models/super_model.py
+      - data/06_models/simple_image
+      - data/06_models/simple_mlp_image
+      - data/06_models/simple_text
+      - data/06_models/visual_bert
+    outs:
+      - data/06_models/super_model

@@ -1,6 +1,7 @@
 import torch
 from pytorch_lightning import LightningModule, Trainer
 from pytorch_lightning.utilities.cli import LightningCLI
+from hateful_memes.utils import get_project_logger
 from hateful_memes.data.hateful_memes import MaeMaeDataModule
 from dvclive.lightning import DvcLiveLogger
 import pytorch_lightning as pl
@@ -38,29 +39,25 @@ class Affirmative(Base):
     """ Return 1 for all inputs """
     def forward(self, x):
         batch_size = x.size(0)
-        return torch.ones(batch_size)
+        return torch.ones(batch_size).to(self.device)
     
 
-
-# class Negative(Base):
-#     def __init__(self):
-#         super().__init__()
-#         self.save_hyperparameters()
-#     def forward(self, x):
-#         batch_size = x.size(0)
-#         return torch.zeros(batch_size)
+class Negative(Base):
+    def forward(self, x):
+        batch_size = x.size(0)
+        return torch.zeros(batch_size).to(self.device)
        
 
 from pytorch_lightning.loggers import WandbLogger
 if __name__ == '__main__':
     pl.seed_everything(42)
-    logger = WandbLogger(project="baseline") 
+    logger = get_project_logger(project='baseline_algorithm', save_dir='data/08_reporting/baseline', offline=True)
 
     trainer = pl.Trainer(
-        gpus=0, 
-        max_epochs=1, 
+        devices=1, 
+        accelerator='auto',
         logger=logger,
     )
     
-    trainer.validate(Affirmative(), datamodule=MaeMaeDataModule(batch_size=8))
+    trainer.validate(Negative(), datamodule=MaeMaeDataModule(batch_size=8))
 

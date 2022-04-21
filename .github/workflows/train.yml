@@ -2,6 +2,12 @@ name: Train all models
 on: 
     workflow_dispatch:
     push:
+      paths:
+        - '**.js'
+        - '**.py'
+        - 'config/*yaml'
+        - 'dvc.yaml'
+        - .github/workflows/train.yml
 # defaults:
 #     run:
 #       shell: bash
@@ -17,6 +23,7 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.MINIO_AWS_SECRET_ACCESS_KEY }}
         WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
         repo_token: ${{ secrets.GITHUB_TOKEN }}
+        ENABLE_PROGRESS_BAR: False
       options: --gpus all --shm-size=8G
 
     timeout-minutes: 1440  # Increased job runtime since ML is slow
@@ -39,7 +46,7 @@ jobs:
 
       - name: Pull everything else
         continue-on-error: true
-        run: dvc pull 
+        run: dvc pull -a --run-cache
 
       - name: Train Electra
         # continue-on-error: true
@@ -53,24 +60,46 @@ jobs:
           dvc repro --pull distilbert
           dvc push -d distilbert
 
-      - name: Train VisualBERT
-        # continue-on-error: true
-        run: |
-          dvc repro --pull visual_bert
-          dvc push -d visual_bert
-
       - name: Train Simple Image Model
+
         # continue-on-error: true
         run: |
-          dvc repro --pull simple_image
-          dvc push -d simple_image
+          dvc repro simple_image
+          dvc push --run-cache -d simple_image
 
       - name: Train Simple MLP Image Model
         # continue-on-error: true
         run: |
-          dvc repro --pull simple_mlp_image
-          dvc push -d simple_mlp_image
-      
+          dvc repro simple_mlp_image
+          dvc push --run-cache -d simple_mlp_image
+            
+      - name: Train Simple Text Model
+        run: |
+          dvc repro simple_text
+          dvc push --run-cache -d simple_text
+
+      - name: Train VisualBERT
+        # continue-on-error: true
+        run: |
+          dvc repro visual_bert
+          dvc push --run-cache -d visual_bert
+
+      - name: Train Super Model
+        continue-on-error: true
+        run: |
+          dvc repro super_model
+          dvc push --run-cache -d super_model
+
+      - name: Train ViT
+        run: |
+          dvc repro --pull vit
+          dvc push -d vit
+
+      - name: Train BEit
+        run: |
+          dvc repro --pull beit
+          dvc push -d beit
+
       - name: Commit run
         run: |
           cml ci
