@@ -23,6 +23,7 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.MINIO_AWS_SECRET_ACCESS_KEY }}
         WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
         repo_token: ${{ secrets.GITHUB_TOKEN }}
+        ENABLE_PROGRESS_BAR: False
       options: --gpus all --shm-size=8G
 
     timeout-minutes: 1440  # Increased job runtime since ML is slow

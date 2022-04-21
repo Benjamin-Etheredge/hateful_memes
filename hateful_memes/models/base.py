@@ -130,7 +130,8 @@ def base_train(
         auto_scale_batch_size='power',
         precision=16,
         amp_backend='native',
-        # detect_anomaly=True,
+        detect_anomaly=True,
+        enable_progress_bar=os.environ.get('ENABLE_PROGRESS_BAR', True),
         callbacks=[checkpoint_callback, early_stopping])
         # callbacks=[checkpoint_callback, early_stopping, stw])
 
@@ -161,7 +162,10 @@ def base_train(
     #     # model.lr = new_lr
 
     ic(model.lr)
-    trainer.fit(model, datamodule=data)
+    trainer.fit(
+        model, 
+        datamodule=data,
+        )
 
     # # Setup data for predictions
     # data = MaeMaeDataModule(batch_size=batch_size)
