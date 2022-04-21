@@ -3,7 +3,6 @@ import pytorch_lightning as pl
 import torch
 import click
 from transformers import AutoTokenizer, AutoModel, AutoConfig
-from hateful_memes.data.hateful_memes import MaeMaeDataModule
 from torch.nn import functional as F
 from torch import nn
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -11,8 +10,10 @@ from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.loggers import WandbLogger
 from icecream import ic
 
+from hateful_memes.models.baseline import BaseMaeMaeModel
+from hateful_memes.data.hateful_memes import MaeMaeDataModule
 
-class AutoTextModule(pl.LightningModule):
+class AutoTextModule(BaseMaeMaeModel):
 
     def __init__(
         self, 
@@ -44,17 +45,6 @@ class AutoTextModule(pl.LightningModule):
         acc = torch.sum(torch.round(torch.sigmoid(y_hat)) == y.data) / (y.shape[0] * 1.0)
         return loss, acc
 
-    def validation_step(self, batch, batch_idx):
-        loss, acc = self._shared_step(batch)
-        self.log("val/loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, batch_size=batch['image'].size(0))
-        self.log("val/acc", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True, batch_size=batch['image'].size(0))
-        return loss
-    
-    def training_step(self, batch, batch_idx):
-        loss, acc = self._shared_step(batch)
-        self.log("train/loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, batch_size=batch['image'].size(0))
-        self.log("train/acc", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True, batch_size=batch['image'].size(0))
-        return loss
     
     def forward(self, batch):
         text = batch['text']
@@ -81,10 +71,6 @@ class AutoTextModule(pl.LightningModule):
             x.squeeze_()
 
         return x
-
-    def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
-        return optimizer
     
 @click.command()
 @click.option('--batch_size', default=32, help='Batch size')

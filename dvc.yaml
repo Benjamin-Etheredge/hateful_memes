@@ -32,12 +32,14 @@ stages:
       - data/06_models/visual_bert
 
   test_electra:
+    vars:
+      - config/electra.yaml
     cmd: >
         python -m hateful_memes.models.auto_text_model
         --batch_size 4 
         --fast_dev_run True
-        --model_name 'google/electra-small-discriminator'
-        --model_name_simple 'Electra'
+        --model_name ${model_name}
+        --model_name_simple ${model_name_simple}
         | tee logs/test_electra.log 2>&1
     deps:
       - data/01_raw/hateful_memes
@@ -57,8 +59,8 @@ stages:
         --dense_dim ${dense_dim}
         --dropout_rate ${dropout_rate}
         --gradient_clip_value ${gradient_clip_value}
-        --model_name 'google/electra-small-discriminator'
-        --model_name_simple 'Electra'
+        --model_name ${model_name}
+        --model_name_simple ${model_name_simple}
         --model_dir data/06_models/electra
     deps:
       - logs/test_electra.log
@@ -68,12 +70,14 @@ stages:
       - data/06_models/electra
 
   test_distilbert:
+    vars:
+      - config/distilbert.yaml
     cmd: >
         python -m hateful_memes.models.auto_text_model
         --batch_size 4 
         --fast_dev_run True
-        --model_name 'distilbert-base-uncased-finetuned-sst-2-english'
-        --model_name_simple 'Distilbert'
+        --model_name ${model_name}
+        --model_name_simple ${model_name_simple}
         | tee logs/test_distilbert.log 2>&1
     deps:
       - data/01_raw/hateful_memes
@@ -93,8 +97,8 @@ stages:
         --dense_dim ${dense_dim}
         --dropout_rate ${dropout_rate}
         --gradient_clip_value ${gradient_clip_value}
-        --model_name 'distilbert-base-uncased-finetuned-sst-2-english'
-        --model_name_simple 'Distilbert'
+        --model_name ${model_name}
+        --model_name_simple ${model_name_simple}
         --model_dir data/06_models/distilbert
     deps:
       - logs/test_distilbert.log
