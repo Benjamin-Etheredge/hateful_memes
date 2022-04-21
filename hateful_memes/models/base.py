@@ -90,7 +90,7 @@ def base_train(
         model, 
         project, 
         epochs, 
-        batch_size, 
+        batch_size=None, 
         model_dir='/tmp', 
         log_dir=None, 
         grad_clip=1.0, 
@@ -126,12 +126,12 @@ def base_train(
         gradient_clip_val=grad_clip,
         track_grad_norm=2, 
         fast_dev_run=fast_dev_run, 
-        auto_lr_find=True,
-        auto_scale_batch_size='power',
+        # auto_lr_find=True,
+        auto_scale_batch_size='power' if batch_size is None else False,
         precision=16,
         amp_backend='native',
         detect_anomaly=True,
-        enable_progress_bar=os.environ.get('ENABLE_PROGRESS_BAR', True),
+        enable_progress_bar=os.environ.get('ENABLE_PROGRESS_BAR', 1) == 1,
         callbacks=[checkpoint_callback, early_stopping])
         # callbacks=[checkpoint_callback, early_stopping, stw])
 
