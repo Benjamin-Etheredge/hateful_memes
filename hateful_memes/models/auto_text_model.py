@@ -99,7 +99,7 @@ def main(batch_size, lr, max_length, dense_dim, dropout_rate,
     )
 
     early_stopping = EarlyStopping(
-        monitor='val/acc', 
+        monitor='val/loss', 
         patience=10, 
         mode='max', 
         verbose=True
