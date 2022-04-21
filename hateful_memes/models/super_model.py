@@ -74,6 +74,8 @@ class SuperModel(BaseMaeMaeModel):
         self.models = nn.ModuleList(self.models)
 
         self.latent_dim = sum([model.last_hidden_size for model in self.models])
+        # TODO get in config
+        # TODO accumulate grads over n bacthes
 
         # TODO linear vs embedding for dim changing
         # TODO auto size
