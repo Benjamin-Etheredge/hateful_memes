@@ -1,3 +1,5 @@
 /test_simple_mlp_image.log
 /test_visual_bert.log
 /test_simple_image.log
+/test_distilbert.log
+/test_electra.log
