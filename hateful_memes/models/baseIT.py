@@ -3,6 +3,7 @@ import pytorch_lightning as pl
 import torch
 import click
 from transformers import ViTFeatureExtractor, ViTForImageClassification
+from transformers import AutoFeatureExtractor, AutoModelForImageClassification
 import torchvision.models as models
 from hateful_memes.data.hateful_memes import MaeMaeDataModule
 from hateful_memes.utils import get_project_logger
@@ -14,11 +15,12 @@ from icecream import ic
 
 from torchvision.transforms import ToPILImage  
 
-class ViTModule(BaseMaeMaeModel):
+class BaseITModule(BaseMaeMaeModel):
     """ Pretrained ViT """
 
     def __init__(
         self, 
+        model_name='vit',
         lr=0.003, 
         max_length=512, 
         include_top=True,
@@ -28,8 +30,13 @@ class ViTModule(BaseMaeMaeModel):
 
         super().__init__()
         
-        self.feature_extractor = ViTFeatureExtractor.from_pretrained('google/vit-base-patch16-224')
-        self.model = ViTForImageClassification.from_pretrained('google/vit-base-patch16-224', output_hidden_states=True)
+        if model_name == 'vit':
+            model_fullname = 'google/vit-base-patch16-224'
+        elif model_name == 'beit':
+            model_fullname = 'microsoft/beit-base-patch16-224-pt22k-ft22k'
+
+        self.feature_extractor = AutoFeatureExtractor.from_pretrained(model_fullname)
+        self.model = AutoModelForImageClassification.from_pretrained(model_fullname, output_hidden_states=True)
         for param in self.model.parameters():
             param.requires_grad = False
         self.model.eval()
@@ -99,6 +106,7 @@ class ViTModule(BaseMaeMaeModel):
 
 
 @click.command()
+@click.option('--model_name', default='vit', help='Model name')
 @click.option('--lr', default=1e-4, help='Learning rate')
 @click.option('--max_length', default=128, help='Max length')
 @click.option('--dense_dim', default=256, help='Dense dim')
@@ -111,11 +119,12 @@ class ViTModule(BaseMaeMaeModel):
 @click.option('--fast_dev_run', default=False, help='Fast dev run')
 @click.option('--log_dir', default="data/08_reporting/vit", help='Log dir')
 @click.option('--project', default="vit", help='Project')
-def main(lr, max_length, dense_dim, dropout_rate, 
+def main(model_name, lr, max_length, dense_dim, dropout_rate, 
          **train_kwargs):
     """ train model """
 
-    model = ViTModule(
+    model = BaseITModule(
+        model_name=model_name,
         lr=lr, 
         max_length=max_length, 
         dense_dim=dense_dim, 

@@ -1,7 +1,8 @@
+model_name: 'vit'
 batch_size: 64
 lr: 1e-5
 epochs: 50
-max_length: 512
+max_length: 256
 dense_dim: 128
 dropout_rate: 0.1
 grad_clip: 1.0

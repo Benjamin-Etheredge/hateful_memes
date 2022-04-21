@@ -1,7 +1,8 @@
 stages:
   test_beit:
     cmd: >
-        python -m hateful_memes.models.beit
+        python -m hateful_memes.models.baseIT
+        --model_name vit
         --batch_size 4 
         --fast_dev_run True
         --log_dir logs/test_simple_beit_image_metrics
@@ -9,7 +10,7 @@ stages:
         && echo "PASSED" > logs/test_beit.log
     deps:
       - data/01_raw/hateful_memes
-      - hateful_memes/models/beit.py
+      - hateful_memes/models/baseIT.py
     outs:
       - logs/test_beit.log
 
@@ -17,7 +18,8 @@ stages:
     vars:
       - config/beit.yaml
     cmd: >
-        python -m hateful_memes.models.beit
+        python -m hateful_memes.models.baseIT
+        --model_name ${model_name}
         --batch_size ${batch_size}
         --lr ${lr}
         --epochs ${epochs}
@@ -29,13 +31,14 @@ stages:
     deps:
       - logs/test_beit.log
       - data/01_raw/hateful_memes
-      - hateful_memes/models/beit.py
+      - hateful_memes/models/baseIT.py
     outs:
       - data/06_models/beit
 
   test_vit:
     cmd: >
-        python -m hateful_memes.models.vit
+        python -m hateful_memes.models.baseIT
+        --model_name vit
         --batch_size 4 
         --fast_dev_run True
         --log_dir logs/test_simple_vit_image_metrics
@@ -43,7 +46,7 @@ stages:
         && echo "PASSED" > logs/test_vit.log
     deps:
       - data/01_raw/hateful_memes
-      - hateful_memes/models/vit.py
+      - hateful_memes/models/baseIT.py
     outs:
       - logs/test_vit.log
 
@@ -51,7 +54,8 @@ stages:
     vars:
       - config/vit.yaml
     cmd: >
-        python -m hateful_memes.models.vit
+        python -m hateful_memes.models.baseIT
+        --model_name ${model_name}
         --batch_size ${batch_size}
         --lr ${lr}
         --epochs ${epochs}
@@ -63,7 +67,7 @@ stages:
     deps:
       - logs/test_vit.log
       - data/01_raw/hateful_memes
-      - hateful_memes/models/vit.py
+      - hateful_memes/models/baseIT.py
     outs:
       - data/06_models/vit
 
