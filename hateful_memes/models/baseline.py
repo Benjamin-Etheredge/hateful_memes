@@ -22,9 +22,9 @@ class BaseMaeMaeModel(LightningModule):
 
         y = batch['label']
         y_hat = self(batch)
-        loss = F.binary_cross_entropy(y_hat, y.to(y_hat.dtype))
+        loss = F.binary_cross_entropy_with_logits(y_hat, y.to(y_hat.dtype))
 
-        acc = torch.sum(torch.round(y_hat) == y.data) / (y.shape[0] * 1.0)
+        acc = torch.sum(torch.round(torch.sigmoid(y_hat)) == y.data) / (y.shape[0] * 1.0)
 
         return loss, acc
 

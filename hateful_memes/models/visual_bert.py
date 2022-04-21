@@ -135,7 +135,6 @@ class VisualBertModule(pl.LightningModule):
         x = F.dropout(x, p=self.dropout_rate)
         x = self.fc2(x)
         x.squeeze_()
-        # x = F.sigmoid(x)
         return x
 
     def configure_optimizers(self):

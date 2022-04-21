@@ -52,7 +52,6 @@ class SimpleMLPImageMaeMaeModel(BaseMaeMaeModel):
 
         x = self.l3(x)
 
-        x = torch.sigmoid(x)
         x = torch.squeeze(x)
         return x
 

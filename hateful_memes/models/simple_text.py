@@ -83,7 +83,6 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
         x = self.l1(x)
         x = F.relu(x)
         x = self.l2(x)
-        x = torch.sigmoid(x)
         x = torch.squeeze(x)
         ic(x.shape)
         return x
