@@ -4,18 +4,13 @@ from icecream import ic
 import torch
 from torch.nn import functional as F
 from torch import nn
-from torch.optim.lr_scheduler import ReduceLROnPlateau
 import torchvision.models as models
 
 from transformers import BertTokenizer, VisualBertModel
 
 import pytorch_lightning as pl
-from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
-from hateful_memes.data.hateful_memes import MaeMaeDataModule
-from hateful_memes.models.base import BaseMaeMaeModel
-from hateful_memes.utils import get_project_logger
+from hateful_memes.models.base import BaseMaeMaeModel, base_train
 
 
 class VisualBertModule(BaseMaeMaeModel):
@@ -121,66 +116,31 @@ class VisualBertModule(BaseMaeMaeModel):
 
 @click.command()
 @click.option('--freeze', default=True, help='Freeze models')
-@click.option('--batch_size', default=32, help='Batch size')
 @click.option('--lr', default=1e-4, help='Learning rate')
 @click.option('--max_length', default=128, help='Max length')
 @click.option('--dense_dim', default=256, help='Dense dim')
 @click.option('--dropout_rate', default=0.1, help='Dropout rate')
+# Train kwargs
+@click.option('--batch_size', default=32, help='Batch size')
 @click.option('--epochs', default=10, help='Epochs')
 @click.option('--model_dir', default='/tmp', help='Save dir')
 @click.option('--gradient_clip_value', default=1.0, help='Gradient clip')
 @click.option('--fast_dev_run', default=False, help='Fast dev run')
 @click.option('--log_dir', default="data/08_reporting/visual_bert", help='Log dir')
 @click.option('--project', default="visual-bert", help='Project')
-def main(freeze, batch_size, lr, max_length, dense_dim, dropout_rate, 
-         epochs, model_dir, gradient_clip_value, fast_dev_run, 
-         log_dir, project):
+def main(freeze, lr, max_length, dense_dim, dropout_rate, 
+         **train_kwargs):
     """ train model """
 
-    logger = get_project_logger(project=project, save_dir=log_dir, offline=fast_dev_run)
-    checkpoint_callback = ModelCheckpoint(
-        monitor="val/loss", 
-        mode="min", 
-        dirpath=model_dir, 
-        # filename="{epoch}-{step}-{val/loss:.2f}",
-        verbose=True,
-        save_top_k=1)
-
-    early_stopping = EarlyStopping(
-            monitor='val/loss', 
-            patience=10, 
-            mode='min', 
-            verbose=True)
-
-    trainer = pl.Trainer(
-        devices=1, 
-        accelerator='auto',
-        max_epochs=epochs, 
-        logger=logger,
-        # logger=wandb_logger, 
-        gradient_clip_val=gradient_clip_value,
-        callbacks=[checkpoint_callback, early_stopping],
-        track_grad_norm=2, 
-        fast_dev_run=fast_dev_run,
-        # detect_anomaly=True, # TODO explore more
-        # callbacks=[checkpoint_callback])
-        # precision=16,
-        # auto_scale_batch_size=True,
-    )
-    
     model = VisualBertModule(
         freeze=freeze,
         lr=lr, 
         max_length=max_length, 
         dense_dim=dense_dim, 
         dropout_rate=dropout_rate)
-    trainer.fit(
-        model, 
-        datamodule=MaeMaeDataModule(batch_size=batch_size))
+    base_train(model=model, **train_kwargs)
 
 
 if __name__ == "__main__":
     pl.seed_everything(42)
     main()
-    # wandb_logger = WandbLogger(project="Hateful_Memes_Base_Image", log_model=True)
-    # checkpoint_callback = ModelCheckpoint(monitor="val/acc", mode="max", dirpath="data/06_models/hateful_memes", save_top_k=1)
