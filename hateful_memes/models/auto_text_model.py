@@ -90,7 +90,7 @@ def main(batch_size, lr, max_length, dense_dim, dropout_rate,
     logger = None if fast_dev_run else WandbLogger(project=model_name_simple)
 
     checkpoint_callback = ModelCheckpoint(
-        monitor="val/acc", 
+        monitor="val/loss", 
         mode="max", 
         dirpath=model_dir, 
         filename="{epoch}-{step}-{val_acc:.4f}",
