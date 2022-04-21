@@ -240,7 +240,7 @@ def main(
     parser = options.get_training_parser()
     args = options.parse_args_and_arch(parser, modify_parser=modify_parser)
     cfg = convert_namespace_to_omegaconf(args)
-    utils.import_user_module(cfg.common)
+    # utils.import_user_module(cfg.common)
     np.random.seed(cfg.common.seed)
     utils.set_torch_seed(cfg.common.seed)
     
@@ -261,3 +261,6 @@ def main(
     # Training
     hateful_ofa_trainer.fit(hateful_ofa_model, datamodule=hateful_ofa_data)
 
+if __name__ == '__main__':
+    arguments = parse_arguments()
+    main(*arguments)
