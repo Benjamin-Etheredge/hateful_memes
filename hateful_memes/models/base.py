@@ -126,7 +126,7 @@ def base_train(
         gradient_clip_val=grad_clip,
         track_grad_norm=2, 
         fast_dev_run=fast_dev_run, 
-        # auto_lr_find=True,
+        auto_lr_find=True,
         auto_scale_batch_size='power',
         precision=16,
         amp_backend='native',
@@ -144,7 +144,7 @@ def base_train(
             model, 
             scale_batch_size_kwargs=dict(max_trials=6),
             lr_find_kwargs=dict(
-                num_training=1000, 
+                num_training=100, 
                 update_attr=True),
             datamodule=data,
         )
