@@ -73,8 +73,8 @@ stages:
       md5: 3e3770752e63b75f397aa10573143a66
       size: 6294
     - path: hateful_memes/models/simple_mlp_image.py
-      md5: 4428b9fb580f99947bd8ff86e42aeaa9
-      size: 2721
+      md5: 0c1068a480b66b2a9a2e43e1ce6f2d34
+      size: 2714
     outs:
     - path: logs/test_simple_mlp_image.log
       md5: 15de982d1dc99ce52d089868a579de34
@@ -92,8 +92,8 @@ stages:
       md5: 3e3770752e63b75f397aa10573143a66
       size: 6294
     - path: hateful_memes/models/simple_mlp_image.py
-      md5: 4428b9fb580f99947bd8ff86e42aeaa9
-      size: 2721
+      md5: 0c1068a480b66b2a9a2e43e1ce6f2d34
+      size: 2714
     - path: logs/test_simple_mlp_image.log
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
