@@ -13,3 +13,5 @@ dist/
 
 *.ckpt
 
+**/.DS_Store
+
