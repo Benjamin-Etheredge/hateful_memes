@@ -78,3 +78,12 @@ stages:
           summary: true
           html: false
 
+  hateful_memes_to_snli_ve:
+    cmd: python src/data/hateful_memes_snli_ve.py
+    deps: 
+      - data/01_raw/hateful_memes
+      - src/data/hateful_memes_snli_ve.py
+    outs:
+      - data/02_intermediate/hateful_memes_snli_ve.tsv
+ 
+
