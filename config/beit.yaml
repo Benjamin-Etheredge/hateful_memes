@@ -1,5 +1,5 @@
 model_name: 'beit'
-batch_size: 64
+batch_size: 0
 lr: 1e-5
 epochs: 50
 max_length: 256

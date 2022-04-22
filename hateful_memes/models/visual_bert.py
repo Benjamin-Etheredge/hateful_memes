@@ -123,7 +123,7 @@ class VisualBertModule(BaseMaeMaeModel):
 @click.option('--dense_dim', default=256, help='Dense dim')
 @click.option('--dropout_rate', default=0.1, help='Dropout rate')
 # Train kwargs
-@click.option('--batch_size', default=32, help='Batch size')
+@click.option('--batch_size', default=0, help='Batch size')
 @click.option('--epochs', default=10, help='Epochs')
 @click.option('--model_dir', default='/tmp', help='Save dir')
 @click.option('--grad_clip', default=1.0, help='Gradient clip')

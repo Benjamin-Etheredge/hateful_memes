@@ -144,7 +144,7 @@ class SuperModel(BaseMaeMaeModel):
 @click.option('--simple_text_chkpt')
 @click.option('--vit_chkpt')
 @click.option('--beit_chkpt')
-@click.option('--batch_size', default=32, help='Batch size')
+@click.option('--batch_size', default=0, help='Batch size')
 @click.option('--epochs', default=10, help='Epochs')
 @click.option('--model_dir', default='/tmp', help='Save dir')
 @click.option('--fast_dev_run', default=False, help='Fast dev run')

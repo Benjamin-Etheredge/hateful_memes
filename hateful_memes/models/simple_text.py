@@ -83,7 +83,7 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
 @click.option('--num_layers', default=2, help='Num Layers')
 @click.option('--embed_dim', default=64, help='Dense dim')
 @click.option('--dense_dim', default=256, help='Dense dim')
-@click.option('--batch_size', default=32, help='Batch size')
+@click.option('--batch_size', default=0, help='Batch size')
 @click.option('--max_length', default=128, help='Max length')
 @click.option('--tokenizer_name', default="bert-base-uncased", help='Tokinizer Name')
 @click.option('--grad_clip', default=1.0, help='Gradient clipping')

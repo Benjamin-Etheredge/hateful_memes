@@ -66,7 +66,7 @@ class SimpleMLPImageMaeMaeModel(BaseMaeMaeModel):
 @click.option('--dropout_rate', default=0.1, help='Dropout rate')
 @click.option('--num_dense_layers', default=2)
 #Trainer args
-@click.option('--batch_size', default=32, help='Batch size')
+@click.option('--batch_size', default=0, help='Batch size')
 @click.option('--grad_clip', default=1.0, help='Gradient clipping')
 @click.option('--epochs', default=100, help='Epochs')
 @click.option('--model_dir', default='/tmp', help='Model path')

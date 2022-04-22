@@ -1,5 +1,5 @@
 freeze: false
-batch_size: 16
+batch_size: 0
 lr: 1e-5
 epochs: 100
 max_length: 256

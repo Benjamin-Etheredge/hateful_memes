@@ -109,7 +109,7 @@ class SimpleImageMaeMaeModel(BaseMaeMaeModel):
 @click.option('--batch_norm', default=False, help='Batch norm')
 # Trainer args
 @click.option('--grad_clip', default=1.0, help='Gradient clipping')
-@click.option('--batch_size', default=32, help='Batch size')
+@click.option('--batch_size', default=0, help='Batch size')
 @click.option('--epochs', default=100, help='Epochs')
 @click.option('--model_dir', default='/tmp', help='Model path')
 @click.option('--fast_dev_run', default=False, help='Fast dev run')
