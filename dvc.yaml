@@ -115,8 +115,7 @@ stages:
         --batch_size 4 
         --fast_dev_run True
         --model_name ${model_name}
-        --model_name_simple ${model_name_simple}
-        | tee logs/test_electra.log 2>&1
+        && echo "PASSED" > logs/test_electra.log 
     deps:
       - data/01_raw/hateful_memes
       - hateful_memes/models/auto_text_model.py
@@ -134,9 +133,9 @@ stages:
         --max_length ${max_length}
         --dense_dim ${dense_dim}
         --dropout_rate ${dropout_rate}
-        --gradient_clip_value ${gradient_clip_value}
+        --grad_clip ${gradient_clip_value}
         --model_name ${model_name}
-        --model_name_simple ${model_name_simple}
+        --project electra
         --model_dir data/06_models/electra
     deps:
       - logs/test_electra.log
@@ -153,8 +152,7 @@ stages:
         --batch_size 4 
         --fast_dev_run True
         --model_name ${model_name}
-        --model_name_simple ${model_name_simple}
-        | tee logs/test_distilbert.log 2>&1
+        && echo "PASSED" > logs/test_distilbert.log 
     deps:
       - data/01_raw/hateful_memes
       - hateful_memes/models/auto_text_model.py
@@ -172,9 +170,9 @@ stages:
         --max_length ${max_length}
         --dense_dim ${dense_dim}
         --dropout_rate ${dropout_rate}
-        --gradient_clip_value ${gradient_clip_value}
+        --grad_clip ${gradient_clip_value}
         --model_name ${model_name}
-        --model_name_simple ${model_name_simple}
+        --project distilbert
         --model_dir data/06_models/distilbert
     deps:
       - logs/test_distilbert.log

@@ -10,7 +10,7 @@ from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.loggers import WandbLogger
 from icecream import ic
 
-from hateful_memes.models.base import BaseMaeMaeModel
+from hateful_memes.models.base import BaseMaeMaeModel, base_train
 from hateful_memes.data.hateful_memes import MaeMaeDataModule
 
 class AutoTextModule(BaseMaeMaeModel):
@@ -38,13 +38,6 @@ class AutoTextModule(BaseMaeMaeModel):
         self.fc1 = nn.Linear(self.config.hidden_size * self.max_length, dense_dim)
         self.fc2 = nn.Linear(dense_dim, 1)
 
-    def _shared_step(self, batch):
-        y_hat = self.forward(batch)
-        y = batch['label']
-        loss = F.binary_cross_entropy_with_logits(y_hat, y.to(y_hat.dtype))
-        acc = torch.sum(torch.round(torch.sigmoid(y_hat)) == y.data) / (y.shape[0] * 1.0)
-        return loss, acc
-
     
     def forward(self, batch):
         text = batch['text']
@@ -61,59 +54,30 @@ class AutoTextModule(BaseMaeMaeModel):
         x = x.last_hidden_state
         x = x.view(x.shape[0], -1)
 
+        x = self.fc1(x)
+        x = F.relu(x)
+        x = F.dropout(input=x, p=self.dropout_rate)
         if self.include_top:
-            x = self.fc1(x)
-            x = F.relu(x)
-            x = F.dropout(input=x, p=self.dropout_rate)
-
             x = self.fc2(x)
-
-            x.squeeze_()
+            x.squeeze_(dim=-1)
 
         return x
     
 @click.command()
-@click.option('--batch_size', default=32, help='Batch size')
 @click.option('--lr', default=1e-4, help='Learning rate')
 @click.option('--max_length', default=128, help='Max length')
 @click.option('--dense_dim', default=256, help='Dense dim')
 @click.option('--dropout_rate', default=0.1, help='Dropout rate')
+@click.option('--model_name', default='google/electra-small-discriminator', help='Model name')
+# Train kwargs
+@click.option('--batch_size', default=0, help='Batch size')
 @click.option('--epochs', default=10, help='Epochs')
 @click.option('--model_dir', default='/tmp', help='Save dir')
-@click.option('--gradient_clip_value', default=1.0, help='Gradient clip')
+@click.option('--grad_clip', default=1.0, help='Gradient clip')
 @click.option('--fast_dev_run', default=False, help='Fast dev run')
-@click.option('--model_name', default='google/electra-small-discriminator', help='Model name')
-@click.option('--model_name_simple', default='Electra', help='Simple model name for wandb')
-def main(batch_size, lr, max_length, dense_dim, dropout_rate, 
-         epochs, model_dir, gradient_clip_value, fast_dev_run, model_name,
-         model_name_simple):
-    logger = None if fast_dev_run else WandbLogger(project=model_name_simple)
-
-    checkpoint_callback = ModelCheckpoint(
-        monitor="val/loss", 
-        mode="max", 
-        dirpath=model_dir, 
-        filename="{epoch}-{step}-{val_acc:.4f}",
-        verbose=True,
-        save_top_k=1
-    )
-
-    early_stopping = EarlyStopping(
-        monitor='val/loss', 
-        patience=10, 
-        mode='max', 
-        verbose=True
-    )
-    
-    trainer = pl.Trainer(
-        devices=1,
-        accelerator='auto',
-        max_epochs=epochs, 
-        logger=logger,
-        gradient_clip_val=gradient_clip_value,
-        callbacks=[checkpoint_callback, early_stopping],
-        fast_dev_run=fast_dev_run,
-    )
+@click.option('--project', default='Electra', help='Simple model name for wandb')
+def main(lr, max_length, dense_dim, dropout_rate, model_name,
+         **train_kwargs):
     
     model = AutoTextModule(
         lr=lr, 
@@ -123,10 +87,8 @@ def main(batch_size, lr, max_length, dense_dim, dropout_rate,
         model_name=model_name,
     )
 
-    trainer.fit(
-        model, 
-        datamodule=MaeMaeDataModule(batch_size=batch_size)
-    )
+    base_train(model=model, **train_kwargs)
+
 
 if __name__ == "__main__":
     pl.seed_everything(42)
