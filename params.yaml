@@ -32,16 +32,16 @@ hateful_ofa:
   bpe-dir: src/models/OFA/utils/BPE
   user-dir: src/models/OFA/ofa_module
   restore-file: src/models/OFA/checkpoints/snli_ve_large_best.pt
-  reset-optimizer: True  #Maybe unused
-  reset-dataloader: True #Maybe unused 
-  reset-meters: True #Maybe unused  
+  #reset-optimizer: True  #Maybe unused
+  #reset-dataloader: True #Maybe unused 
+  #reset-meters: True #Maybe unused  
   save-dir: data/06_models
   task: snli_ve
   arch: ofa_large
-  criterion: adjust_label_smoothed_cross_entropy  #Maybe unused
+  #criterion: adjust_label_smoothed_cross_entropy  #Maybe unused
   label-smoothing: 0.0
   batch-size: 4
-  update-freq: 8  #Maybe unused
+  #update-freq: 8  #Maybe unused
   encoder-normalize-before: True
   decoder-normalize-before: True
   share-decoder-input-output-embed: True
@@ -55,24 +55,24 @@ hateful_ofa:
   dropout: 0.1
   attention-dropout: 0.0
   weight-decay: 0.01
-  optimizer: adam  #Maybe unused
+  #optimizer: adam  #Maybe unused
   adam-betas: "(0.9,0.999)"
   adam-eps: 1e-08
   clip-norm: 1.0
-  lr-scheduler: polynomial_decay   #Maybe unused
+  #lr-scheduler: polynomial_decay   #Maybe unused
   lr: 2e-5  #This was maybe supposed to be 3e-5, but the script overwrote it with 2e-5?
   max-epoch: 6  #Ditto: was supposed to be 5, but got overwritten with 6
-  warmup-ratio: 0.06  #Maybe unused
-  log-format: simple  #Maybe unused
-  log-interval: 10  #Maybe unused
+  #warmup-ratio: 0.06  #Maybe unused
+  #log-format: simple  #Maybe unused
+  #log-interval: 10  #Maybe unused
   fixed-validation-seed: 7
-  keep-best-checkpoints: 1  #Maybe unused
-  save-interval: 1  #Maybe unused
-  validate-interval: 1  #Maybe unused
-  save-interval-updates: 500   #Maybe unused
-  validate-interval-updates: 500  #Maybe unused
-  best-checkpoint-metric: snli_score  #Maybe unused
-  maximize-best-checkpoint-metric: True  #Maybe unused
+  #keep-best-checkpoints: 1  #Maybe unused
+  #save-interval: 1  #Maybe unused
+  #validate-interval: 1  #Maybe unused
+  #save-interval-updates: 500   #Maybe unused
+  #validate-interval-updates: 500  #Maybe unused
+  #best-checkpoint-metric: snli_score  #Maybe unused
+  #maximize-best-checkpoint-metric: True  #Maybe unused
   max-src-length: 80
   max-tgt-length: 20
   find-unused-parameters: True
