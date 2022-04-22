@@ -306,6 +306,7 @@ stages:
     outs:
       - data/06_models/simple_text
 
+<<<<<<< HEAD
   test_super_model:
     cmd: >
         python -m hateful_memes.models.super_model
@@ -353,3 +354,14 @@ stages:
       - data/06_models/beit
     outs:
       - data/06_models/super_model
+=======
+  hateful_memes_to_snli_ve:
+    cmd: python src/data/hateful_memes_snli_ve.py
+    deps: 
+      - data/01_raw/hateful_memes
+      - src/data/hateful_memes_snli_ve.py
+    outs:
+      - data/02_intermediate/hateful_memes_snli_ve.tsv
+ 
+
+>>>>>>> 6ce1a03 (Added dataset conversion script as DVC stage, added resulting tsv to DVC remote)
