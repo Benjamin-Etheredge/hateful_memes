@@ -1,4 +1,18 @@
 stages:
+  test_visual_bert_with_od:
+    cmd: >
+        python -m hateful_memes.models.visual_bert_with_od
+        --batch_size 4 
+        --fast_dev_run True
+        --log_dir logs/test_visual_bert_with_od
+        --project test
+        && echo "PASSED" > logs/test_visual_bert_with_od.log
+    deps:
+      - data/01_raw/hateful_memes
+      - hateful_memes/models/visual_bert_with_od.py
+    outs:
+      - logs/test_visual_bert_with_od.log
+
   test_beit:
     cmd: >
         python -m hateful_memes.models.baseIT
