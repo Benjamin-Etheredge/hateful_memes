@@ -124,7 +124,7 @@ def base_train(
         logger=logger,
         max_epochs=epochs,
         gradient_clip_val=grad_clip,
-        track_grad_norm=2, 
+        # track_grad_norm=2, 
         fast_dev_run=fast_dev_run, 
         # auto_lr_find=True,
         auto_scale_batch_size='power' if batch_size <= 0 else False,
