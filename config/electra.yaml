@@ -1,0 +1,9 @@
+batch_size: 16
+lr: 1e-5
+epochs: 100
+max_length: 512
+dense_dim: 256
+dropout_rate: 0.1
+gradient_clip_value: 1.0
+model_name: 'google/electra-small-discriminator'
+model_name_simple: 'Electra'

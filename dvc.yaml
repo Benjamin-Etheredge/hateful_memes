@@ -107,6 +107,82 @@ stages:
     outs:
       - data/06_models/visual_bert
 
+  test_electra:
+    vars:
+      - config/electra.yaml
+    cmd: >
+        python -m hateful_memes.models.auto_text_model
+        --batch_size 4 
+        --fast_dev_run True
+        --model_name ${model_name}
+        --model_name_simple ${model_name_simple}
+        | tee logs/test_electra.log 2>&1
+    deps:
+      - data/01_raw/hateful_memes
+      - hateful_memes/models/auto_text_model.py
+    outs:
+      - logs/test_electra.log
+
+  electra:
+    vars:
+      - config/electra.yaml
+    cmd: >
+        python -m hateful_memes.models.auto_text_model
+        --batch_size ${batch_size}
+        --lr ${lr}
+        --epochs ${epochs}
+        --max_length ${max_length}
+        --dense_dim ${dense_dim}
+        --dropout_rate ${dropout_rate}
+        --gradient_clip_value ${gradient_clip_value}
+        --model_name ${model_name}
+        --model_name_simple ${model_name_simple}
+        --model_dir data/06_models/electra
+    deps:
+      - logs/test_electra.log
+      - data/01_raw/hateful_memes
+      - hateful_memes/models/auto_text_model.py
+    outs:
+      - data/06_models/electra
+
+  test_distilbert:
+    vars:
+      - config/distilbert.yaml
+    cmd: >
+        python -m hateful_memes.models.auto_text_model
+        --batch_size 4 
+        --fast_dev_run True
+        --model_name ${model_name}
+        --model_name_simple ${model_name_simple}
+        | tee logs/test_distilbert.log 2>&1
+    deps:
+      - data/01_raw/hateful_memes
+      - hateful_memes/models/auto_text_model.py
+    outs:
+      - logs/test_distilbert.log
+
+  distilbert:
+    vars:
+      - config/distilbert.yaml
+    cmd: >
+        python -m hateful_memes.models.auto_text_model
+        --batch_size ${batch_size}
+        --lr ${lr}
+        --epochs ${epochs}
+        --max_length ${max_length}
+        --dense_dim ${dense_dim}
+        --dropout_rate ${dropout_rate}
+        --gradient_clip_value ${gradient_clip_value}
+        --model_name ${model_name}
+        --model_name_simple ${model_name_simple}
+        --model_dir data/06_models/distilbert
+    deps:
+      - logs/test_distilbert.log
+      - data/01_raw/hateful_memes
+      - hateful_memes/models/auto_text_model.py
+    outs:
+      - data/06_models/distilbert
+
   test_simple_mlp_image:
     cmd: >
         python -m hateful_memes.models.simple_mlp_image
