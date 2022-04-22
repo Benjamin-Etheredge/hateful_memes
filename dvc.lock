@@ -390,12 +390,6 @@ stages:
       md5: 2727e4eae31197340019a2efb1809b64.dir
       size: 2004425933
       nfiles: 1
-<<<<<<< HEAD
-=======
-    - path: data/08_reporting/simple_image
-      md5: a73cedb8a66d250fc4c68fdb756ecdff.dir
-      size: 2162
-      nfiles: 5
   hateful_memes_to_snli_ve:
     cmd: python src/data/hateful_memes_snli_ve.py
     deps:
@@ -410,4 +404,3 @@ stages:
     - path: data/02_intermediate/hateful_memes_snli_ve.tsv
       md5: 26e87b7f13cbcc55c86ee6b17f41a799
       size: 4077741697
->>>>>>> 6ce1a03 (Added dataset conversion script as DVC stage, added resulting tsv to DVC remote)

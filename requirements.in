@@ -13,26 +13,16 @@ transformers
 wandb
 pillow
 dvc[s3]==2.10.0
-<<<<<<< HEAD
 # dvclive[pytorch_lightning]
 # git+https://github.com/Benjamin-Etheredge/dvclive
 
-=======
-dvclive
->>>>>>> 5fc05b5 (Adding in external dependencies for OFA)
 pandas
 numpy
 seaborn
 jupyter
 scikit-image
-<<<<<<< HEAD
-<<<<<<< HEAD
 plotly
-=======
 fairseq
->>>>>>> 5fc05b5 (Adding in external dependencies for OFA)
-=======
->>>>>>> eb88252 (Starting to fill out test notebook, fixed fairseq dependency, committing changes to OFA fork.)
 
 nbstripout
 icecream
