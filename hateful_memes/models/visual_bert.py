@@ -50,7 +50,8 @@ class VisualBertModule(BaseMaeMaeModel):
         # TODO linear vs embedding for dim changing
         # TODO auto size
         self.fc1 = nn.Linear(768, dense_dim)
-        self.fc2 = nn.Linear(dense_dim, 1)
+        self.fc2 = nn.Linear(dense_dim, dense_dim)
+        self.fc3 = nn.Linear(dense_dim, 1)
         # TODO config modification
 
         self.lr = lr
@@ -105,12 +106,17 @@ class VisualBertModule(BaseMaeMaeModel):
         x = x.view(x.shape[0], -1)
 
         x.squeeze_()
+
         x = self.fc1(x)
         x = F.relu(x)
         x = F.dropout(x, p=self.dropout_rate)
 
+        x = self.fc2(x)
+        x = F.relu(x)
+        x = F.dropout(x, p=self.dropout_rate)
+
         if self.include_top:
-            x = self.fc2(x)
+            x = self.fc3(x)
 
         x.squeeze_()
         return x
