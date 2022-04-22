@@ -391,13 +391,13 @@ stages:
       size: 2004425933
       nfiles: 1
   hateful_memes_to_snli_ve:
-    cmd: python src/data/hateful_memes_snli_ve.py
+    cmd: python hateful_memes/data/hateful_memes_snli_ve.py
     deps:
     - path: data/01_raw/hateful_memes
       md5: 8844b5201ff55743fcd36c40d7352a88.dir
       size: 4232567214
       nfiles: 12148
-    - path: src/data/hateful_memes_snli_ve.py
+    - path: hateful_memes/data/hateful_memes_snli_ve.py
       md5: cb76290dd54ca5adb6d5679d145169f9
       size: 3945
     outs:
