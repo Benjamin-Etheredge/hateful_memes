@@ -355,11 +355,68 @@ stages:
       - data/06_models/super_model
   
   hateful_memes_to_snli_ve:
-    cmd: python src/data/hateful_memes_snli_ve.py
+    cmd: python hateful_memes/data/hateful_memes_snli_ve.py
     deps: 
       - data/01_raw/hateful_memes
-      - src/data/hateful_memes_snli_ve.py
+      - hateful_memes/data/hateful_memes_snli_ve.py
     outs:
       - data/02_intermediate/hateful_memes_snli_ve.tsv
  
-
+  test_hateful_ofa:
+    vars:
+      - config/hateful_ofa.yaml
+    cmd: >
+      python -m hateful_memes.models.hateful_ofa
+      ${data}
+      --fast_dev_run
+      --selected-cols ${selected-cols}
+      --bpe-dir ${bpe-dir}
+      --user-dir ${user-dir}
+      --restore-file ${restore-file}
+      --save-dir {save-dir}
+      --task {task} 
+      --arch ${arch}
+      --label-smoothing ${label-smoothing}
+      --batch-size ${batch-size}
+      --encoder-normalize-before
+      --decoder-normalize-before
+      --share-decoder-input-output-embed
+      --share-all-embeddings
+      --layernorm-embedding 
+      --patch-layernorm-embedding
+      --code-layernorm-embedding 
+      --resnet-drop-path-rate ${resnet-drop-path-rate} 
+      --encoder-drop-path-rate ${encoder-drop-path-rate}
+      --decoder-drop-path-rate ${decoder-drop-path-rate}
+      --dropout ${dropout} 
+      --attention-dropout ${attention-dropout}
+      --weight-decay ${weight-decay} 
+      --optimizer ${optimizer} 
+      --adam-betas ${adam-betas}
+      --adam-eps ${adam-eps}
+      --clip-norm ${clip-norm}
+      --lr ${lr} 
+      --max-epoch ${max-epoch} 
+      --fixed-validation-seed ${fixed-validation-seed} 
+      --max-src-length ${max-src-length}
+      --max-tgt-length ${max-tgt-length}
+      --find-unused-parameters 
+      --add-type-embedding 
+      --scale-attn 
+      --scale-fc 
+      --scale-heads 
+      --disable-entangle 
+      --num-bins ${num-bins}
+      --patch-image-size ${patch-image-size}
+      --prompt-type ${prompt-type} 
+      --add-caption 
+      --fp16 
+      --fp16-scale-window ${fp16-scale-window}
+      --ema-alpha ${ema-alpha} 
+      --num-workers ${num-workers}
+      && echo "PASSED" > logs/test_hateful_ofa.log
+    deps:
+      - data/02_intermediate/hateful_memes_snli_ve.tsv
+      - hateful_memes/models/hateful_ofa.py
+    outs:
+      - logs/test_hateful_ofa.log

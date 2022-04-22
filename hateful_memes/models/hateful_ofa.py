@@ -12,11 +12,12 @@ from models.OFA.fairseq.fairseq import (tasks, utils, options)
 from models.OFA.models.ofa.ofa import OFAModel
 from models.OFA.trainer import Trainer
 from models.OFA.utils import checkpoint_utils
+from models.OFA.tasks import OFATask
 from typing import Dict, Optional, Any, List, Tuple, Callable
 import numpy as np
 import argparse
+import yaml
 
-OFA_TASK = tasks.setup_task("snli_ve")
 
 # For SWA callback in Trainer
 class ExponentialMovingAverage:
@@ -28,7 +29,7 @@ class ExponentialMovingAverage:
         return ema_avg
 
 class HatefulOFADataModule(pl.LightningDataModule):
-    def __init__(self, fs_cfg:FairseqConfig, ofa_model:OFAModel, ofa_task=OFA_TASK,
+    def __init__(self, fs_cfg:FairseqConfig, ofa_model:OFAModel, ofa_task=OFATask,
                  train_transforms=None, val_transforms=None, test_transforms=None, dims=None):
         super().__init__(train_transforms, val_transforms, test_transforms, dims)
         self.fs_cfg = fs_cfg
@@ -80,9 +81,10 @@ class HatefulOFADataModule(pl.LightningDataModule):
     def teardown(self, stage: Optional[str] = None) -> None:
         return super().teardown(stage)
 
+
 class HatefulOFA(pl.LightningModule):
     """OFA finetuned for Hateful Memes"""
-    def __init__(self, cfg:FairseqConfig, ofa_task=OFA_TASK,                 
+    def __init__(self, cfg:FairseqConfig, ofa_task:OFATask,                 
                  adamw_eps=1e-8, adamw_betas=(0.9, 0.999), adamw_decay=0.01) -> None:
         super().__init__()
         self.ofa_model = ofa_task.build_model(cfg.model)
@@ -215,6 +217,7 @@ class HatefulOFA(pl.LightningModule):
             weight_decay=self.hparams.adamw_decay
         )
         # OFA uses polynomial decay lr scheduler, but cosine annealing with WR was shown to get better results?
+        #TODO add these params to YAML
         lr_sched = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
             optimizer=optim,
             T_0=1,
@@ -243,15 +246,29 @@ def main(
     # utils.import_user_module(cfg.common)
     np.random.seed(cfg.common.seed)
     utils.set_torch_seed(cfg.common.seed)
-    
+    # User CLI args
+    my_parser = argparse.ArgumentParser()
+    my_parser.add_argument('--fast-dev-run', dest='fast_dev_run', action='store_true')
+    my_parser.add_argument('--fast-dev-run', dest='fast_dev_run', action='store_false')
+    my_parser.set_defaults(fast_dev_run=False)
+    my_parser.add_argument("--ema-alpha", dest='ema_alpha', type=float)
+    my_args = my_parser.parse_known_args(args)
+    fast_dev_run = my_args.fast_dev_run
+    ema_alpha = my_args.ema_alpha   
+
     # Set up for training
     ## First build the model
-    hateful_ofa_model = HatefulOFA(cfg)
+    OFA_TASK = tasks.setup_task(cfg.task)
+    adamw_eps = cfg.optimizer.adam_eps
+    adamw_betas = cfg.optimizer.adam_betas
+    adamw_decay = cfg.optimization.weight_decay
+    hateful_ofa_model = HatefulOFA(cfg, ofa_task=OFA_TASK, 
+        adamw_eps=adamw_eps, adamw_betas=adamw_betas, adamw_decay=adamw_decay)
     ## Second load the datasets using the task
-    hateful_ofa_data = HatefulOFADataModule(cfg, hateful_ofa_model.ofa_model)
+    hateful_ofa_data = HatefulOFADataModule(cfg, hateful_ofa_model.ofa_model, ofa_task=OFA_TASK)
     ## Third set up training strategy
     max_epoch = cfg.optimization.max_epoch or math.inf
-    ema_fn = ExponentialMovingAverage(alpha=0.1)
+    ema_fn = ExponentialMovingAverage(alpha=ema_alpha)
     grad_norm_clip = cfg.optimization.clip_norm
     hateful_ofa_trainer = pl.Trainer(
         max_epochs=max_epoch,
@@ -259,8 +276,8 @@ def main(
         gradient_clip_val=grad_norm_clip)
 
     # Training
-    hateful_ofa_trainer.fit(hateful_ofa_model, datamodule=hateful_ofa_data)
+    hateful_ofa_trainer.fit(hateful_ofa_model, datamodule=hateful_ofa_data, fast_dev_run=fast_dev_run)
+
 
 if __name__ == '__main__':
-    arguments = parse_arguments()
-    main(*arguments)
+    main()
