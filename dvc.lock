@@ -318,75 +318,75 @@ stages:
       nfiles: 1
   test_electra:
     cmd: "python -m hateful_memes.models.auto_text_model --batch_size 4  --fast_dev_run\
-      \ True --model_name google/electra-small-discriminator --model_name_simple Electra\
-      \ | tee logs/test_electra.log 2>&1\n"
+      \ True --model_name google/electra-small-discriminator && echo \"PASSED\" >\
+      \ logs/test_electra.log \n"
     deps:
     - path: data/01_raw/hateful_memes
       md5: 8844b5201ff55743fcd36c40d7352a88.dir
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/models/auto_text_model.py
-      md5: 385efe637e413ed772d2b7d3371e9f60
-      size: 4221
+      md5: 579f641133a57c00135d00872fc0098c
+      size: 3089
     outs:
     - path: logs/test_electra.log
-      md5: 07abdc216d7138acbd96765e05d1fdfc
-      size: 3505
+      md5: 15de982d1dc99ce52d089868a579de34
+      size: 7
   electra:
-    cmd: "python -m hateful_memes.models.auto_text_model --batch_size 16 --lr 1e-05\
-      \ --epochs 100 --max_length 512 --dense_dim 256 --dropout_rate 0.1 --gradient_clip_value\
-      \ 1.0 --model_name google/electra-small-discriminator --model_name_simple Electra\
-      \ --model_dir data/06_models/electra\n"
+    cmd: "python -m hateful_memes.models.auto_text_model --batch_size 0 --lr 1e-05\
+      \ --epochs 10 --max_length 256 --dense_dim 256 --dropout_rate 0.1 --grad_clip\
+      \ 1.0 --model_name google/electra-small-discriminator --project electra --model_dir\
+      \ data/06_models/electra\n"
     deps:
     - path: data/01_raw/hateful_memes
       md5: 8844b5201ff55743fcd36c40d7352a88.dir
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/models/auto_text_model.py
-      md5: 385efe637e413ed772d2b7d3371e9f60
-      size: 4221
+      md5: 579f641133a57c00135d00872fc0098c
+      size: 3089
     - path: logs/test_electra.log
-      md5: 07abdc216d7138acbd96765e05d1fdfc
-      size: 3505
+      md5: 15de982d1dc99ce52d089868a579de34
+      size: 7
     outs:
     - path: data/06_models/electra
-      md5: 96cd9770a8362166547066bb1290b995.dir
-      size: 564666233
+      md5: 76a445fbe7d4b62b5a9b81b683a4e649.dir
+      size: 363339833
       nfiles: 1
   test_distilbert:
     cmd: "python -m hateful_memes.models.auto_text_model --batch_size 4  --fast_dev_run\
-      \ True --model_name distilbert-base-uncased-finetuned-sst-2-english --model_name_simple\
-      \ Distilbert | tee logs/test_distilbert.log 2>&1\n"
+      \ True --model_name distilbert-base-uncased-finetuned-sst-2-english && echo\
+      \ \"PASSED\" > logs/test_distilbert.log \n"
     deps:
     - path: data/01_raw/hateful_memes
       md5: 8844b5201ff55743fcd36c40d7352a88.dir
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/models/auto_text_model.py
-      md5: 385efe637e413ed772d2b7d3371e9f60
-      size: 4221
+      md5: 579f641133a57c00135d00872fc0098c
+      size: 3089
     outs:
     - path: logs/test_distilbert.log
-      md5: 84244897aed02d900c0590247623af65
-      size: 3505
+      md5: 15de982d1dc99ce52d089868a579de34
+      size: 7
   distilbert:
-    cmd: "python -m hateful_memes.models.auto_text_model --batch_size 16 --lr 1e-05\
-      \ --epochs 100 --max_length 512 --dense_dim 256 --dropout_rate 0.1 --gradient_clip_value\
-      \ 1.0 --model_name distilbert-base-uncased-finetuned-sst-2-english --model_name_simple\
-      \ Distilbert --model_dir data/06_models/distilbert\n"
+    cmd: "python -m hateful_memes.models.auto_text_model --batch_size 0 --lr 1e-05\
+      \ --epochs 10 --max_length 256 --dense_dim 256 --dropout_rate 0.1 --grad_clip\
+      \ 1.0 --model_name distilbert-base-uncased-finetuned-sst-2-english --project\
+      \ distilbert --model_dir data/06_models/distilbert\n"
     deps:
     - path: data/01_raw/hateful_memes
       md5: 8844b5201ff55743fcd36c40d7352a88.dir
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/models/auto_text_model.py
-      md5: 385efe637e413ed772d2b7d3371e9f60
-      size: 4221
+      md5: 579f641133a57c00135d00872fc0098c
+      size: 3089
     - path: logs/test_distilbert.log
-      md5: 84244897aed02d900c0590247623af65
-      size: 3505
+      md5: 15de982d1dc99ce52d089868a579de34
+      size: 7
     outs:
     - path: data/06_models/distilbert
-      md5: 2727e4eae31197340019a2efb1809b64.dir
-      size: 2004425933
+      md5: 3e4db949d33049e4c5919b043cd2c39e.dir
+      size: 1400446221
       nfiles: 1
