@@ -26,7 +26,7 @@ stages:
         --max_length ${max_length}
         --dense_dim ${dense_dim}
         --dropout_rate ${dropout_rate}
-        --gradient_clip_value ${gradient_clip_value}
+        --grad_clip ${gradient_clip_value}
         --model_dir data/06_models/beit
     deps:
       - logs/test_beit.log
