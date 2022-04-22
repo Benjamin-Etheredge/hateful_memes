@@ -352,7 +352,7 @@ stages:
     vars:
       - config/hateful_ofa.yaml
     cmd: >
-      python -m hateful_memes.models.hateful_ofa
+      python hateful_memes/models/hateful_ofa.py
       ${data}
       --fast_dev_run
       --selected-cols ${selected-cols}
