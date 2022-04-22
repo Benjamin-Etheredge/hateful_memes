@@ -84,12 +84,6 @@ jobs:
           dvc repro visual_bert
           dvc push --run-cache -d visual_bert
 
-      - name: Train Super Model
-        continue-on-error: true
-        run: |
-          dvc repro super_model
-          dvc push --run-cache -d super_model
-
       - name: Train ViT
         continue-on-error: true
         run: |
@@ -101,6 +95,12 @@ jobs:
         run: |
           dvc repro --pull beit
           dvc push -d beit
+
+      - name: Train Super Model
+        continue-on-error: true
+        run: |
+          dvc repro super_model
+          dvc push --run-cache -d super_model
 
       - name: Commit run
         run: |
