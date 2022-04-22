@@ -1,0 +1,3 @@
+[submodule "hateful_memes/models/OFA"]
+	path = hateful_memes/models/OFA
+	url = https://github.com/mthoreson3/OFA
