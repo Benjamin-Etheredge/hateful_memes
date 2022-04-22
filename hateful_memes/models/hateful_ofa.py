@@ -1,22 +1,19 @@
-from statistics import mode
 import torch
 from torch.utils.data.sampler import SequentialSampler
 from torch.utils.data import DataLoader
-import torch.nn.functional as torch_func
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import StochasticWeightAveraging
 import math
-from models.OFA.fairseq.fairseq.dataclass.configs import FairseqConfig
-from models.OFA.fairseq.fairseq.dataclass.utils import convert_namespace_to_omegaconf
-from models.OFA.fairseq.fairseq import (tasks, utils, options)
-from models.OFA.models.ofa.ofa import OFAModel
-from models.OFA.trainer import Trainer
-from models.OFA.utils import checkpoint_utils
-from models.OFA.tasks import OFATask
-from typing import Dict, Optional, Any, List, Tuple, Callable
+from typing import Optional, Any, Callable
 import numpy as np
 import argparse
-import yaml
+
+from hateful_memes.models.OFA.fairseq.fairseq.dataclass.configs import FairseqConfig
+from hateful_memes.models.OFA.fairseq.fairseq.dataclass.utils import convert_namespace_to_omegaconf
+from hateful_memes.models.OFA.fairseq.fairseq import (tasks, utils, options)
+from hateful_memes.models.OFA.models.ofa.ofa import OFAModel
+from hateful_memes.models.OFA.utils import checkpoint_utils
+from hateful_memes.models.OFA.tasks import OFATask
 
 
 # For SWA callback in Trainer
