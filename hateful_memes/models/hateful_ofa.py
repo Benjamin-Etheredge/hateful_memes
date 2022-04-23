@@ -8,9 +8,9 @@ from typing import Optional, Any, Callable
 import numpy as np
 import argparse
 
-from hateful_memes.models.OFA.fairseq.fairseq.dataclass.configs import FairseqConfig
-from hateful_memes.models.OFA.fairseq.fairseq.dataclass.utils import convert_namespace_to_omegaconf
-from hateful_memes.models.OFA.fairseq.fairseq import (tasks, utils, options)
+from fairseq.dataclass.configs import FairseqConfig
+from fairseq.dataclass.utils import convert_namespace_to_omegaconf
+from fairseq import (tasks, utils, options)
 from hateful_memes.models.OFA.models.ofa.ofa import OFAModel
 from hateful_memes.models.OFA.utils import checkpoint_utils
 from hateful_memes.models.OFA.tasks import OFATask

@@ -130,7 +130,7 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
         x = torch.squeeze(x)
         return x
 
-from data.hateful_memes import MaeMaeDataModule
+from hateful_memes.data.hateful_memes import MaeMaeDataModule
 from pytorch_lightning.utilities.cli import LightningCLI
 from pytorch_lightning.callbacks import ModelCheckpoint
 if __name__ == "__main__":

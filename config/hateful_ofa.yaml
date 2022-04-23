@@ -1,4 +1,4 @@
-data: "hateful_memes/models/OFA/dataset/snli_ve_data/snli_ve_train.tsv"
+data: "data/02_intermediate/hateful_memes_snli_ve.tsv"
 selected-cols: "0,2,3,4,5"
 bpe-dir: hateful_memes/models/OFA/utils/BPE
 user-dir: hateful_memes/models/OFA/ofa_module
