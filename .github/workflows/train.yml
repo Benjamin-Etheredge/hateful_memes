@@ -79,11 +79,11 @@ jobs:
           dvc repro simple_text
           dvc push --run-cache -d simple_text
 
-      - name: Train VisualBERT with OD
-        # continue-on-error: true
-        run: |
-          dvc repro visual_bert_with_od
-          dvc push --run-cache -d visual_bert_with_od
+      # - name: Train VisualBERT with OD
+      #   # continue-on-error: true
+      #   run: |
+      #     dvc repro visual_bert_with_od
+      #     dvc push --run-cache -d visual_bert_with_od
 
       - name: Train VisualBERT
         # continue-on-error: true
