@@ -1,5 +1,5 @@
 import torch
-from torch.utils.data.sampler import SequentialSampler
+from torch.utils.data import SequentialSampler, BatchSampler
 from torch.utils.data import DataLoader
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import StochasticWeightAveraging
@@ -31,6 +31,7 @@ class HatefulOFADataModule(pl.LightningDataModule):
         super().__init__(train_transforms, val_transforms, test_transforms, dims)
         self.fs_cfg = fs_cfg
         self.ofa_task = ofa_task
+        self.batch_size = fs_cfg.dataset.batch_size
 
         self.max_positions = utils.resolve_max_positions(
             self.ofa_task.max_positions(),
@@ -55,10 +56,11 @@ class HatefulOFADataModule(pl.LightningDataModule):
         # Create data loader
         train_itr = DataLoader(
             self.train_dataset,
+            batch_sampler=BatchSampler(SequentialSampler(self.train_dataset), batch_size=self.batch_size, drop_last=True),
             collate_fn=self.train_dataset.collater,
             num_workers=self.fs_cfg.dataset.num_workers,
             timeout=0,
-            pin_memory=True,
+            pin_memory=True
         )
         return train_itr
 
@@ -66,10 +68,11 @@ class HatefulOFADataModule(pl.LightningDataModule):
         # Create data loader
         val_itr = DataLoader(
             self.val_dataset,
+            batch_sampler=BatchSampler(SequentialSampler(self.val_dataset), batch_size=self.batch_size, drop_last=True),
             collate_fn=self.val_dataset.collater,
             num_workers=self.fs_cfg.dataset.num_workers,
             timeout=0,
-            pin_memory=True,
+            pin_memory=True
         )
         return val_itr
 
@@ -271,7 +274,8 @@ def main(
         max_epochs=max_epoch,
         callbacks=[StochasticWeightAveraging(avg_fn=ema_fn)],
         gradient_clip_val=grad_norm_clip,
-        fast_dev_run=fast_dev_run)
+        fast_dev_run=fast_dev_run
+    )
 
     # Training
     hateful_ofa_trainer.fit(hateful_ofa_model, datamodule=hateful_ofa_data)
