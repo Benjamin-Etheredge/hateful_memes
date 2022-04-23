@@ -160,8 +160,12 @@ class VisualBertModule(pl.LightningModule):
         x = x.view(x.shape[0], -1)
         # ic(x.shape)
 
+<<<<<<< HEAD
         # ic(x.last_hidden_state.shape)
         # ic(x.pooler_output.shape)
+=======
+        x = torch.squeeze(x)
+>>>>>>> master
 
 
         # x = x.mean(dim=1)
@@ -174,12 +178,21 @@ class VisualBertModule(pl.LightningModule):
 
         x = self.fc2(x)
         x = F.relu(x)
+<<<<<<< HEAD
         x = F.dropout(input=x, p=self.dropout_rate)
         # ic(x.shape)
         x = self.fc3(x)
         x.squeeze_()
         # ic(x.shape)
         # x = torch.sigmoid(x)
+=======
+        x = F.dropout(x, p=self.dropout_rate)
+
+        if self.include_top:
+            x = self.fc3(x)
+
+        x = torch.squeeze(x, dim=1)
+>>>>>>> master
         return x
 
     def configure_optimizers(self):

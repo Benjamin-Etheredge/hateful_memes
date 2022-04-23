@@ -109,14 +109,13 @@ class VisualBertWithODModule(BaseMaeMaeModel):
 
             transform = T.ToPILImage()
             foo = transform(batch_image)
-            foo.show()
             images_list.append(foo)
-            # ic()
 
         od_inputs = self.od_feature_extractor(images=images_list, return_tensors="pt")
         od_outputs = self.od_model(**od_inputs)
 
         image_x = od_outputs.last_hidden_state
+        
 
         ############################################
         # Obj Detection End
