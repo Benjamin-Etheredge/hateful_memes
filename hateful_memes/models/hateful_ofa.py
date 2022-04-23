@@ -42,7 +42,6 @@ class HatefulOFADataModule(pl.LightningDataModule):
     def prepare_data(self) -> None:
         self.ofa_task.load_dataset("train", combine=True, epoch=1)
         self.ofa_task.load_dataset("valid", combine=True, epoch=1)     
-        return super().prepare_data()
 
     def setup(self, stage: Optional[str] = None) -> None:
         self.train_dataset = self.ofa_task.dataset("train")
@@ -52,7 +51,7 @@ class HatefulOFADataModule(pl.LightningDataModule):
     def train_transforms(self):
         return super().train_transforms
 
-    def train_dataloader(self) -> DataLoader:
+    def train_dataloader(self):
         # Create data loader
         train_itr = DataLoader(
             self.train_dataset,
@@ -60,11 +59,11 @@ class HatefulOFADataModule(pl.LightningDataModule):
             collate_fn=self.train_dataset.collater,
             num_workers=self.fs_cfg.dataset.num_workers,
             timeout=0,
-            pin_memory=True
+            pin_memory=False
         )
         return train_itr
 
-    def val_dataloader(self) -> DataLoader:
+    def val_dataloader(self):
         # Create data loader
         val_itr = DataLoader(
             self.val_dataset,
@@ -72,7 +71,7 @@ class HatefulOFADataModule(pl.LightningDataModule):
             collate_fn=self.val_dataset.collater,
             num_workers=self.fs_cfg.dataset.num_workers,
             timeout=0,
-            pin_memory=True
+            pin_memory=False
         )
         return val_itr
 
@@ -180,12 +179,12 @@ class HatefulOFA(pl.LightningModule):
         return loss
 
     """Training"""
-    def training_step(self, batch) -> torch.Tensor:
+    def training_step(self, batch, batch_idx) -> torch.Tensor:
         loss = self._shared_step(batch)
         return loss
 
     """Validation"""
-    def validation_step(self, batch) -> torch.Tensor:
+    def validation_step(self, batch, batch_idx) -> torch.Tensor:
         loss = self._shared_step(batch)
         return loss
 
