@@ -134,6 +134,7 @@ stages:
         --dropout_rate ${dropout_rate}
         --grad_clip ${gradient_clip_value}
         --model_dir data/06_models/visual_bert
+        --freeze ${freeze}
     deps:
       - logs/test_visual_bert.log
       - data/01_raw/hateful_memes
