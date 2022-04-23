@@ -398,9 +398,12 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/data/hateful_memes_snli_ve.py
-      md5: cb76290dd54ca5adb6d5679d145169f9
-      size: 3945
+      md5: 8521af31e7b39a14a495c19bbb93af99
+      size: 4240
     outs:
-    - path: data/02_intermediate/hateful_memes_snli_ve.tsv
-      md5: 26e87b7f13cbcc55c86ee6b17f41a799
-      size: 4077741697
+    - path: data/02_intermediate/hateful_memes_train_snli_ve.tsv
+      md5: a4aa96507523cfab3af40019c2020f8a
+      size: 4077674756
+    - path: data/02_intermediate/hateful_memes_valid_snli_ve.tsv
+      md5: e53d1c118761446cd00d926469da82f5
+      size: 252275396

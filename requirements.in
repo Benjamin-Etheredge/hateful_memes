@@ -26,3 +26,19 @@ fairseq
 nbstripout
 icecream
 torch-tb-profiler
+
+# OFA reqs
+git+https://github.com/pytorch/fairseq@806855bf660ea748ed7ffb42fe8dcc881ca3aca0#egg=fairseq
+opencv-python
+timm
+ftfy==6.0.3
+tensorboardX==2.4.1
+pycocotools==2.0.4
+pycocoevalcap==1.2
+pytorch_lightning
+einops
+datasets
+rouge_score
+
+# OFA
+-e ./hateful_memes/models/OFA

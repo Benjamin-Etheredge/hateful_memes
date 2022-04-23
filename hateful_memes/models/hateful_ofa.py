@@ -11,9 +11,9 @@ import argparse
 from fairseq.dataclass.configs import FairseqConfig
 from fairseq.dataclass.utils import convert_namespace_to_omegaconf
 from fairseq import (tasks, utils, options)
-from hateful_memes.models.OFA.models.ofa.ofa import OFAModel
-from hateful_memes.models.OFA.utils import checkpoint_utils
-from hateful_memes.models.OFA.tasks import OFATask
+from models.ofa.ofa import OFAModel
+from utils import checkpoint_utils
+from tasks import OFATask
 
 
 # For SWA callback in Trainer
@@ -56,7 +56,6 @@ class HatefulOFADataModule(pl.LightningDataModule):
         train_itr = DataLoader(
             self.train_dataset,
             collate_fn=self.train_dataset.collater,
-            batch_sampler=SequentialSampler,
             num_workers=self.fs_cfg.dataset.num_workers,
             timeout=0,
             pin_memory=True,
@@ -68,7 +67,6 @@ class HatefulOFADataModule(pl.LightningDataModule):
         val_itr = DataLoader(
             self.val_dataset,
             collate_fn=self.val_dataset.collater,
-            batch_sampler=SequentialSampler,
             num_workers=self.fs_cfg.dataset.num_workers,
             timeout=0,
             pin_memory=True,
@@ -92,8 +90,8 @@ class HatefulOFA(pl.LightningModule):
         if hasattr(cfg, 'ignore_prefix_size'):
             self.ign_prefix_sz = cfg.ignore_prefix_size
         self.label_smoothing = 0.0
-        if hasattr(cfg, 'label_smoothing'):
-            self.label_smoothing = cfg.label_smoothing
+        #if hasattr(cfg, 'label_smoothing'):
+        #    self.label_smoothing = cfg.label_smoothing
         # Hyperparameters
         self.save_hyperparameters("adamw_eps", "adamw_betas", "adamw_decay")
         # Try to load params from checkpoint
@@ -140,18 +138,17 @@ class HatefulOFA(pl.LightningModule):
                 constraint_masks = constraint_masks[:, ign_prefix_sz :, :].contiguous()
         if constraint_masks is not None:
             constraint_masks = constraint_masks.view(-1, constraint_masks.size(-1))
-            constraint_masks = constraint_masks[targets != padding_idx]
         lprobs = lprobs.view(-1, lprobs.size(-1))
-        lprobs = lprobs[targets != padding_idx]
         targets = targets.view(-1)
+        if constraint_masks is not None:
+            constraint_masks = constraint_masks[targets != padding_idx]
+        lprobs = lprobs[targets != padding_idx]
         targets = targets[targets != padding_idx]
-        return lprobs.view(-1, lprobs.size(-1)), targets.view(-1), constraint_masks
+        if targets.dim() == lprobs.dim() - 1:
+            targets = targets.unsqueeze(-1)
+        return lprobs, targets, constraint_masks
 
-    def _label_smoothed_nll_loss(
-            lprobs, target, epsilon, constraint_masks=None
-        ):
-        if target.dim() == lprobs.dim() - 1:
-            target = target.unsqueeze(-1)
+    def _label_smoothed_nll_loss(self, lprobs, target, epsilon=0.0, constraint_masks=None):
         nll_loss = -lprobs.gather(dim=-1, index=target).squeeze(-1)
         if constraint_masks is not None:
             smooth_loss = -lprobs.masked_fill(~constraint_masks, 0).sum(dim=-1, keepdim=True).squeeze(-1)
@@ -166,20 +163,17 @@ class HatefulOFA(pl.LightningModule):
     """Training and validation"""
     def _shared_step(self, batch) -> torch.Tensor:
         # Get raw output, y_hat
-        net_output = self.ofa_model(batch)
-        targets_0 = self._get_targets(batch)
+        net_output = self(batch)
         # Prep for loss function
         ign_prefix_sz = self.ign_prefix_sz
         padding_idx = self.padding_idx
         lprobs, targets, constraints_masks = self._prep_lprobs_targets_for_loss(ign_prefix_sz, 
                                                                                 padding_idx,
                                                                                 net_output, 
-                                                                                targets_0)
+                                                                                batch)
         # Calculate label-smoothed CE loss
         label_smoothing = self.label_smoothing
-        loss = self._label_smoothed_nll_loss(lprobs, targets, 
-                                             epsilon=label_smoothing,
-                                             constraint_masks=constraints_masks)
+        loss = self._label_smoothed_nll_loss(lprobs, targets, label_smoothing, constraints_masks)
         return loss
 
     """Training"""
@@ -193,7 +187,7 @@ class HatefulOFA(pl.LightningModule):
         return loss
 
     """Testing"""
-    def test_step(self, *args, **kwargs) -> Optional[STEP_OUTPUT]:
+    def test_step(self, *args, **kwargs):
         # TODO EMA
         return super().test_step(*args, **kwargs)
 
@@ -223,9 +217,9 @@ class HatefulOFA(pl.LightningModule):
         optim_dict = {
         "optimizer": optim,
         "lr_scheduler": {
-            "scheduler": lr_sched,
-            "monitor": "metric_to_track",
-            "frequency": "indicates how often the metric is updated"
+            "scheduler": lr_sched
+            # "monitor": "metric_to_track",
+            # "frequency": "indicates how often the metric is updated"
             # If "monitor" references validation metrics, then "frequency" should be set to a
             # multiple of "trainer.check_val_every_n_epoch".
             },
@@ -244,21 +238,27 @@ def main(
     np.random.seed(cfg.common.seed)
     utils.set_torch_seed(cfg.common.seed)
     # User CLI args
-    my_parser = argparse.ArgumentParser()
-    my_parser.add_argument('--fast-dev-run', dest='fast_dev_run', action='store_true')
-    my_parser.add_argument('--fast-dev-run', dest='fast_dev_run', action='store_false')
-    my_parser.set_defaults(fast_dev_run=False)
-    my_parser.add_argument("--ema-alpha", dest='ema_alpha', type=float)
-    my_args = my_parser.parse_known_args(args)
-    fast_dev_run = my_args.fast_dev_run
-    ema_alpha = my_args.ema_alpha   
+    working = False
+    if working:
+        my_parser = argparse.ArgumentParser()
+        my_parser.add_argument('--fast-dev-run', dest='fast_dev_run', action='store_true')
+        my_parser.add_argument('--fast-dev-run', dest='fast_dev_run', action='store_false')
+        my_parser.set_defaults(fast_dev_run=False)
+        my_parser.add_argument("--ema-alpha", dest='ema_alpha', type=float)
+        my_args = my_parser.parse_known_args(args)
+        fast_dev_run = my_args.fast_dev_run
+        ema_alpha = my_args.ema_alpha   
+    else:
+        #TODO
+        fast_dev_run = 2
+        ema_alpha = 0.1
 
     # Set up for training
     ## First build the model
     OFA_TASK = tasks.setup_task(cfg.task)
     adamw_eps = cfg.optimizer.adam_eps
-    adamw_betas = cfg.optimizer.adam_betas
-    adamw_decay = cfg.optimization.weight_decay
+    adamw_betas = [float(beta) for beta in cfg.optimizer.adam_betas.split(',')]
+    adamw_decay = cfg.optimizer.weight_decay
     hateful_ofa_model = HatefulOFA(cfg, ofa_task=OFA_TASK, 
         adamw_eps=adamw_eps, adamw_betas=adamw_betas, adamw_decay=adamw_decay)
     ## Second load the datasets using the task
@@ -270,10 +270,11 @@ def main(
     hateful_ofa_trainer = pl.Trainer(
         max_epochs=max_epoch,
         callbacks=[StochasticWeightAveraging(avg_fn=ema_fn)],
-        gradient_clip_val=grad_norm_clip)
+        gradient_clip_val=grad_norm_clip,
+        fast_dev_run=fast_dev_run)
 
     # Training
-    hateful_ofa_trainer.fit(hateful_ofa_model, datamodule=hateful_ofa_data, fast_dev_run=fast_dev_run)
+    hateful_ofa_trainer.fit(hateful_ofa_model, datamodule=hateful_ofa_data)
 
 
 if __name__ == '__main__':

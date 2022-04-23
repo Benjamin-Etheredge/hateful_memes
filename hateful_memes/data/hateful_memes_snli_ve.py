@@ -23,8 +23,8 @@ class XformBase64():
         img = Image.open(img_str)
         intermed_buf = BytesIO()
         img.save(intermed_buf, format="PNG")
-        img_b64 = base64.b64encode(intermed_buf.getvalue())
-        return img_b64
+        img_b64_str = base64.b64encode(intermed_buf.getvalue())
+        return img_b64_str.decode('utf-8')
 
 
 class XformAbsPath():
@@ -41,7 +41,7 @@ def mp_xform_b64(xform_tuple):
     return df.transform(xform)
 
 
-def main(hateful_memes_dir=None, tsv_save_name=None):
+def convert_to_snli_ve(set_name:str, json_name:str, hateful_memes_dir=None, tsv_save_name=None):
     """
     Original format:
     "id", image id / "img", path to img / "label", binary class / "text", text caption
@@ -51,7 +51,7 @@ def main(hateful_memes_dir=None, tsv_save_name=None):
     """
     # Grab original dataset
     load_dir = Path(hateful_memes_dir) if hateful_memes_dir is not None else Path("data/01_raw/hateful_memes")
-    raw_memes= pd.read_json(load_dir/"train.jsonl", lines=True)
+    raw_memes= pd.read_json(load_dir/json_name, lines=True)
 
     # copy "id" column, insert at position 1 as "image_id"
     # rename column 0 as unique_id
@@ -98,9 +98,16 @@ def main(hateful_memes_dir=None, tsv_save_name=None):
     snli_memes["label"] = raw_memes["label"].transform(xform_to_entailment)
 
     # Save to TSV for OFA
-    save_name = Path(tsv_save_name) if tsv_save_name is not None else Path("data/02_intermediate/hateful_memes_snli_ve.tsv")
+    save_name = Path(tsv_save_name) if tsv_save_name is not None else Path("data/02_intermediate/hateful_memes_%s_snli_ve.tsv" % (set_name))
     with open(save_name, 'w') as tsv:
-        snli_memes.to_csv(tsv, sep="\t")
+        snli_memes.to_csv(tsv, sep="\t", index=False, header=False)
+
+
+def main():
+    # training set
+    convert_to_snli_ve(set_name="train", json_name="train.jsonl")
+    # validation set
+    convert_to_snli_ve(set_name="valid", json_name="dev_seen.jsonl")
 
 
 if __name__ == "__main__":

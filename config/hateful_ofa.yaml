@@ -1,4 +1,4 @@
-data: "data/02_intermediate/hateful_memes_snli_ve.tsv"
+data: "data/02_intermediate/hateful_memes_train_snli_ve.tsv,data/02_intermediate/hateful_memes_valid_snli_ve.tsv"
 selected-cols: "0,2,3,4,5"
 bpe-dir: hateful_memes/models/OFA/utils/BPE
 user-dir: hateful_memes/models/OFA/ofa_module
@@ -27,7 +27,7 @@ dropout: 0.1
 attention-dropout: 0.0
 weight-decay: 0.01
 optimizer: adam  #Maybe unused
-adam-betas: '''(0.9,0.999)'''
+adam-betas: "0.9,0.999"
 adam-eps: 1e-08
 clip-norm: 1.0
 #lr-scheduler: polynomial_decay   #Maybe unused

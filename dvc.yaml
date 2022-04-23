@@ -360,7 +360,8 @@ stages:
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes_snli_ve.py
     outs:
-      - data/02_intermediate/hateful_memes_snli_ve.tsv
+      - data/02_intermediate/hateful_memes_train_snli_ve.tsv
+      - data/02_intermediate/hateful_memes_valid_snli_ve.tsv
  
   test_hateful_ofa:
     vars:
@@ -368,15 +369,13 @@ stages:
     cmd: >
       python -m hateful_memes.models.hateful_ofa
       ${data}
-      --fast_dev_run
       --selected-cols ${selected-cols}
       --bpe-dir ${bpe-dir}
       --user-dir ${user-dir}
       --restore-file ${restore-file}
-      --save-dir {save-dir}
-      --task {task} 
+      --save-dir ${save-dir}
+      --task ${task} 
       --arch ${arch}
-      --label-smoothing ${label-smoothing}
       --batch-size ${batch-size}
       --encoder-normalize-before
       --decoder-normalize-before
@@ -412,11 +411,11 @@ stages:
       --add-caption 
       --fp16 
       --fp16-scale-window ${fp16-scale-window}
-      --ema-alpha ${ema-alpha} 
       --num-workers ${num-workers}
       && echo "PASSED" > logs/test_hateful_ofa.log
     deps:
-      - data/02_intermediate/hateful_memes_snli_ve.tsv
+      - data/02_intermediate/hateful_memes_train_snli_ve.tsv
+      - data/02_intermediate/hateful_memes_valid_snli_ve.tsv
       - hateful_memes/models/hateful_ofa.py
     outs:
       - logs/test_hateful_ofa.log
