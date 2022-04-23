@@ -411,8 +411,8 @@ stages:
     cmd: "python -m hateful_memes.models.hateful_ofa data/02_intermediate/hateful_memes_train_snli_ve.tsv,data/02_intermediate/hateful_memes_valid_snli_ve.tsv\
       \ --selected-cols 0,2,3,4,5 --bpe-dir hateful_memes/models/OFA/utils/BPE --user-dir\
       \ hateful_memes/models/OFA/ofa_module --restore-file hateful_memes/models/OFA/checkpoints/snli_ve_large_best.pt\
-      \ --save-dir data/06_models --task snli_ve  --arch ofa_large --batch-size 1\
-      \ --encoder-normalize-before --decoder-normalize-before --share-decoder-input-output-embed\
+      \ --save-dir data/06_models/hateful_ofa --task snli_ve  --arch ofa_large --batch-size\
+      \ 1 --encoder-normalize-before --decoder-normalize-before --share-decoder-input-output-embed\
       \ --share-all-embeddings --layernorm-embedding  --patch-layernorm-embedding\
       \ --code-layernorm-embedding  --resnet-drop-path-rate 0.0  --encoder-drop-path-rate\
       \ 0.2 --decoder-drop-path-rate 0.2 --dropout 0.1  --attention-dropout 0.0 --weight-decay\
@@ -421,7 +421,8 @@ stages:
       \ 80 --max-tgt-length 20 --find-unused-parameters  --add-type-embedding  --scale-attn\
       \  --scale-fc  --scale-heads  --disable-entangle  --num-bins 1000 --patch-image-size\
       \ 480 --prompt-type prev_output  --add-caption  --fp16  --fp16-scale-window\
-      \ 512 --num-workers 0 && echo \"PASSED\" > logs/test_hateful_ofa.log\n"
+      \ 512 --num-workers 0 --ema-alpha 0.1 --fast_dev_run 1 --monitor-metric val/loss\
+      \ --monitor-metric-mode min --stopping-patience 10 && echo \"PASSED\" > logs/test_hateful_ofa.log\n"
     deps:
     - path: data/02_intermediate/hateful_memes_train_snli_ve.tsv
       md5: a4aa96507523cfab3af40019c2020f8a
@@ -430,8 +431,8 @@ stages:
       md5: e53d1c118761446cd00d926469da82f5
       size: 252275396
     - path: hateful_memes/models/hateful_ofa.py
-      md5: 4666dc78917e76f35669c3076f740ffd
-      size: 11592
+      md5: e4e424b2b8e24474326d966b0e212f4a
+      size: 13181
     outs:
     - path: logs/test_hateful_ofa.log
       md5: 15de982d1dc99ce52d089868a579de34

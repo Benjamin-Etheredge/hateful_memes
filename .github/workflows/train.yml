@@ -97,6 +97,12 @@ jobs:
           dvc repro --pull beit
           dvc push -d beit
 
+      - name: Train OFA
+        continue-on-error: true
+        run: |
+          dvc repro train_hateful_ofa
+          dvc push -d train_hateful_ofa
+
       - name: Train Super Model
         continue-on-error: true
         run: |
