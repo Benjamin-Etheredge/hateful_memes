@@ -1,7 +1,7 @@
 freeze: true
 batch_size: 0
 lr: 1e-5
-epochs: 10
+epochs: 1000
 dense_dim: 256
 dropout_rate: 0.1
 num_layers: 2
