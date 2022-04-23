@@ -1,9 +1,9 @@
 import os
 import click
-from dvclive.lightning import DvcLiveLogger
+# from dvclive.lightning import DvcLiveLogger
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning import LightningModule, Trainer
-
+from hateful_memes.utils import get_project_logger
 from hateful_memes.models.baseline import BaseMaeMaeModel
 from hateful_memes.data.hateful_memes import MaeMaeDataModule
 from pytorch_lightning.utilities.cli import LightningCLI
@@ -66,7 +66,8 @@ class SimpleMLPImageMaeMaeModel(BaseMaeMaeModel):
 @click.option('--model_dir', default=None, help='Model path')
 def main(batch_size, lr, dense_dim, grad_clip, 
          dropout_rate, epochs, model_dir):
-    logger = DvcLiveLogger()
+    
+    logger = get_project_logger(project='simple_mlp_image', save_dir='data/08_reporting/simple_mlp_image', offline=True)
     early_stopping = EarlyStopping(
             monitor='val/acc', 
             patience=10, 

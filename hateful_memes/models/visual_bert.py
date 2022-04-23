@@ -7,7 +7,8 @@ import torchvision.models as models
 from hateful_memes.data.hateful_memes import MaeMaeDataModule
 from torch.nn import functional as F
 from torch import nn
-from dvclive.lightning import DvcLiveLogger
+from hateful_memes.utils import get_project_logger
+# from dvclive.lightning import DvcLiveLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from icecream import ic
@@ -198,10 +199,7 @@ class VisualBertModule(pl.LightningModule):
 @click.option('--gradient_clip_value', default=1.0, help='Gradient clip')
 def main(batch_size, lr, max_length, dense_dim, dropout_rate, 
          epochs, save_dir, model_dir, gradient_clip_value):
-
-    logger = DvcLiveLogger(
-        # path=save_dir,
-    )
+    logger = get_project_logger(project='visual_bert', save_dir='data/08_reporting/visual_bert', offline=True)
     checkpoint_callback = ModelCheckpoint(
         monitor="val/acc", 
         mode="max", 
