@@ -209,7 +209,7 @@ stages:
       \ data/06_models/simple_text --visual_bert_chkpt data/06_models/visual_bert\
       \ --vit_chkpt data/06_models/vit --beit_chkpt data/06_models/beit --batch_size\
       \ 0 --lr 1e-05 --num_dense_layers 2 --dense_dim 256 --dropout_rate 0.1 --epochs\
-      \ 10 --model_dir data/06_models/super_model\n"
+      \ 1000 --model_dir data/06_models/super_model\n"
     deps:
     - path: data/01_raw/hateful_memes
       md5: 8844b5201ff55743fcd36c40d7352a88.dir
@@ -250,7 +250,7 @@ stages:
       size: 7
     outs:
     - path: data/06_models/super_model
-      md5: af168924539b5e62d4b386bf568973b5.dir
+      md5: e061f76c6b9c3179b01c0576516fce96.dir
       size: 1441887672
       nfiles: 1
   test_vit:
