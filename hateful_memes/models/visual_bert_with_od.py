@@ -115,6 +115,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         od_outputs = self.od_model(**od_inputs)
 
         image_x = od_outputs.last_hidden_state
+        
 
         ############################################
         # Obj Detection End
