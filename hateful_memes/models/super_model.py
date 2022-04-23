@@ -7,7 +7,6 @@ from torch.nn import functional as F
 from torch import nn
 
 from icecream import ic
-ic.disable()
 
 from hateful_memes.models import *
 from hateful_memes.models.base import BaseMaeMaeModel, base_train
@@ -113,22 +112,14 @@ class SuperModel(BaseMaeMaeModel):
     
     def forward(self, batch):
         """ Shut up """
-        ic()
         with torch.no_grad():
-            ic()
-            for model in self.models:
-                ic(model(batch).shape)
             x = torch.cat([model(batch) for model in self.models], dim=1)
 
-        ic(x.shape)
         x = self.dense_model(x)
-        ic(x.shape)
         if self.include_top:
             x = self.final_layer(x)
 
-        ic(x.shape)
-        x.squeeze_()
-        ic(x.shape)
+        x = torch.squeeze(x, dim=1)
         return x
 
 

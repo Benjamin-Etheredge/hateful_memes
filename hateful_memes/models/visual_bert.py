@@ -105,7 +105,7 @@ class VisualBertModule(BaseMaeMaeModel):
         x = x.pooler_output
         x = x.view(x.shape[0], -1)
 
-        x.squeeze_()
+        x = torch.squeeze(x)
 
         x = self.fc1(x)
         x = F.relu(x)
@@ -118,7 +118,7 @@ class VisualBertModule(BaseMaeMaeModel):
         if self.include_top:
             x = self.fc3(x)
 
-        x.squeeze_()
+        x = torch.squeeze(x, dim=1)
         return x
 
 
