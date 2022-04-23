@@ -558,6 +558,7 @@ text-unidecode==1.3
     # via python-slugify
 tifffile==2022.3.25
     # via scikit-image
+timm==0.5.4
 tokenizers==0.11.6
     # via transformers
 toml==0.10.2
