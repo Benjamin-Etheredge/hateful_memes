@@ -41,4 +41,4 @@ datasets
 rouge_score
 
 # OFA
--e ./hateful_memes/models/OFA
+git+https://github.com/mthoreson3/OFA@69e6604d821dc0489d1d9d65c29df1ec18bcded4#egg=OFA

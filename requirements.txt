@@ -6,8 +6,6 @@
 #
 --extra-index-url https://download.pytorch.org/whl/cu113
 
--e file:///workspaces/hateful_memes/hateful_memes/models/OFA
-    # via -r requirements.in
 absl-py==1.0.0
     # via
     #   rouge-score
@@ -360,6 +358,8 @@ numpy==1.22.3
     #   transformers
 oauthlib==3.2.0
     # via requests-oauthlib
+ofa @ git+https://github.com/mthoreson3/OFA@69e6604d821dc0489d1d9d65c29df1ec18bcded4
+    # via -r requirements.in
 omegaconf==2.0.6
     # via
     #   fairseq
