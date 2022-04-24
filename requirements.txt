@@ -6,7 +6,7 @@
 #
 --extra-index-url https://download.pytorch.org/whl/cu113
 
--e file:///workspaces/hateful_memes/hateful_memes/models/OFA
+-e file:///./hateful_memes/models/OFA
     # via -r requirements.in
 absl-py==1.0.0
     # via
