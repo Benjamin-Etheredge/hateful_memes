@@ -6,8 +6,12 @@
 #
 --extra-index-url https://download.pytorch.org/whl/cu113
 
+-e file:///workspaces/hateful_memes/hateful_memes/models/OFA
+    # via -r requirements.in
 absl-py==1.0.0
-    # via tensorboard
+    # via
+    #   rouge-score
+    #   tensorboard
 aiobotocore[boto3]==2.2.0
     # via
     #   dvc
@@ -16,6 +20,7 @@ aiohttp==3.8.1
     # via
     #   aiobotocore
     #   aiohttp-retry
+    #   datasets
     #   fsspec
     #   s3fs
 aiohttp-retry==2.4.6
@@ -25,9 +30,7 @@ aioitertools==0.10.0
 aiosignal==1.2.0
     # via aiohttp
 antlr4-python3-runtime==4.8
-    # via
-    #   hydra-core
-    #   omegaconf
+    # via hydra-core
 appdirs==1.4.4
     # via dvc
 argon2-cffi==21.3.0
@@ -52,6 +55,8 @@ backcall==0.2.0
     # via ipython
 beautifulsoup4==4.10.0
     # via nbconvert
+bitarray==2.4.1
+    # via fairseq
 bleach==4.1.0
     # via nbconvert
 boto3==1.21.21
@@ -80,6 +85,7 @@ charset-normalizer==2.0.12
     #   requests
 click==8.1.2
     # via
+    #   nltk
     #   pip-tools
     #   sacremoses
     #   wandb
@@ -98,8 +104,8 @@ cycler==0.11.0
     # via matplotlib
 cython==0.29.28
     # via fairseq
-dataclasses==0.6
-    # via fairseq
+datasets==2.1.0
+    # via -r requirements.in
 debugpy==1.6.0
     # via ipykernel
 decorator==5.1.1
@@ -108,6 +114,10 @@ defusedxml==0.7.1
     # via nbconvert
 dictdiffer==0.9.0
     # via dvc
+dill==0.3.4
+    # via
+    #   datasets
+    #   multiprocess
 diskcache==5.4.0
     # via dvc
 distro==1.7.0
@@ -124,6 +134,8 @@ dvc[s3]==2.10.0
     # via -r requirements.in
 dvc-render==0.0.4
     # via dvc
+einops==0.4.1
+    # via -r requirements.in
 entrypoints==0.4
     # via
     #   jupyter-client
@@ -132,7 +144,7 @@ executing==0.8.3
     # via
     #   icecream
     #   stack-data
-fairseq==0.10.2
+fairseq @ git+https://github.com/pytorch/fairseq@806855bf660ea748ed7ffb42fe8dcc881ca3aca0
     # via -r requirements.in
 filelock==3.6.0
     # via
@@ -150,12 +162,15 @@ frozenlist==1.3.0
     #   aiosignal
 fsspec[http]==2022.3.0
     # via
+    #   datasets
     #   dvc
     #   pytorch-lightning
     #   s3fs
     #   scmrepo
-ftfy==6.1.1
-    # via python-benedict
+ftfy==6.0.3
+    # via
+    #   -r requirements.in
+    #   python-benedict
 funcy==1.17
     # via
     #   dvc
@@ -180,8 +195,10 @@ grandalf==0.6
 grpcio==1.44.0
     # via tensorboard
 huggingface-hub==0.4.0
-    # via transformers
-hydra-core==1.1.2
+    # via
+    #   datasets
+    #   transformers
+hydra-core==1.0.7
     # via fairseq
 icecream==2.1.2
     # via -r requirements.in
@@ -228,7 +245,9 @@ jmespath==0.10.0
     #   boto3
     #   botocore
 joblib==1.1.0
-    # via sacremoses
+    # via
+    #   nltk
+    #   sacremoses
 jsonargparse[signatures]==4.5.0
     # via -r requirements.in
 jsonschema==4.4.0
@@ -266,7 +285,9 @@ markupsafe==2.1.1
     #   jinja2
     #   nbconvert
 matplotlib==3.5.1
-    # via seaborn
+    # via
+    #   pycocotools
+    #   seaborn
 matplotlib-inline==0.1.3
     # via
     #   ipykernel
@@ -277,6 +298,8 @@ multidict==6.0.2
     # via
     #   aiohttp
     #   yarl
+multiprocess==0.70.12.2
+    # via datasets
 nanotime==0.5.2
     # via dvc
 nbclient==0.5.13
@@ -304,6 +327,8 @@ networkx==2.7.1
     # via
     #   dvc
     #   scikit-image
+nltk==3.7
+    # via rouge-score
 notebook==6.4.10
     # via
     #   jupyter
@@ -311,17 +336,23 @@ notebook==6.4.10
 numpy==1.22.3
     # via
     #   -r requirements.in
+    #   datasets
     #   fairseq
     #   imageio
     #   matplotlib
+    #   opencv-python
     #   pandas
+    #   pyarrow
+    #   pycocotools
     #   pytorch-lightning
     #   pywavelets
+    #   rouge-score
     #   sacrebleu
     #   scikit-image
     #   scipy
     #   seaborn
     #   tensorboard
+    #   tensorboardx
     #   tifffile
     #   torchmetrics
     #   torchtext
@@ -329,11 +360,16 @@ numpy==1.22.3
     #   transformers
 oauthlib==3.2.0
     # via requests-oauthlib
-omegaconf==2.1.2
-    # via hydra-core
+omegaconf==2.0.6
+    # via
+    #   fairseq
+    #   hydra-core
+opencv-python==4.5.5.64
+    # via -r requirements.in
 packaging==21.3
     # via
     #   bleach
+    #   datasets
     #   dvc
     #   huggingface-hub
     #   matplotlib
@@ -345,6 +381,7 @@ packaging==21.3
 pandas==1.4.2
     # via
     #   -r requirements.in
+    #   datasets
     #   seaborn
     #   torch-tb-profiler
 pandocfilters==1.5.0
@@ -391,6 +428,7 @@ prompt-toolkit==3.0.28
 protobuf==3.20.0
     # via
     #   tensorboard
+    #   tensorboardx
     #   wandb
 psutil==5.9.0
     # via
@@ -404,6 +442,8 @@ ptyprocess==0.7.0
     #   terminado
 pure-eval==0.2.2
     # via stack-data
+pyarrow==7.0.0
+    # via datasets
 pyasn1==0.4.8
     # via
     #   dvc
@@ -411,6 +451,12 @@ pyasn1==0.4.8
     #   rsa
 pyasn1-modules==0.2.8
     # via google-auth
+pycocoevalcap==1.2
+    # via -r requirements.in
+pycocotools==2.0.4
+    # via
+    #   -r requirements.in
+    #   pycocoevalcap
 pycparser==2.21
     # via cffi
 pydeprecate==0.3.2
@@ -484,16 +530,19 @@ qtpy==2.0.1
 regex==2022.3.15
     # via
     #   fairseq
+    #   nltk
     #   sacrebleu
     #   sacremoses
     #   transformers
 requests==2.27.1
     # via
+    #   datasets
     #   dvc
     #   fsspec
     #   huggingface-hub
     #   python-benedict
     #   requests-oauthlib
+    #   responses
     #   tensorboard
     #   torchtext
     #   torchvision
@@ -501,8 +550,12 @@ requests==2.27.1
     #   wandb
 requests-oauthlib==1.3.1
     # via google-auth-oauthlib
+responses==0.18.0
+    # via datasets
 rich==12.1.0
     # via dvc
+rouge-score==0.0.4
+    # via -r requirements.in
 rsa==4.8
     # via google-auth
 ruamel-yaml==0.17.21
@@ -552,6 +605,7 @@ six==1.16.0
     #   plotly
     #   promise
     #   python-dateutil
+    #   rouge-score
     #   sacremoses
     #   wandb
 smmap==5.0.0
@@ -575,6 +629,8 @@ tensorboard-data-server==0.6.1
     # via tensorboard
 tensorboard-plugin-wit==1.8.1
     # via tensorboard
+tensorboardx==2.4.1
+    # via -r requirements.in
 termcolor==1.1.0
     # via yaspin
 terminado==0.13.3
@@ -586,6 +642,7 @@ text-unidecode==1.3
 tifffile==2022.3.25
     # via scikit-image
 timm==0.5.4
+    # via -r requirements.in
 tokenizers==0.11.6
     # via transformers
 toml==0.10.2
@@ -599,6 +656,7 @@ torch==1.11.0+cu113
     #   -r requirements.in
     #   fairseq
     #   pytorch-lightning
+    #   timm
     #   torchaudio
     #   torchmetrics
     #   torchtext
@@ -606,13 +664,17 @@ torch==1.11.0+cu113
 torch-tb-profiler==0.4.0
     # via -r requirements.in
 torchaudio==0.11.0+cu113
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   fairseq
 torchmetrics==0.7.3
     # via pytorch-lightning
 torchtext==0.12.0
     # via -r requirements.in
 torchvision==0.12.0+cu113
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   timm
 tornado==6.1
     # via
     #   ipykernel
@@ -621,9 +683,11 @@ tornado==6.1
     #   terminado
 tqdm==4.64.0
     # via
+    #   datasets
     #   dvc
     #   fairseq
     #   huggingface-hub
+    #   nltk
     #   pytorch-lightning
     #   sacremoses
     #   torchtext
@@ -649,6 +713,7 @@ typing-extensions==4.1.1
     #   asyncssh
     #   dvc
     #   huggingface-hub
+    #   omegaconf
     #   pytorch-lightning
     #   rich
     #   torch
@@ -658,6 +723,7 @@ urllib3==1.26.9
     #   botocore
     #   dulwich
     #   requests
+    #   responses
     #   sentry-sdk
 voluptuous==0.13.0
     # via dvc
@@ -681,6 +747,8 @@ wrapt==1.14.0
     # via aiobotocore
 xmltodict==0.12.0
     # via python-benedict
+xxhash==3.0.0
+    # via datasets
 yarl==1.7.2
     # via aiohttp
 yaspin==2.1.0
