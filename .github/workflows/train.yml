@@ -34,7 +34,7 @@ jobs:
         run: git config --global --add safe.directory /__w/hateful_memes/hateful_memes
       - uses: actions/checkout@v2
         with:
-          submodules: 'true'
+          submodules: 'recursive'
 
       - name: Branch name
         run: echo running on branch ${GITHUB_REF##*/}
