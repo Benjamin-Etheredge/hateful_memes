@@ -448,3 +448,36 @@ stages:
     - path: logs/test_hateful_ofa.log
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
+  train_hateful_ofa:
+    cmd: "python -m hateful_memes.models.hateful_ofa data/02_intermediate/hateful_memes_train_snli_ve.tsv,data/02_intermediate/hateful_memes_valid_snli_ve.tsv\
+      \ --selected-cols 0,2,3,4,5 --restore-file data/06_models/ofa/snli_ve_large_best.pt\
+      \ --save-dir data/06_models/hateful_ofa --task snli_ve  --arch ofa_large --batch-size\
+      \ 4 --encoder-normalize-before --decoder-normalize-before --share-decoder-input-output-embed\
+      \ --share-all-embeddings --layernorm-embedding  --patch-layernorm-embedding\
+      \ --code-layernorm-embedding  --resnet-drop-path-rate 0.0  --encoder-drop-path-rate\
+      \ 0.2 --decoder-drop-path-rate 0.2 --dropout 0.1  --attention-dropout 0.0 --weight-decay\
+      \ 0.01  --optimizer adam  --adam-betas 0.9,0.999 --adam-eps 1e-08 --clip-norm\
+      \ 1.0 --lr 2e-05  --max-epoch 6  --fixed-validation-seed 7  --max-src-length\
+      \ 80 --max-tgt-length 20 --find-unused-parameters  --add-type-embedding  --scale-attn\
+      \  --scale-fc  --scale-heads  --disable-entangle  --num-bins 1000 --patch-image-size\
+      \ 480 --prompt-type prev_output  --add-caption  --fp16  --fp16-scale-window\
+      \ 512 --num-workers 8 --ema-alpha 0.1 --fast-dev-run 0 --monitor-metric val/loss\
+      \ --monitor-metric-mode min --stopping-patience 10\n"
+    deps:
+    - path: data/02_intermediate/hateful_memes_train_snli_ve.tsv
+      md5: cfdac03de35580554bd8f3d3dfc8a120
+      size: 4077445020
+    - path: data/02_intermediate/hateful_memes_valid_snli_ve.tsv
+      md5: e53d1c118761446cd00d926469da82f5
+      size: 252275396
+    - path: data/06_models/ofa/snli_ve_large_best.pt
+      md5: 8368190a42477d2974fa0affb6279f00
+      size: 6230613509
+    - path: hateful_memes/models/hateful_ofa.py
+      md5: acd887a991eff16f3996c06b9a95d61c
+      size: 13475
+    outs:
+    - path: data/06_models/hateful_ofa
+      md5: d751713988987e9331980363e24189ce.dir
+      size: 0
+      nfiles: 0
