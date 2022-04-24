@@ -1,9 +1,10 @@
 test:
   data: "data/02_intermediate/hateful_memes_train_snli_ve.tsv,data/02_intermediate/hateful_memes_valid_snli_ve.tsv"
   selected-cols: "0,2,3,4,5"
-  bpe-dir: hateful_memes/models/OFA/utils/BPE
-  user-dir: hateful_memes/models/OFA/ofa_module
-  restore-file: hateful_memes/models/OFA/checkpoints/snli_ve_large_best.pt
+  bpe-dir: ""
+  user-dir: ""
+  #user-dir: hateful_memes/models/OFA/ofa_module
+  restore-file: data/06_models/ofa/snli_ve_large_best.pt
   #reset-optimizer: True  #Maybe unused
   #reset-dataloader: True #Maybe unused 
   #reset-meters: True #Maybe unused  
@@ -70,9 +71,9 @@ test:
 train:
   data: "data/02_intermediate/hateful_memes_train_snli_ve.tsv,data/02_intermediate/hateful_memes_valid_snli_ve.tsv"
   selected-cols: "0,2,3,4,5"
-  bpe-dir: hateful_memes/models/OFA/utils/BPE
-  user-dir: hateful_memes/models/OFA/ofa_module
-  restore-file: hateful_memes/models/OFA/checkpoints/snli_ve_large_best.pt
+  bpe-dir: ""
+  user-dir: ""
+  restore-file: data/06_models/ofa/snli_ve_large_best.pt
   #reset-optimizer: True  #Maybe unused
   #reset-dataloader: True #Maybe unused 
   #reset-meters: True #Maybe unused  

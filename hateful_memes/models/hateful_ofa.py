@@ -10,11 +10,15 @@ import argparse
 
 from fairseq.dataclass.configs import FairseqConfig
 from fairseq.dataclass.utils import convert_namespace_to_omegaconf
-from fairseq import (tasks, utils, options)
-from models.ofa.ofa import OFAModel
-from utils import checkpoint_utils
-from tasks import OFATask
-
+from fairseq import tasks as fs_tasks
+from fairseq import utils as fs_utils
+from fairseq import options
+from OFA.models.ofa.ofa import OFAModel
+from OFA.utils import checkpoint_utils
+import OFA.utils.BPE
+from OFA.tasks import OFATask
+import pathlib
+import sys
 
 # For SWA callback in Trainer
 class ExponentialMovingAverage:
@@ -33,7 +37,7 @@ class HatefulOFADataModule(pl.LightningDataModule):
         self.ofa_task = ofa_task
         self.batch_size = fs_cfg.dataset.batch_size
 
-        self.max_positions = utils.resolve_max_positions(
+        self.max_positions = fs_utils.resolve_max_positions(
             self.ofa_task.max_positions(),
             ofa_model.max_positions(),
             self.fs_cfg.dataset.max_tokens,
@@ -234,13 +238,17 @@ class HatefulOFA(pl.LightningModule):
 def main(
              modify_parser: Optional[Callable[[argparse.ArgumentParser], None]] = None
         ):
+    # Dumb hack
+    bpe_dir = str(pathlib.Path(utils.BPE.__file__).resolve().parent)
+    sys.argv.append("--bpe-dir %s" % (bpe_dir))
     # Injest CLI arguments
     parser = options.get_training_parser()
     args, extra = options.parse_args_and_arch(parser, modify_parser=modify_parser, parse_known=True)
     cfg = convert_namespace_to_omegaconf(args)
+    cfg.task.bpe_dir = bpe_dir
     # utils.import_user_module(cfg.common)
     np.random.seed(cfg.common.seed)
-    utils.set_torch_seed(cfg.common.seed)
+    fs_utils.set_torch_seed(cfg.common.seed)
     # Grab project-specific CLI args from extra args left over from OFA parser
     my_parser = argparse.ArgumentParser()
     my_parser.add_argument('--label-smoothing', dest='label_smoothing', type=float, default=0.0)
@@ -254,7 +262,7 @@ def main(
     print(my_args)
 
     # Build the model
-    OFA_TASK = tasks.setup_task(cfg.task)
+    OFA_TASK = fs_tasks.setup_task(cfg.task)
     adamw_eps = cfg.optimizer.adam_eps
     adamw_betas = [float(beta) for beta in cfg.optimizer.adam_betas.split(',')]
     adamw_decay = cfg.optimizer.weight_decay

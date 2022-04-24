@@ -27,6 +27,9 @@ nbstripout
 icecream
 torch-tb-profiler
 
+# OFA
+git+https://github.com/mthoreson3/OFA@5297c204e939840da46cf75dc97acf96b708bf49#egg=OFA
+
 # OFA reqs
 git+https://github.com/pytorch/fairseq@806855bf660ea748ed7ffb42fe8dcc881ca3aca0#egg=fairseq
 opencv-python
@@ -40,5 +43,3 @@ einops
 datasets
 rouge_score
 
-# OFA
-git+https://github.com/mthoreson3/OFA@69e6604d821dc0489d1d9d65c29df1ec18bcded4#egg=OFA

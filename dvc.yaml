@@ -392,8 +392,6 @@ stages:
       python -m hateful_memes.models.hateful_ofa
       ${test.data}
       --selected-cols ${test.selected-cols}
-      --bpe-dir ${test.bpe-dir}
-      --user-dir ${test.user-dir}
       --restore-file ${test.restore-file}
       --save-dir ${test.save-dir}
       --task ${test.task} 
@@ -441,6 +439,7 @@ stages:
       --stopping-patience ${test.stopping-patience}
       && echo "PASSED" > logs/test_hateful_ofa.log
     deps:
+      - data/06_models/ofa/snli_ve_large_best.pt
       - data/02_intermediate/hateful_memes_train_snli_ve.tsv
       - data/02_intermediate/hateful_memes_valid_snli_ve.tsv
       - hateful_memes/models/hateful_ofa.py
@@ -454,8 +453,6 @@ stages:
       python -m hateful_memes.models.hateful_ofa
       ${train.data}
       --selected-cols ${train.selected-cols}
-      --bpe-dir ${train.bpe-dir}
-      --user-dir ${train.user-dir}
       --restore-file ${train.restore-file}
       --save-dir ${train.save-dir}
       --task ${train.task} 
@@ -502,6 +499,7 @@ stages:
       --monitor-metric-mode ${train.monitor-metric-mode}
       --stopping-patience ${train.stopping-patience}
     deps:
+      - data/06_models/ofa/snli_ve_large_best.pt
       - data/02_intermediate/hateful_memes_train_snli_ve.tsv
       - data/02_intermediate/hateful_memes_valid_snli_ve.tsv
       - hateful_memes/models/hateful_ofa.py

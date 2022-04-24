@@ -1,25 +1,29 @@
 import base64
+from ctypes import ArgumentError
 from math import floor
 from pathlib import Path
 import pandas as pd
-import torch
-import pytorch_lightning as pl
 from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 from io import BytesIO
 import os
 import multiprocessing as mp
+from typing import Tuple
 
 
 class XformBase64():
-    def __init__(self, print_freq=0):
+    def __init__(self, print_freq=0, id=0):
         self.print_freq=print_freq
         self.call_num = 0
+        self.id = id
 
     def __call__(self, img_str:str):
         self.call_num = self.call_num + 1
         if (self.print_freq != 0) and (self.call_num % self.print_freq == 0):
-            print("Transforming %ith image" % self.call_num)
+            print("Xform %i transforming %ith image" % (self.id, self.call_num))
+        if type(img_str) is not str:
+            print(img_str)
+            raise ArgumentError("Xform %i encountered non-string input on %ith image." % (self.id, self.call_num))
         img = Image.open(img_str)
         intermed_buf = BytesIO()
         img.save(intermed_buf, format="PNG")
@@ -35,10 +39,10 @@ class XformAbsPath():
         return new_str
 
 
-def mp_xform_b64(xform_tuple):
-    df = xform_tuple[0]
+def mp_xform_b64(xform_tuple:Tuple):
+    ds = xform_tuple[0]
     xform = xform_tuple[1]
-    return df.transform(xform)
+    return ds.map(xform)
 
 
 def convert_to_snli_ve(set_name:str, json_name:str, hateful_memes_dir=None, tsv_save_name=None):
@@ -70,7 +74,7 @@ def convert_to_snli_ve(set_name:str, json_name:str, hateful_memes_dir=None, tsv_
         num_imgs = snli_memes.shape[0]
         imgs_per_proc = floor(num_imgs/(num_procs - 1))  # last proc gets remainder, which may be more/less than imgs_per_proc
         num_imgs_split = imgs_per_proc * (num_procs - 1)
-        stack_of_splits = [(snli_memes["image"][i - imgs_per_proc : i], XformBase64(200))
+        stack_of_splits = [(snli_memes["image"][i - imgs_per_proc : i], XformBase64(200, i))
             for i in range(imgs_per_proc, num_imgs_split+1, imgs_per_proc)]
         last_split = (snli_memes["image"][num_imgs_split:num_imgs], XformBase64(200))
         stack_of_splits.append(last_split)
