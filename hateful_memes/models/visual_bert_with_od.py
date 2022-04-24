@@ -36,35 +36,26 @@ class VisualBertWithODModule(BaseMaeMaeModel):
             for param in self.visual_bert.parameters():
                 param.requires_grad = False
             self.visual_bert.eval()
-        # ic(self.visual_bert)
         # ic(self.visual_bert.config)
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
-        # resnet = models.resnet50(pretrained=True)
-        # self.num_ftrs_resnet = resnet.fc.in_features
-        # resnet.fc = nn.Flatten()
-        # ic(resnet)
-        # self.resnet = resnet
 
         ############################################
         # Obj Detection Start
         ############################################
-        self.od_config = AutoConfig.from_pretrained('facebook/detr-resnet-50', num_queries=50)
-        self.od_feature_extractor = DetrFeatureExtractor.from_pretrained('facebook/detr-resnet-50')
+        self.od_config = AutoConfig.from_pretrained('facebook/detr-resnet-101')
+        self.od_feature_extractor = DetrFeatureExtractor.from_pretrained('facebook/detr-resnet-101')
         self.od_model = DetrForObjectDetection(self.od_config)
+
+        self.od_fc = nn.Linear(25600, 2048)
+        # self.od_fc = nn.Linear(256, 768)
 
         ############################################
         # Obj Detection End
         ############################################
-
-
-
-
-
-
-        # if freeze:
-        #     for param in resnet.parameters():
-        #         param.requires_grad = False
-        #     resnet.eval()
+        if freeze:
+            for param in self.od_model.parameters():
+                param.requires_grad = False
+            self.od_model.eval()
 
         # TODO linear vs embedding for dim changing
         # TODO auto size
@@ -88,17 +79,6 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         """ Shut up """
         text = batch['text']
         image = batch['image']
-        # image_x = self.resnet(image)
-        # if self.to_freeze:
-        #     with torch.no_grad():
-        #         image_x = self.resnet(image)
-        # else:
-        #     image_x = self.resnet(image)
-
-        # image_x = image_x.view(image_x.shape[0], -1)
-
-        # image_x = image_x.unsqueeze(1)
-
 
         ############################################
         # Obj Detection Start
@@ -112,16 +92,23 @@ class VisualBertWithODModule(BaseMaeMaeModel):
             images_list.append(foo)
 
         od_inputs = self.od_feature_extractor(images=images_list, return_tensors="pt")
+        od_inputs = od_inputs.to(self.device)
         od_outputs = self.od_model(**od_inputs)
+        # ic(od_outputs.keys())
+        # for key in od_outputs.keys():
+            # ic(key, od_outputs[key].shape)
 
         image_x = od_outputs.last_hidden_state
-        
+        # ic(image_x.shape)
 
+        image_x = image_x.view(image_x.shape[0], 1, -1)
+        image_x = self.od_fc(image_x)
+        image_x = F.tanh(image_x)
+        image_x = F.dropout(image_x, p=self.dropout_rate)
+        # ic(image_x.shape)
         ############################################
         # Obj Detection End
         ############################################
-
-
 
         inputs = self.tokenizer(
             text, 
@@ -148,7 +135,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         x = x.pooler_output
         x = x.view(x.shape[0], -1)
 
-        x.squeeze_()
+        x = torch.squeeze(x)
 
         x = self.fc1(x)
         x = F.relu(x)
@@ -161,7 +148,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         if self.include_top:
             x = self.fc3(x)
 
-        x.squeeze_()
+        x = torch.squeeze(x, dim=1)
         return x
 
 
@@ -177,7 +164,6 @@ class VisualBertWithODModule(BaseMaeMaeModel):
 @click.option('--model_dir', default='/tmp', help='Save dir')
 @click.option('--grad_clip', default=1.0, help='Gradient clip')
 @click.option('--fast_dev_run', default=False, help='Fast dev run')
-@click.option('--log_dir', default="data/08_reporting/visual_bert", help='Log dir')
 @click.option('--project', default="visual-bert-with-od", help='Project')
 def main(freeze, lr, max_length, dense_dim, dropout_rate, 
          **train_kwargs):

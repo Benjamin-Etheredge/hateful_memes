@@ -4,8 +4,6 @@ stages:
         python -m hateful_memes.models.visual_bert_with_od
         --batch_size 4 
         --fast_dev_run True
-        --log_dir logs/test_visual_bert_with_od
-        --project test
         && echo "PASSED" > logs/test_visual_bert_with_od.log
     deps:
       - data/01_raw/hateful_memes
@@ -40,8 +38,6 @@ stages:
         --model_name vit
         --batch_size 4 
         --fast_dev_run True
-        --log_dir logs/test_simple_beit_image_metrics
-        --project test
         && echo "PASSED" > logs/test_beit.log
     deps:
       - data/01_raw/hateful_memes
