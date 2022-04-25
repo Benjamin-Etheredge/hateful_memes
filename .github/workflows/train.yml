@@ -49,6 +49,12 @@ jobs:
         continue-on-error: true
         run: dvc pull -a --run-cache
 
+      - name: Test VisualBERT with OD
+      #   # continue-on-error: true
+        run: |
+          dvc repro test_visual_bert_with_od
+          dvc push --run-cache -d test_visual_bert_with_od
+
       - name: Train VisualBERT with OD
       #   # continue-on-error: true
         run: |
