@@ -16,12 +16,13 @@ stages:
       - config/visual_bert_with_od.yaml
     cmd: >
         python -m hateful_memes.models.visual_bert_with_od
-        --batch_size ${batch_size}
         --lr ${lr}
         --epochs ${epochs}
         --max_length ${max_length}
         --dense_dim ${dense_dim}
         --dropout_rate ${dropout_rate}
+        --num_queries ${num_queries}
+        --batch_size ${batch_size}
         --grad_clip ${gradient_clip_value}
         --model_dir data/06_models/visual_bert_with_od
     deps:

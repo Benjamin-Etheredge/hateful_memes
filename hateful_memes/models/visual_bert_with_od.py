@@ -1,3 +1,4 @@
+from cmath import tanh
 import click
 from icecream import ic
 
@@ -26,6 +27,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         include_top=True,
         dropout_rate=0.0,
         dense_dim=256,
+        num_queries=50,
         freeze=False,
     ):
         """ Visual Bert Model """
@@ -36,13 +38,13 @@ class VisualBertWithODModule(BaseMaeMaeModel):
             for param in self.visual_bert.parameters():
                 param.requires_grad = False
             self.visual_bert.eval()
-        # ic(self.visual_bert.config)
+        ic(self.visual_bert)
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 
         ############################################
         # Obj Detection Start
         ############################################
-        self.od_config = AutoConfig.from_pretrained('facebook/detr-resnet-50', num_queries=50)
+        self.od_config = AutoConfig.from_pretrained('facebook/detr-resnet-50', num_queries=num_queries)
         self.od_feature_extractor = DetrFeatureExtractor.from_pretrained('facebook/detr-resnet-50')
         self.od_model = DetrForObjectDetection(self.od_config)
         ic(self.od_config.num_queries)
@@ -72,6 +74,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         self.to_freeze = freeze
         self.visual_bert_config = self.visual_bert.config
         self.last_hidden_size = dense_dim
+        self.num_queries = num_queries
 
         self.save_hyperparameters()
     
@@ -103,7 +106,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
 
         image_x = image_x.view(image_x.shape[0], 1, -1)
         image_x = self.od_fc(image_x)
-        image_x = F.tanh(image_x)
+        image_x = torch.tanh(image_x)
         image_x = F.dropout(image_x, p=self.dropout_rate)
         # ic(image_x.shape)
         ############################################
@@ -158,6 +161,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
 @click.option('--max_length', default=128, help='Max length')
 @click.option('--dense_dim', default=256, help='Dense dim')
 @click.option('--dropout_rate', default=0.1, help='Dropout rate')
+@click.option('--num_queries', default=50, help='Number of queries')
 # Train kwargs
 @click.option('--batch_size', default=0, help='Batch size')
 @click.option('--epochs', default=10, help='Epochs')
@@ -165,7 +169,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
 @click.option('--grad_clip', default=1.0, help='Gradient clip')
 @click.option('--fast_dev_run', default=False, help='Fast dev run')
 @click.option('--project', default="visual-bert-with-od", help='Project')
-def main(freeze, lr, max_length, dense_dim, dropout_rate, 
+def main(freeze, lr, max_length, dense_dim, dropout_rate, num_queries,
          **train_kwargs):
     """ train model """
 
@@ -174,7 +178,8 @@ def main(freeze, lr, max_length, dense_dim, dropout_rate,
         lr=lr, 
         max_length=max_length, 
         dense_dim=dense_dim, 
-        dropout_rate=dropout_rate)
+        dropout_rate=dropout_rate,
+        num_queries=num_queries)
     base_train(model=model, **train_kwargs)
 
 

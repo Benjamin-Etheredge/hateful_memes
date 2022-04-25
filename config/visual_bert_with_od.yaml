@@ -4,5 +4,6 @@ lr: 1e-5
 epochs: 10
 max_length: 128
 dense_dim: 256
+num_queries: 50
 dropout_rate: 0.0
 gradient_clip_value: 1.0
