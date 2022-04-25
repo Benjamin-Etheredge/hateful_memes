@@ -42,7 +42,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         ############################################
         # Obj Detection Start
         ############################################
-        self.od_config = AutoConfig.from_pretrained('facebook/detr-resnet-50', num_queries=10)
+        self.od_config = AutoConfig.from_pretrained('facebook/detr-resnet-50', num_queries=50)
         self.od_feature_extractor = DetrFeatureExtractor.from_pretrained('facebook/detr-resnet-50')
         self.od_model = DetrForObjectDetection(self.od_config)
         ic(self.od_config.num_queries)
