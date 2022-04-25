@@ -42,11 +42,12 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         ############################################
         # Obj Detection Start
         ############################################
-        self.od_config = AutoConfig.from_pretrained('facebook/detr-resnet-101')
+        self.od_config = AutoConfig.from_pretrained('facebook/detr-resnet-101', num_queries=10)
         self.od_feature_extractor = DetrFeatureExtractor.from_pretrained('facebook/detr-resnet-101')
         self.od_model = DetrForObjectDetection(self.od_config)
-
-        self.od_fc = nn.Linear(25600, 2048)
+        ic()
+        ic(self.od_config.num_queries)
+        self.od_fc = nn.Linear(self.od_config.num_queries * 256, 2048)
         # self.od_fc = nn.Linear(256, 768)
 
         ############################################
@@ -88,24 +89,25 @@ class VisualBertWithODModule(BaseMaeMaeModel):
             batch_image=image[i, :]
 
             transform = T.ToPILImage()
-            foo = transform(batch_image)
-            images_list.append(foo)
+            pil_image = transform(batch_image)
+            images_list.append(pil_image)
 
         od_inputs = self.od_feature_extractor(images=images_list, return_tensors="pt")
         od_inputs = od_inputs.to(self.device)
+        ic()
         od_outputs = self.od_model(**od_inputs)
-        # ic(od_outputs.keys())
-        # for key in od_outputs.keys():
-            # ic(key, od_outputs[key].shape)
+        ic(od_outputs.keys())
+        for key in od_outputs.keys():
+            ic(key, od_outputs[key].shape)
 
         image_x = od_outputs.last_hidden_state
-        # ic(image_x.shape)
+        ic(image_x.shape)
 
         image_x = image_x.view(image_x.shape[0], 1, -1)
         image_x = self.od_fc(image_x)
         image_x = F.tanh(image_x)
         image_x = F.dropout(image_x, p=self.dropout_rate)
-        # ic(image_x.shape)
+        ic(image_x.shape)
         ############################################
         # Obj Detection End
         ############################################
