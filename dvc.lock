@@ -398,3 +398,18 @@ stages:
       md5: 3e4db949d33049e4c5919b043cd2c39e.dir
       size: 1400446221
       nfiles: 1
+  test_visual_bert_with_od:
+    cmd: "python -m hateful_memes.models.visual_bert_with_od --batch_size 4  --fast_dev_run\
+      \ True && echo \"PASSED\" > logs/test_visual_bert_with_od.log\n"
+    deps:
+    - path: data/01_raw/hateful_memes
+      md5: 8844b5201ff55743fcd36c40d7352a88.dir
+      size: 4232567214
+      nfiles: 12148
+    - path: hateful_memes/models/visual_bert_with_od.py
+      md5: 4479967af3e338546f53bf7b8cd562ef
+      size: 6221
+    outs:
+    - path: logs/test_visual_bert_with_od.log
+      md5: 15de982d1dc99ce52d089868a579de34
+      size: 7
