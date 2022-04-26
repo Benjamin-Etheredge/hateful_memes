@@ -30,3 +30,5 @@ icecream
 torch-tb-profiler
 
 timm
+
+git+https://github.com/facebookresearch/detectron2.git@v0.5
