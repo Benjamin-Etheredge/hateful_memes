@@ -62,6 +62,7 @@ stages:
         --dropout_rate ${dropout_rate}
         --grad_clip ${gradient_clip_value}
         --model_dir data/06_models/beit
+        --project beit
     deps:
       - logs/test_beit.log
       - data/01_raw/hateful_memes
@@ -100,6 +101,7 @@ stages:
         --dropout_rate ${dropout_rate}
         --grad_clip ${grad_clip}
         --model_dir data/06_models/vit
+        --project vit
     deps:
       - logs/test_vit.log
       - data/01_raw/hateful_memes
