@@ -99,14 +99,14 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         # for key in od_outputs.keys():
         #     ic(key, od_outputs[key].shape)
 
-        ic(od_outputs.last_hidden_state.shape)
+        # ic(od_outputs.last_hidden_state.shape)
         image_x = od_outputs.last_hidden_state
 
         image_x = image_x.view(image_x.shape[0], 1, -1)
         image_x = self.od_fc(image_x)
         image_x = torch.tanh(image_x)
         image_x = F.dropout(image_x, p=self.dropout_rate)
-        ic(image_x.shape)
+        # ic(image_x.shape)
         ############################################
         # Obj Detection End
         ############################################
