@@ -16,8 +16,8 @@ stages:
       md5: 01c81b43a5a49a99ab40dfd8dab6c037
       size: 6681
     - path: hateful_memes/models/visual_bert.py
-      md5: 4b730bb0fda6de7d937a22e5fccb9691
-      size: 4658
+      md5: eaea151e745d421c1d2013119874edf4
+      size: 4664
     outs:
     - path: logs/test_visual_bert.log
       md5: 15de982d1dc99ce52d089868a579de34
@@ -37,15 +37,15 @@ stages:
       md5: 01c81b43a5a49a99ab40dfd8dab6c037
       size: 6681
     - path: hateful_memes/models/simple_image.py
-      md5: 5274625dbb0bcc01ed8cdd0cee2bca2c
-      size: 3983
+      md5: 863819f51eff4e752a33e34a4da82884
+      size: 4920
     outs:
     - path: logs/test_simple_image.log
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
   simple_image:
     cmd: "python -m hateful_memes.models.simple_image --batch_size 0 --lr 1e-05 --epochs\
-      \ 100 --dense_dim 512 --dropout_rate 0.1 --grad_clip 1.0 --model_dir data/06_models/simple_image\
+      \ 100 --dense_dim 512 --dropout_rate 0.5 --grad_clip 1.0 --model_dir data/06_models/simple_image\
       \ --batch_norm true\n"
     deps:
     - path: data/01_raw/hateful_memes
@@ -59,15 +59,15 @@ stages:
       md5: 01c81b43a5a49a99ab40dfd8dab6c037
       size: 6681
     - path: hateful_memes/models/simple_image.py
-      md5: 5274625dbb0bcc01ed8cdd0cee2bca2c
-      size: 3983
+      md5: 863819f51eff4e752a33e34a4da82884
+      size: 4920
     - path: logs/test_simple_image.log
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
     outs:
     - path: data/06_models/simple_image
-      md5: 0886bd3bfdb0cacebfd4760a5c948952.dir
-      size: 47235445
+      md5: b5874bd1f5a2114de3e06638b271c970.dir
+      size: 88195385
       nfiles: 1
   test_simple_mlp_image:
     cmd: "python -m hateful_memes.models.simple_mlp_image --fast_dev_run True --log_dir\
@@ -143,14 +143,14 @@ stages:
       md5: 01c81b43a5a49a99ab40dfd8dab6c037
       size: 6681
     - path: hateful_memes/models/visual_bert.py
-      md5: 4b730bb0fda6de7d937a22e5fccb9691
-      size: 4658
+      md5: eaea151e745d421c1d2013119874edf4
+      size: 4664
     - path: logs/test_visual_bert.log
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
     outs:
     - path: data/06_models/visual_bert
-      md5: 8d6dc2b0beb8745e3c06bc6851ace964.dir
+      md5: ed32a3911a3bbe79b3a03a81255e8195.dir
       size: 1623293991
       nfiles: 1
   simple_text:
@@ -210,8 +210,8 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: data/06_models/simple_image
-      md5: 0886bd3bfdb0cacebfd4760a5c948952.dir
-      size: 47235445
+      md5: b5874bd1f5a2114de3e06638b271c970.dir
+      size: 88195385
       nfiles: 1
     - path: data/06_models/simple_text
       md5: 4424e883ce41f5291ce36f76d2b8b106.dir
