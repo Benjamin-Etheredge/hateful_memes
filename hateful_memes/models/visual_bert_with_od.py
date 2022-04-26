@@ -46,7 +46,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         self.od_feature_extractor = DetrFeatureExtractor.from_pretrained('facebook/detr-resnet-50')
         self.od_model = DetrForObjectDetection(self.od_config)
         ic(self.od_model)
-        self.od_fc = nn.Linear(self.od_config.num_queries * 256, 2048)
+        self.od_fc = nn.Linear(self.od_config.num_queries * 256, 1024)
         # self.od_fc = nn.Linear(256, 768)
 
         ############################################
@@ -99,14 +99,14 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         # for key in od_outputs.keys():
         #     ic(key, od_outputs[key].shape)
 
+        ic(od_outputs.last_hidden_state.shape)
         image_x = od_outputs.last_hidden_state
-        # ic(image_x.shape)
 
         image_x = image_x.view(image_x.shape[0], 1, -1)
         image_x = self.od_fc(image_x)
         image_x = torch.tanh(image_x)
         image_x = F.dropout(image_x, p=self.dropout_rate)
-        # ic(image_x.shape)
+        ic(image_x.shape)
         ############################################
         # Obj Detection End
         ############################################
