@@ -25,49 +25,59 @@ class SuperModel(BaseMaeMaeModel):
         dense_dim=256,
         num_dense_layers=2,
         freeze=True,
-        visual_bert_chkpt=None,
-        resnet_chkpt=None,
-        simple_image_chkpt=False,
-        simple_mlp_image_chkpt=None,
-        simple_text_chkpt=None,
-        vit_chkpt=None,
-        beit_chkpt=None,
+        visual_bert_ckpt=None,
+        resnet_ckpt=None,
+        simple_image_ckpt=False,
+        simple_mlp_image_ckpt=None,
+        simple_text_ckpt=None,
+        vit_ckpt=None,
+        beit_ckpt=None,
+        electra_ckpt=None,
+        distilbert_ckpt=None,
     ):
         """ Super Model """
         super().__init__()
         # self.hparams = hparams
         self.models = []
-        if visual_bert_chkpt:
-            visual_bert_chkpt = get_checkpoint_path(visual_bert_chkpt)
-            self.models.append(VisualBertModule.load_from_checkpoint(visual_bert_chkpt))
+        if visual_bert_ckpt:
+            visual_bert_ckpt = get_checkpoint_path(visual_bert_ckpt)
+            self.models.append(VisualBertModule.load_from_checkpoint(visual_bert_ckpt))
 
-        if resnet_chkpt:
-            # self.models.append(ResNetModule.load_from_checkpoint(resnet_chkpt))
+        if resnet_ckpt:
+            # self.models.append(ResNetModule.load_from_checkpoint(resnet_ckpt))
             resnet = models.resnet50(pretrained=True)
             self.num_ftrs_resnet = resnet.fc.in_features
             resnet.fc = nn.Flatten()
             self.resnet = resnet
             self.models.append(resnet)
 
-        if simple_image_chkpt:
-            simple_image_chkpt = get_checkpoint_path(simple_image_chkpt)
-            self.models.append(SimpleImageMaeMaeModel.load_from_checkpoint(simple_image_chkpt))
+        if simple_image_ckpt:
+            simple_image_ckpt = get_checkpoint_path(simple_image_ckpt)
+            self.models.append(SimpleImageMaeMaeModel.load_from_checkpoint(simple_image_ckpt))
 
-        if simple_mlp_image_chkpt:
-            simple_mlp_image_chkpt = get_checkpoint_path(simple_mlp_image_chkpt)
-            self.models.append(SimpleMLPImageMaeMaeModel.load_from_checkpoint(simple_mlp_image_chkpt))
+        if simple_mlp_image_ckpt:
+            simple_mlp_image_ckpt = get_checkpoint_path(simple_mlp_image_ckpt)
+            self.models.append(SimpleMLPImageMaeMaeModel.load_from_checkpoint(simple_mlp_image_ckpt))
 
-        if simple_text_chkpt:
-            simple_text_chkpt = get_checkpoint_path(simple_text_chkpt)
-            self.models.append(BaseTextMaeMaeModel.load_from_checkpoint(simple_text_chkpt))
+        if simple_text_ckpt:
+            simple_text_ckpt = get_checkpoint_path(simple_text_ckpt)
+            self.models.append(BaseTextMaeMaeModel.load_from_checkpoint(simple_text_ckpt))
         
-        if vit_chkpt:
-            vit_chkpt = get_checkpoint_path(vit_chkpt)
-            self.models.append(BaseITModule.load_from_checkpoint(vit_chkpt))
+        if vit_ckpt:
+            vit_ckpt = get_checkpoint_path(vit_ckpt)
+            self.models.append(BaseITModule.load_from_checkpoint(vit_ckpt))
         
-        if beit_chkpt:
-            beit_chkpt = get_checkpoint_path(beit_chkpt)
-            self.models.append(BaseITModule.load_from_checkpoint(beit_chkpt))
+        if beit_ckpt:
+            beit_ckpt = get_checkpoint_path(beit_ckpt)
+            self.models.append(BaseITModule.load_from_checkpoint(beit_ckpt))
+        
+        if electra_ckpt:
+            electra_ckpt = get_checkpoint_path(electra_ckpt)
+            self.models.append(AutoTextModule.load_from_checkpoint(electra_ckpt))
+
+        if distilbert_ckpt:
+            distilbert_ckpt = get_checkpoint_path(distilbert_ckpt)
+            self.models.append(AutoTextModule.load_from_checkpoint(distilbert_ckpt))
 
         assert len(self.models) > 1, "Not enough models loaded"
         
@@ -129,20 +139,23 @@ class SuperModel(BaseMaeMaeModel):
 @click.option('--num_dense_layers', default=2, help='Dense dim')
 @click.option('--dense_dim', default=256, help='Dense dim')
 @click.option('--dropout_rate', default=0.1, help='Dropout rate')
-@click.option('--visual_bert_chkpt')
-@click.option('--simple_image_chkpt')
-@click.option('--simple_mlp_image_chkpt')
-@click.option('--simple_text_chkpt')
-@click.option('--vit_chkpt')
-@click.option('--beit_chkpt')
+@click.option('--visual_bert_ckpt')
+@click.option('--simple_image_ckpt')
+@click.option('--simple_mlp_image_ckpt')
+@click.option('--simple_text_ckpt')
+@click.option('--vit_ckpt')
+@click.option('--beit_ckpt')
+@click.option('--electra_ckpt')
+@click.option('--distilbert_ckpt')
 @click.option('--batch_size', default=0, help='Batch size')
 @click.option('--epochs', default=10, help='Epochs')
 @click.option('--model_dir', default='/tmp', help='Save dir')
 @click.option('--fast_dev_run', default=False, help='Fast dev run')
 @click.option('--project', default="super-model", help='Project')
 def main(freeze, lr, num_dense_layers, dense_dim, dropout_rate,
-         visual_bert_chkpt, simple_image_chkpt, simple_mlp_image_chkpt, simple_text_chkpt,
-         vit_chkpt, beit_chkpt, **train_kwargs):
+         visual_bert_ckpt, simple_image_ckpt, simple_mlp_image_ckpt, simple_text_ckpt,
+         vit_ckpt, beit_ckpt, electra_ckpt, distilbert_ckpt,
+         **train_kwargs):
     """ train model """
 
     model = SuperModel(
@@ -151,12 +164,14 @@ def main(freeze, lr, num_dense_layers, dense_dim, dropout_rate,
         num_dense_layers=num_dense_layers,
         dense_dim=dense_dim, 
         dropout_rate=dropout_rate,
-        visual_bert_chkpt=visual_bert_chkpt,
-        simple_image_chkpt=simple_image_chkpt,
-        simple_mlp_image_chkpt=simple_mlp_image_chkpt,
-        simple_text_chkpt=simple_text_chkpt,
-        vit_chkpt=vit_chkpt,
-        beit_chkpt=beit_chkpt,
+        visual_bert_ckpt=visual_bert_ckpt,
+        simple_image_ckpt=simple_image_ckpt,
+        simple_mlp_image_ckpt=simple_mlp_image_ckpt,
+        simple_text_ckpt=simple_text_ckpt,
+        vit_ckpt=vit_ckpt,
+        beit_ckpt=beit_ckpt,
+        electra_ckpt=electra_ckpt,
+        distilbert_ckpt=distilbert_ckpt,
         )
     base_train(model=model, **train_kwargs)
     
