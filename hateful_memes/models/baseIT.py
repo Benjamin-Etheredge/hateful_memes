@@ -1,4 +1,5 @@
 from matplotlib.pyplot import autoscale
+from pyrsistent import freeze
 import pytorch_lightning as pl
 import torch
 import click
@@ -26,6 +27,7 @@ class BaseITModule(BaseMaeMaeModel):
         include_top=True,
         dropout_rate=0.0,
         dense_dim=256,
+        freeze=True,
     ):
 
         super().__init__()
@@ -37,14 +39,35 @@ class BaseITModule(BaseMaeMaeModel):
 
         self.feature_extractor = AutoFeatureExtractor.from_pretrained(model_fullname)
         self.model = AutoModelForImageClassification.from_pretrained(model_fullname, output_hidden_states=True)
-        for param in self.model.parameters():
-            param.requires_grad = False
-        self.model.eval()
+        if freeze:
+            for param in self.model.parameters():
+                param.requires_grad = False
+            self.model.eval()
 
-        self.conv1 = nn.Conv2d(1, 16, kernel_size=(3,5), stride=1, padding=1)
-        self.conv2 = nn.Conv2d(16, 32, kernel_size=(3,5), stride=1, padding=1)
-        self.conv3 = nn.Conv2d(32, 64, kernel_size=(3,3), stride=1, padding=1)
-        self.conv4 = nn.Conv2d(64, 64, kernel_size=(3,3), stride=1, padding=1)
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(1, 16, kernel_size=(3, 5), stride=(1, 1), padding=(1, 1)),
+            nn.BatchNorm2d(16),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=(2, 3), stride=(2, 3))
+        )
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(16, 32, kernel_size=(3, 5), stride=(1, 1), padding=(1, 1)),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=(2, 3), stride=(2, 3))
+        )
+        self.conv3 = nn.Sequential(
+            nn.Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2))
+        )
+        self.conv4 = nn.Sequential(
+            nn.Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2))
+        )
         self.fc1 = nn.Linear(16128, dense_dim)
         self.fc2 = nn.Linear(dense_dim, dense_dim)
         self.fc3 = nn.Linear(dense_dim, 1)
@@ -55,6 +78,7 @@ class BaseITModule(BaseMaeMaeModel):
         self.dropout_rate = dropout_rate
         self.dense_dim = dense_dim
         self.last_hidden_size = dense_dim
+        self.to_freeze = freeze
 
         self.save_hyperparameters()
     
@@ -67,26 +91,19 @@ class BaseITModule(BaseMaeMaeModel):
         inputs = inputs.to(self.device)        
 
         # TODO pooled output?
-        with torch.no_grad():
+        if self.to_freeze:
+            with torch.no_grad():
+                x = self.model(**inputs)
+        else:
             x = self.model(**inputs)
         x = x.hidden_states[-1]
 
         x = x.view(x.shape[0], 1, x.shape[1], x.shape[2])
+
         x = self.conv1(x)
-        x = F.relu(x)
-        x = F.max_pool2d(x, kernel_size=(2,3), stride=(2, 3))
-
         x = self.conv2(x)
-        x = F.relu(x)
-        x = F.max_pool2d(x, kernel_size=(2,3), stride=(2,3))
-
         x = self.conv3(x)
-        x = F.relu(x)
-        x = F.max_pool2d(x, kernel_size=2, stride=2)
-
         x = self.conv4(x)
-        x = F.relu(x)
-        x = F.max_pool2d(x, kernel_size=2, stride=2)
 
         x = x.view(x.shape[0], -1)
 

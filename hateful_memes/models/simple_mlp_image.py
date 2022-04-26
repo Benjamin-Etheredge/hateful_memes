@@ -25,7 +25,7 @@ class SimpleMLPImageMaeMaeModel(BaseMaeMaeModel):
         dense_layers = []
 
         for _ in range(num_dense_layers):
-            dense_layers.append(nn.Linear(dense_dim, dense_dim))
+            dense_layers.append(nn.Linear(dense_dim, dense_dim, bias=False))
             dense_layers.append(nn.BatchNorm1d(dense_dim))
             dense_layers.append(nn.ReLU())
             dense_layers.append(nn.Dropout(p=dropout_rate))
