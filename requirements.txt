@@ -107,7 +107,7 @@ decorator==5.1.1
     # via ipython
 defusedxml==0.7.1
     # via nbconvert
-detectron2 @ git+https://github.com/facebookresearch/detectron2.git@v0.5
+# detectron2 @ git+https://github.com/facebookresearch/detectron2.git@v0.5
     # via -r requirements.in
 dictdiffer==0.9.0
     # via dvc
