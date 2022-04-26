@@ -33,13 +33,13 @@ class VisualBertModule(BaseMaeMaeModel):
             for param in self.visual_bert.parameters():
                 param.requires_grad = False
             self.visual_bert.eval()
-        ic(self.visual_bert)
-        ic(self.visual_bert.config)
+        # ic(self.visual_bert)
+        # ic(self.visual_bert.config)
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
         resnet = models.resnet50(pretrained=True)
         self.num_ftrs_resnet = resnet.fc.in_features
         resnet.fc = nn.Flatten()
-        ic(resnet)
+        # ic(resnet)
         self.resnet = resnet
 
         if freeze:
