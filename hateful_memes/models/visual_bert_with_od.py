@@ -46,7 +46,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         self.od_feature_extractor = DetrFeatureExtractor.from_pretrained('facebook/detr-resnet-50')
         self.od_model = DetrForObjectDetection(self.od_config)
         ic(self.od_model)
-        self.od_fc = nn.Linear(self.od_config.num_queries * 256, 1024)
+        self.od_fc = nn.Linear(self.od_config.num_queries * 256, 2048)
         # self.od_fc = nn.Linear(256, 768)
 
         ############################################
