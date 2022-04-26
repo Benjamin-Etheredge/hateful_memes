@@ -45,26 +45,26 @@ class BaseITModule(BaseMaeMaeModel):
             self.model.eval()
 
         self.conv1 = nn.Sequential(
-            nn.Conv2d(1, 16, kernel_size=(3, 5), stride=(1, 1), padding=(1, 1)),
+            nn.Conv2d(1, 16, kernel_size=(3, 5), stride=(1, 1), padding=(1, 1), bias=False),
             nn.BatchNorm2d(16),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=(2, 3), stride=(2, 3))
         )
         self.conv2 = nn.Sequential(
-            nn.Conv2d(16, 32, kernel_size=(3, 5), stride=(1, 1), padding=(1, 1)),
+            nn.Conv2d(16, 32, kernel_size=(3, 5), stride=(1, 1), padding=(1, 1), bias=False),
             nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=(2, 3), stride=(2, 3))
         )
         self.conv3 = nn.Sequential(
-            nn.Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
+            nn.Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False),
             nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2))
         )
         self.conv4 = nn.Sequential(
-            nn.Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
-            nn.BatchNorm2d(128),
+            nn.Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False),
+            nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2))
         )

@@ -37,25 +37,25 @@ class SimpleImageMaeMaeModel(BaseMaeMaeModel):
             nn.MaxPool2d(2)
         )
         self.conv2 = nn.Sequential(
-            nn.Conv2d(16, 32, 3, 1, biase=False),
+            nn.Conv2d(16, 32, 3, 1, bias=False),
             nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.MaxPool2d(2)
         )
         self.conv3 = nn.Sequential(
-            nn.Conv2d(32, 64, 3, 1, biase=False),
+            nn.Conv2d(32, 64, 3, 1, bias=False),
             nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.MaxPool2d(2)
         )
         self.conv4 = nn.Sequential(
-            nn.Conv2d(64, 128, 3, 1, biase=False),
+            nn.Conv2d(64, 128, 3, 1, bias=False),
             nn.BatchNorm2d(128),
             nn.ReLU(),
             nn.MaxPool2d(2)
         )
         self.conv5 = nn.Sequential(
-            nn.Conv2d(128, 256, 3, 1, biase=False),
+            nn.Conv2d(128, 256, 3, 1, bias=False),
             nn.BatchNorm2d(256),
             nn.ReLU(),
             nn.MaxPool2d(2)
