@@ -2,7 +2,7 @@ model_name: 'beit'
 batch_size: 0
 lr: 1e-5
 epochs: 100
-max_length: 256
+max_length: 64
 dense_dim: 128
 dropout_rate: 0.1
 gradient_clip_value: 1.0
