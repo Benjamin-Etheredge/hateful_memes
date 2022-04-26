@@ -239,7 +239,7 @@ def main(
              modify_parser: Optional[Callable[[argparse.ArgumentParser], None]] = None
         ):
     # Dumb hack
-    bpe_dir = str(pathlib.Path(utils.BPE.__file__).resolve().parent)
+    bpe_dir = str(pathlib.Path(OFA.utils.BPE.__file__).resolve().parent)
     sys.argv.append("--bpe-dir %s" % (bpe_dir))
     # Injest CLI arguments
     parser = options.get_training_parser()

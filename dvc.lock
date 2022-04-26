@@ -433,8 +433,8 @@ stages:
       \ --monitor-metric-mode min --stopping-patience 10 && echo \"PASSED\" > logs/test_hateful_ofa.log\n"
     deps:
     - path: data/02_intermediate/hateful_memes_train_snli_ve.tsv
-      md5: a4aa96507523cfab3af40019c2020f8a
-      size: 4077674756
+      md5: cfdac03de35580554bd8f3d3dfc8a120
+      size: 4077445020
     - path: data/02_intermediate/hateful_memes_valid_snli_ve.tsv
       md5: e53d1c118761446cd00d926469da82f5
       size: 252275396
@@ -442,8 +442,8 @@ stages:
       md5: 8368190a42477d2974fa0affb6279f00
       size: 6230613509
     - path: hateful_memes/models/hateful_ofa.py
-      md5: c8b090fb1e513163c02ef911d13bbd64
-      size: 13459
+      md5: 9db82a50fa846d840dfa83be5ac9abb0
+      size: 13479
     outs:
     - path: logs/test_hateful_ofa.log
       md5: 15de982d1dc99ce52d089868a579de34

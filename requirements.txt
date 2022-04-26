@@ -358,7 +358,7 @@ numpy==1.22.3
     #   transformers
 oauthlib==3.2.0
     # via requests-oauthlib
-ofa @ git+https://github.com/mthoreson3/OFA@5297c204e939840da46cf75dc97acf96b708bf49
+ofa @ git+https://github.com/mthoreson3/OFA@26916038139a44eaafa06c6d7e04b87ef4d1bc0a
     # via -r requirements.in
 omegaconf==2.0.6
     # via
