@@ -9,6 +9,7 @@ import torchvision.transforms
 
 from transformers import BertTokenizer, VisualBertModel
 # from transformers import DetrFeatureExtractor, DetrForObjectDetection, AutoConfig
+
 from detectron2.modeling import build_model
 from detectron2.checkpoint import DetectionCheckpointer
 from detectron2.structures.image_list import ImageList
@@ -206,9 +207,9 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         ############################################
         # Obj Detection Start
         ############################################
-        self.od_config = AutoConfig.from_pretrained('facebook/detr-resnet-50', num_queries=num_queries)
-        self.od_feature_extractor = DetrFeatureExtractor.from_pretrained('facebook/detr-resnet-50')
-        self.od_model = DetrForObjectDetection(self.od_config)
+        # self.od_config = AutoConfig.from_pretrained('facebook/detr-resnet-50', num_queries=num_queries)
+        # self.od_feature_extractor = DetrFeatureExtractor.from_pretrained('facebook/detr-resnet-50')
+        # self.od_model = DetrForObjectDetection(self.od_config)
         # ic(self.od_config.num_queries)
         # self.od_fc = nn.Linear(self.od_config.num_queries * 256, 2048)
         # self.od_fc = nn.Sequential(
@@ -222,10 +223,10 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         self.detr2 = Detectron2Module(batch_size=batch_size, num_queries=num_queries)
          
 
-        if freeze:
-            for param in self.od_model.parameters():
-                param.requires_grad = False
-            self.od_model.eval()
+        # if freeze:
+        #     for param in self.od_model.parameters():
+        #         param.requires_grad = False
+        #     self.od_model.eval()
         ############################################
         # Obj Detection End
         ############################################
