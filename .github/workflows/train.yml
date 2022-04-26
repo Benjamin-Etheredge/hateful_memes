@@ -42,7 +42,7 @@ jobs:
           apt-get update && apt-get install -y ninja-build
           pip install -r requirements.txt --no-cache-dir
           pip install -e .
-          python -m pip install 'git+https://github.com/facebookresearch/detectron2.git@v0.5'
+          python -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
 
       - name: Pull data
         run: dvc pull data/01_raw/hateful_memes
