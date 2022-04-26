@@ -7,6 +7,8 @@ torchvision
 torchaudio
 torchtext
 
+torchmetrics==0.8.0
+
 pytorch-lightning
 jsonargparse[signatures]
 transformers
