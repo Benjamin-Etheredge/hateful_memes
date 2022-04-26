@@ -150,7 +150,6 @@ class VisualBertWithODModule(BaseMaeMaeModel):
             x = self.fc3(x)
 
         x = torch.squeeze(x, dim=1)
-        ic(x.shape)
         return x
 
 
