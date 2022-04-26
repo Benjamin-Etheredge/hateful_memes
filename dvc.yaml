@@ -1,11 +1,11 @@
 stages:
-  install_detr2:
-    cmd: >
-        python -m pip install 'git+https://github.com/facebookresearch/detectron2.git@v0.5'
-        && echo "installed" > logs/install_detr2.log
-    outs:
-      - logs/test_visual_bert_with_od.log
-      
+  # install_detr2:
+  #   cmd: >
+  #       python -m pip install 'git+https://github.com/facebookresearch/detectron2.git@v0.5'
+  #       && echo "installed" > logs/install_detr2.log
+  #   outs:
+  #     - logs/test_visual_bert_with_od.log
+
   test_visual_bert_with_od:
     cmd: >
         python -m hateful_memes.models.visual_bert_with_od
@@ -13,7 +13,7 @@ stages:
         --fast_dev_run True
         && echo "PASSED" > logs/test_visual_bert_with_od.log
     deps:
-      - logs/install_detr2.log
+      # - logs/install_detr2.log
       - data/01_raw/hateful_memes
       - hateful_memes/models/visual_bert_with_od.py
     outs:

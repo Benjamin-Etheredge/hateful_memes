@@ -16,8 +16,8 @@ jobs:
     runs-on: [self-hosted, gpu]
     container:
       # image: etheredgeb/hateful-memes:cicd
-      image: docker://iterativeai/cml:0-dvc2-base1-gpu
-      # image: docker://python:3.8
+      # image: docker://iterativeai/cml:0-dvc2-base1-gpu
+      image: docker://python:3.8
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.MINIO_AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.MINIO_AWS_SECRET_ACCESS_KEY }}
@@ -50,6 +50,12 @@ jobs:
       - name: Pull everything else
         continue-on-error: true
         run: dvc pull -a --run-cache
+
+      - name: Train VisualBERT with OD
+        continue-on-error: true
+        run: |
+          dvc repro visual_bert_with_od
+          dvc push --run-cache -d visual_bert_with_od
 
       - name: Train Electra
         # continue-on-error: true
@@ -98,12 +104,6 @@ jobs:
         run: |
           dvc repro --pull beit
           dvc push -d beit
-
-      - name: Train VisualBERT with OD
-        continue-on-error: true
-        run: |
-          dvc repro visual_bert_with_od
-          dvc push --run-cache -d visual_bert_with_od
 
       - name: Train Super Model
         continue-on-error: true

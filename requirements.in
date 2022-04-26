@@ -31,4 +31,3 @@ torch-tb-profiler
 
 timm
 opencv-python-headless
-# git+https://github.com/facebookresearch/detectron2.git@v0.5
