@@ -347,6 +347,7 @@ omegaconf==2.1.2
     # via
     #   detectron2
     #   hydra-core
+opencv-python-headless==4.5.5.64
 packaging==21.3
     # via
     #   bleach
