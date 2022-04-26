@@ -51,59 +51,59 @@ jobs:
         continue-on-error: true
         run: dvc pull -a --run-cache
 
-      - name: Train Electra
-        # continue-on-error: true
-        run: |
-          dvc repro --pull electra
-          dvc push -d electra
-
-      - name: Train Distilbert
-        # continue-on-error: true
-        run: |
-          dvc repro --pull distilbert
-          dvc push -d distilbert
-
-      - name: Train Simple Image Model
-
-        # continue-on-error: true
-        run: |
-          dvc repro simple_image
-          dvc push --run-cache -d simple_image
-
-      - name: Train Simple MLP Image Model
-        # continue-on-error: true
-        run: |
-          dvc repro simple_mlp_image
-          dvc push --run-cache -d simple_mlp_image
-            
-      - name: Train Simple Text Model
-        run: |
-          dvc repro simple_text
-          dvc push --run-cache -d simple_text
-
-      # - name: Train VisualBERT with OD
+      # - name: Train Electra
       #   # continue-on-error: true
       #   run: |
-      #     dvc repro visual_bert_with_od
-      #     dvc push --run-cache -d visual_bert_with_od
+      #     dvc repro --pull electra
+      #     dvc push -d electra
 
-      - name: Train VisualBERT
-        # continue-on-error: true
-        run: |
-          dvc repro visual_bert
-          dvc push --run-cache -d visual_bert
+      # - name: Train Distilbert
+      #   # continue-on-error: true
+      #   run: |
+      #     dvc repro --pull distilbert
+      #     dvc push -d distilbert
 
-      - name: Train ViT
-        continue-on-error: true
-        run: |
-          dvc repro --pull vit
-          dvc push -d vit
+      # - name: Train Simple Image Model
 
-      - name: Train BEit
-        continue-on-error: true
-        run: |
-          dvc repro --pull beit
-          dvc push -d beit
+      #   # continue-on-error: true
+      #   run: |
+      #     dvc repro simple_image
+      #     dvc push --run-cache -d simple_image
+
+      # - name: Train Simple MLP Image Model
+      #   # continue-on-error: true
+      #   run: |
+      #     dvc repro simple_mlp_image
+      #     dvc push --run-cache -d simple_mlp_image
+            
+      # - name: Train Simple Text Model
+      #   run: |
+      #     dvc repro simple_text
+      #     dvc push --run-cache -d simple_text
+
+      # # - name: Train VisualBERT with OD
+      # #   # continue-on-error: true
+      # #   run: |
+      # #     dvc repro visual_bert_with_od
+      # #     dvc push --run-cache -d visual_bert_with_od
+
+      # - name: Train VisualBERT
+      #   # continue-on-error: true
+      #   run: |
+      #     dvc repro visual_bert
+      #     dvc push --run-cache -d visual_bert
+
+      # - name: Train ViT
+      #   continue-on-error: true
+      #   run: |
+      #     dvc repro --pull vit
+      #     dvc push -d vit
+
+      # - name: Train BEit
+      #   continue-on-error: true
+      #   run: |
+      #     dvc repro --pull beit
+      #     dvc push -d beit
 
       - name: Train OFA
         continue-on-error: true
@@ -111,11 +111,11 @@ jobs:
           dvc repro train_hateful_ofa
           dvc push -d train_hateful_ofa
 
-      - name: Train Super Model
-        continue-on-error: true
-        run: |
-          dvc repro super_model
-          dvc push --run-cache -d super_model
+      # - name: Train Super Model
+      #   continue-on-error: true
+      #   run: |
+      #     dvc repro super_model
+      #     dvc push --run-cache -d super_model
 
       - name: Commit run
         run: |
