@@ -280,9 +280,9 @@ class VisualBertWithODModule(BaseMaeMaeModel):
 
         image = torch.transpose(image, 1, 2)
         image = torch.transpose(image, 2, 3)
-        images_list = [cv2.cv2.cvtColor(batch_img.numpy(), cv2.COLOR_RGB2BGR) for batch_img in image]
+        images_list = [cv2.cv2.cvtColor(batch_img.cpu().numpy(), cv2.COLOR_RGB2BGR) for batch_img in image]
         # ic()
-        image_x = self.detr2.get_visual_embeds(images_list)
+        image_x = self.detr2.get_visual_embeds(images_list).to(self.device)
         # ic()
         # images_list = [self.image_transformer(x_) for x_ in image]
 
