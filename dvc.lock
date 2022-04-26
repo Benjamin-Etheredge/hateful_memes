@@ -177,8 +177,8 @@ stages:
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
   test_super_model:
-    cmd: "python -m hateful_memes.models.super_model --simple_image_chkpt data/06_models/simple_image\
-      \ --simple_text_chkpt data/06_models/simple_text --fast_dev_run True && echo\
+    cmd: "python -m hateful_memes.models.super_model --simple_image_ckpt data/06_models/simple_image\
+      \ --simple_text_ckpt data/06_models/simple_text --fast_dev_run True && echo\
       \ \"PASSED\" > logs/test_super_model.log\n"
     deps:
     - path: data/01_raw/hateful_memes
@@ -197,8 +197,8 @@ stages:
       md5: 01c81b43a5a49a99ab40dfd8dab6c037
       size: 6681
     - path: hateful_memes/models/super_model.py
-      md5: 5eab5caed5d8426190d96b09912a0ce2
-      size: 5622
+      md5: 3f8bc412818879451ff6d5f1fcf09df2
+      size: 6163
     outs:
     - path: logs/test_super_model.log
       md5: 15de982d1dc99ce52d089868a579de34
@@ -414,17 +414,17 @@ stages:
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
   visual_bert_with_od:
-    cmd: "python -m hateful_memes.models.visual_bert_with_od --lr 1e-05 --epochs 10\
-      \ --max_length 128 --dense_dim 256 --dropout_rate 0.0 --num_queries 50 --batch_size\
-      \ 0 --grad_clip 1.0 --model_dir data/06_models/visual_bert_with_od\n"
+    cmd: "python -m hateful_memes.models.visual_bert_with_od --lr 1e-05 --epochs 100\
+      \ --max_length 64 --dense_dim 256 --dropout_rate 0.0 --num_queries 50 --batch_size\
+      \ 64 --grad_clip 1.0 --model_dir data/06_models/visual_bert_with_od\n"
     deps:
     - path: data/01_raw/hateful_memes
       md5: 8844b5201ff55743fcd36c40d7352a88.dir
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/models/base.py
-      md5: e33b3b739a730e34b18b9b1cfa015698
-      size: 6516
+      md5: 01c81b43a5a49a99ab40dfd8dab6c037
+      size: 6681
     - path: hateful_memes/models/visual_bert_with_od.py
       md5: 4479967af3e338546f53bf7b8cd562ef
       size: 6221
@@ -433,6 +433,6 @@ stages:
       size: 7
     outs:
     - path: data/06_models/visual_bert_with_od
-      md5: e1d4dd23ed5b41956edc13ddc1a15e7b.dir
+      md5: a24243ce73e7c58c675fe20ff739bc70.dir
       size: 718504169
       nfiles: 1
