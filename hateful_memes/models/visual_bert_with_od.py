@@ -45,6 +45,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         self.od_config = AutoConfig.from_pretrained('facebook/detr-resnet-50', num_queries=num_queries)
         self.od_feature_extractor = DetrFeatureExtractor.from_pretrained('facebook/detr-resnet-50')
         self.od_model = DetrForObjectDetection(self.od_config)
+        self.transform = T.ToPILImage()
 
         for param in self.od_model.parameters():
             param.requires_grad = False
@@ -89,13 +90,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         ############################################
         # Obj Detection Start
         ############################################
-        images_list = []
-        for i in range(image.shape[0]):
-            batch_image=image[i, :]
-
-            transform = T.ToPILImage()
-            pil_image = transform(batch_image)
-            images_list.append(pil_image)
+        images_list = [self.transform(batch_img) for batch_img in image]
 
         od_inputs = self.od_feature_extractor(images=images_list, return_tensors="pt")
         od_inputs = od_inputs.to(self.device)
