@@ -32,7 +32,7 @@ git+https://github.com/mthoreson3/OFA@26916038139a44eaafa06c6d7e04b87ef4d1bc0a#e
 
 # OFA reqs
 git+https://github.com/pytorch/fairseq@806855bf660ea748ed7ffb42fe8dcc881ca3aca0#egg=fairseq
-opencv-python
+opencv-python-headless
 timm
 ftfy==6.0.3
 tensorboardX==2.4.1
