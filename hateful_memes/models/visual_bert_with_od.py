@@ -113,7 +113,7 @@ class Detectron2Module():
         return pred_class_logits, pred_proposal_deltas
 
     
-    def get_box_scores(self, cfg, pred_class_logits, pred_proposal_deltas):
+    def get_box_scores(self, cfg, pred_class_logits, pred_proposal_deltas, proposals):
         box2box_transform = Box2BoxTransform(weights=cfg.MODEL.ROI_BOX_HEAD.BBOX_REG_WEIGHTS)
         smooth_l1_beta = cfg.MODEL.ROI_BOX_HEAD.SMOOTH_L1_BETA
 
@@ -169,7 +169,7 @@ class Detectron2Module():
         proposals = self.get_proposals(self.model, images, features) 
         box_features, features_list = self.get_box_features(self.model, features, proposals)
         pred_class_logits, pred_proposal_deltas = self.get_prediction_logits(self.model, features_list, proposals)
-        boxes, scores, image_shapes = self.get_box_scores(self.cfg, pred_class_logits, pred_proposal_deltas)
+        boxes, scores, image_shapes = self.get_box_scores(self.cfg, pred_class_logits, pred_proposal_deltas, proposals)
         output_boxes = [self.get_output_boxes(boxes[i], batched_inputs[i], proposals[i].image_size) for i in range(len(proposals))]
         temp = [self.select_boxes(cfg, output_boxes[i], scores[i]) for i in range(len(scores))]
         keep_boxes, max_conf = [],[]
