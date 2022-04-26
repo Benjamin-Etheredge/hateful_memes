@@ -37,7 +37,8 @@
 		"ms-python.vscode-pylance",
         "iterative.dvc",
 		"redhat.vscode-yaml",
-		"GitHub.copilot"
+		"GitHub.copilot",
+		"eamodio.gitlens"
 	],
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
