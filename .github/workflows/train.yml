@@ -16,8 +16,8 @@ jobs:
     runs-on: [self-hosted, gpu]
     container:
       # image: etheredgeb/hateful-memes:cicd
-      image: docker://iterativeai/cml:0-dvc2-base1-gpu
-      # image: docker://python:3.8
+      # image: docker://iterativeai/cml:0-dvc2-base1-gpu
+      image: docker://python:3.8
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.MINIO_AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.MINIO_AWS_SECRET_ACCESS_KEY }}
