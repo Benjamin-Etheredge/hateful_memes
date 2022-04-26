@@ -1,9 +1,9 @@
 freeze: false
-batch_size: 64
+batch_size: 32
 lr: 1e-5
 epochs: 100
 max_length: 64
 dense_dim: 256
-num_queries: 50
+num_queries: 20
 dropout_rate: 0.0
 gradient_clip_value: 1.0
