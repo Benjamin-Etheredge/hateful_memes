@@ -21,19 +21,18 @@ from detectron2 import model_zoo
 from detectron2.config import get_cfg
 
 import cv2
-from copy import deepcopy
 
 import pytorch_lightning as pl
 
 from hateful_memes.models.base import BaseMaeMaeModel, base_train
 
 class Detectron2Module():
-    def __init__(self, batch_size):
+    def __init__(self, batch_size, num_queries):
         self.cfg_path = "COCO-InstanceSegmentation/mask_rcnn_R_101_FPN_3x.yaml"
         self.cfg = self.load_config_and_model_weights(self.cfg_path)
         self.model = self.get_model(self.cfg)
         self.MIN_BOXES=10
-        self.MAX_BOXES=20
+        self.MAX_BOXES=num_queries
         self.batch_size = batch_size
 
     def load_config_and_model_weights(self, cfg_path):
@@ -220,7 +219,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         # self.od_fc = nn.Linear(self.od_config.num_queries * 256, 2048)
         # # self.od_fc = nn.Linear(256, 768)
 
-        self.detr2 = Detectron2Module(batch_size=batch_size)
+        self.detr2 = Detectron2Module(batch_size=batch_size, num_queries=num_queries)
          
 
         if freeze:
