@@ -1,4 +1,3 @@
-from cmath import tanh
 import click
 from icecream import ic
 
@@ -10,7 +9,6 @@ import torchvision.transforms as T
 
 from transformers import BertTokenizer, VisualBertModel
 from transformers import DetrFeatureExtractor, DetrForObjectDetection, AutoConfig
-from PIL import Image
 
 import pytorch_lightning as pl
 
@@ -47,7 +45,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         self.od_config = AutoConfig.from_pretrained('facebook/detr-resnet-50', num_queries=num_queries)
         self.od_feature_extractor = DetrFeatureExtractor.from_pretrained('facebook/detr-resnet-50')
         self.od_model = DetrForObjectDetection(self.od_config)
-        ic(self.od_config.num_queries)
+        ic(self.od_model)
         self.od_fc = nn.Linear(self.od_config.num_queries * 256, 2048)
         # self.od_fc = nn.Linear(256, 768)
 
