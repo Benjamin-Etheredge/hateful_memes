@@ -36,7 +36,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
             for param in self.visual_bert.parameters():
                 param.requires_grad = False
             self.visual_bert.eval()
-        ic(self.visual_bert)
+        # ic(self.visual_bert)
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 
         ############################################
@@ -45,7 +45,12 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         self.od_config = AutoConfig.from_pretrained('facebook/detr-resnet-50', num_queries=num_queries)
         self.od_feature_extractor = DetrFeatureExtractor.from_pretrained('facebook/detr-resnet-50')
         self.od_model = DetrForObjectDetection(self.od_config)
-        ic(self.od_model)
+
+        for param in self.od_model.parameters():
+            param.requires_grad = False
+        self.od_model.eval()
+
+        # ic(self.od_model)
         self.od_fc = nn.Linear(self.od_config.num_queries * 256, 2048)
         # self.od_fc = nn.Linear(256, 768)
 
