@@ -130,7 +130,7 @@ train:
   fp16: True
   fp16-scale-window: 512
   num-workers: 8
-  ema-alpha: 0.1
+  ema-alpha: 0.11
   fast-dev-run: 0
   monitor-metric: val/loss
   monitor-metric-mode: min
