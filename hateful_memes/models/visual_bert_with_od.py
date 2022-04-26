@@ -98,7 +98,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
             images_list.append(pil_image)
 
         od_inputs = self.od_feature_extractor(images=images_list, return_tensors="pt")
-        od_inputs = od_inputs.to(self.device)
+        # od_inputs = od_inputs.to(self.device)
         od_outputs = self.od_model(**od_inputs)
         # ic(od_outputs.keys())
         # for key in od_outputs.keys():
