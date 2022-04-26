@@ -22,6 +22,7 @@ from detectron2 import model_zoo
 from detectron2.config import get_cfg
 
 import cv2
+import numpy as np
 
 import pytorch_lightning as pl
 
