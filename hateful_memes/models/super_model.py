@@ -34,6 +34,7 @@ class SuperModel(BaseMaeMaeModel):
         beit_ckpt=None,
         electra_ckpt=None,
         distilbert_ckpt=None,
+        visual_bert_with_od_ckpt=None,
     ):
         """ Super Model """
         super().__init__()
@@ -78,6 +79,10 @@ class SuperModel(BaseMaeMaeModel):
         if distilbert_ckpt:
             distilbert_ckpt = get_checkpoint_path(distilbert_ckpt)
             self.models.append(AutoTextModule.load_from_checkpoint(distilbert_ckpt))
+
+        if visual_bert_with_od_ckpt:
+            visual_bert_with_od_ckpt = get_checkpoint_path(visual_bert_with_od_ckpt)
+            self.models.append(VisualBertWithODModule.load_from_checkpoint(visual_bert_with_od_ckpt))
 
         assert len(self.models) > 1, "Not enough models loaded"
         

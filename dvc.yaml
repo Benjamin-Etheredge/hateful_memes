@@ -374,5 +374,7 @@ stages:
       - data/06_models/beit
       - data/06_models/electra
       - data/06_models/distilbert
+        # --visual_bert_with_od_ckpt data/06_models/visual_bert_with_od
+      # - data/06_models/visual_bert_with_od
     outs:
       - data/06_models/super_model
