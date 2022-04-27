@@ -40,8 +40,6 @@ jobs:
         run: |
           pip install -r requirements.txt --no-cache-dir
           pip install -e .
-          python -c 'import torch; from torch.utils.cpp_extension import CUDA_HOME; print(torch.cuda.is_available(), CUDA_HOME)'
-          python -m pip install 'git+https://github.com/facebookresearch/detectron2.git@v0.5'
 
       - name: pull_data
         run: dvc pull data/01_raw/hateful_memes
@@ -74,8 +72,6 @@ jobs:
         run: |
           pip install -r requirements.txt --no-cache-dir
           pip install -e .
-          python -c 'import torch; from torch.utils.cpp_extension import CUDA_HOME; print(torch.cuda.is_available(), CUDA_HOME)'
-          python -m pip install 'git+https://github.com/facebookresearch/detectron2.git@v0.5'
 
       - name: pull_data
         run: dvc pull data/01_raw/hateful_memes
