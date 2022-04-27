@@ -17,17 +17,33 @@ pillow
 dvc[s3]==2.10.0
 # dvclive[pytorch_lightning]
 # git+https://github.com/Benjamin-Etheredge/dvclive
-
 pandas
 numpy
 seaborn
 jupyter
 scikit-image
 plotly
+fairseq
 
 nbstripout
 icecream
 torch-tb-profiler
+
+# OFA
+git+https://github.com/mthoreson3/OFA@26916038139a44eaafa06c6d7e04b87ef4d1bc0a#egg=OFA
+
+# OFA reqs
+git+https://github.com/pytorch/fairseq@806855bf660ea748ed7ffb42fe8dcc881ca3aca0#egg=fairseq
+opencv-python-headless
+timm
+ftfy==6.0.3
+tensorboardX==2.4.1
+pycocotools==2.0.4
+pycocoevalcap==1.2
+pytorch_lightning
+einops
+datasets
+rouge_score
 
 timm
 opencv-python-headless

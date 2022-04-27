@@ -1,5 +1,6 @@
 notebooks/
 mmf/
+# .devcontainer/
 # .dvc/
 .env*
 # .git*

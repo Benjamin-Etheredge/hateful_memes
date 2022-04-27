@@ -1,0 +1,140 @@
+test:
+  data: "data/02_intermediate/hateful_memes_train_snli_ve.tsv,data/02_intermediate/hateful_memes_valid_snli_ve.tsv"
+  selected-cols: "0,2,3,4,5"
+  bpe-dir: ""
+  user-dir: ""
+  #user-dir: hateful_memes/models/OFA/ofa_module
+  restore-file: data/06_models/ofa/snli_ve_large_best.pt
+  #reset-optimizer: True  #Maybe unused
+  #reset-dataloader: True #Maybe unused 
+  #reset-meters: True #Maybe unused  
+  save-dir: data/06_models/hateful_ofa
+  log-dir: logs/hateful_ofa
+  task: snli_ve
+  arch: ofa_large
+  #criterion: adjust_label_smoothed_cross_entropy  #Maybe unused
+  label-smoothing: 0.0
+  batch-size: 1
+  #update-freq: 8  #Maybe unused
+  encoder-normalize-before: True
+  decoder-normalize-before: True
+  share-decoder-input-output-embed: True
+  share-all-embeddings: True
+  layernorm-embedding: True
+  patch-layernorm-embedding: True
+  code-layernorm-embedding: True
+  resnet-drop-path-rate: 0.0
+  encoder-drop-path-rate: 0.2
+  decoder-drop-path-rate: 0.2
+  dropout: 0.1
+  attention-dropout: 0.0
+  weight-decay: 0.01
+  optimizer: adam  #Maybe unused
+  adam-betas: "0.9,0.999"
+  adam-eps: 1e-08
+  clip-norm: 1.0
+  #lr-scheduler: polynomial_decay   #Maybe unused
+  lr: 2e-5  #This was maybe supposed to be 3e-5, but the script overwrote it with 2e-5?
+  max-epoch: 6  #Ditto: was supposed to be 5, but got overwritten with 6
+  #warmup-ratio: 0.06  #Maybe unused
+  #log-format: simple  #Maybe unused
+  #log-interval: 10  #Maybe unused
+  fixed-validation-seed: 7
+  #keep-best-checkpoints: 1  #Maybe unused
+  #save-interval: 1  #Maybe unused
+  #validate-interval: 1  #Maybe unused
+  #save-interval-updates: 500   #Maybe unused
+  #validate-interval-updates: 500  #Maybe unused
+  #best-checkpoint-metric: snli_score  #Maybe unused
+  #maximize-best-checkpoint-metric: True  #Maybe unused
+  max-src-length: 80
+  max-tgt-length: 20
+  find-unused-parameters: True
+  add-type-embedding: True
+  scale-attn: True
+  scale-fc: True
+  scale-heads: True
+  disable-entangle: True
+  num-bins: 1000
+  patch-image-size: 480
+  prompt-type: "prev_output"
+  add-caption: True
+  fp16: True
+  fp16-scale-window: 512
+  num-workers: 0
+  ema-alpha: 0.1
+  fast-dev-run: 1
+  monitor-metric: val/loss
+  monitor-metric-mode: min
+  stopping-patience: 10
+
+
+train:
+  data: "data/02_intermediate/hateful_memes_train_snli_ve.tsv,data/02_intermediate/hateful_memes_valid_snli_ve.tsv"
+  selected-cols: "0,2,3,4,5"
+  bpe-dir: ""
+  user-dir: ""
+  restore-file: data/06_models/ofa/snli_ve_large_best.pt
+  #reset-optimizer: True  #Maybe unused
+  #reset-dataloader: True #Maybe unused 
+  #reset-meters: True #Maybe unused  
+  save-dir: data/06_models/hateful_ofa
+  log-dir: logs/hateful_ofa
+  task: snli_ve
+  arch: ofa_large
+  #criterion: adjust_label_smoothed_cross_entropy  #Maybe unused
+  label-smoothing: 0.0
+  batch-size: 4
+  #update-freq: 8  #Maybe unused
+  encoder-normalize-before: True
+  decoder-normalize-before: True
+  share-decoder-input-output-embed: True
+  share-all-embeddings: True
+  layernorm-embedding: True
+  patch-layernorm-embedding: True
+  code-layernorm-embedding: True
+  resnet-drop-path-rate: 0.0
+  encoder-drop-path-rate: 0.2
+  decoder-drop-path-rate: 0.2
+  dropout: 0.1
+  attention-dropout: 0.0
+  weight-decay: 0.01
+  optimizer: adam  #Maybe unused
+  adam-betas: "0.9,0.999"
+  adam-eps: 1e-08
+  clip-norm: 1.0
+  #lr-scheduler: polynomial_decay   #Maybe unused
+  lr: 2e-5  #This was maybe supposed to be 3e-5, but the script overwrote it with 2e-5?
+  max-epoch: 6  #Ditto: was supposed to be 5, but got overwritten with 6
+  #warmup-ratio: 0.06  #Maybe unused
+  #log-format: simple  #Maybe unused
+  #log-interval: 10  #Maybe unused
+  fixed-validation-seed: 7
+  #keep-best-checkpoints: 1  #Maybe unused
+  #save-interval: 1  #Maybe unused
+  #validate-interval: 1  #Maybe unused
+  #save-interval-updates: 500   #Maybe unused
+  #validate-interval-updates: 500  #Maybe unused
+  #best-checkpoint-metric: snli_score  #Maybe unused
+  #maximize-best-checkpoint-metric: True  #Maybe unused
+  max-src-length: 80
+  max-tgt-length: 20
+  find-unused-parameters: True
+  add-type-embedding: True
+  scale-attn: True
+  scale-fc: True
+  scale-heads: True
+  disable-entangle: True
+  num-bins: 1000
+  patch-image-size: 480
+  prompt-type: "prev_output"
+  add-caption: True
+  fp16: True
+  fp16-scale-window: 512
+  num-workers: 8
+  ema-alpha: 0.11
+  fast-dev-run: 0
+  monitor-metric: val/loss
+  monitor-metric-mode: min
+  stopping-patience: 10
+

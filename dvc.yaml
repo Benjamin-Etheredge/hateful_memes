@@ -401,3 +401,135 @@ stages:
       # - data/06_models/visual_bert_with_od
     outs:
       - data/06_models/super_model
+  
+  hateful_memes_to_snli_ve:
+    cmd: python hateful_memes/data/hateful_memes_snli_ve.py
+    deps: 
+      - data/01_raw/hateful_memes
+      - hateful_memes/data/hateful_memes_snli_ve.py
+    outs:
+      - data/02_intermediate/hateful_memes_train_snli_ve.tsv
+      - data/02_intermediate/hateful_memes_valid_snli_ve.tsv
+ 
+  test_hateful_ofa:
+    vars:
+      - config/hateful_ofa.yaml
+    cmd: >
+      python -m hateful_memes.models.hateful_ofa
+      ${test.data}
+      --selected-cols ${test.selected-cols}
+      --restore-file ${test.restore-file}
+      --save-dir ${test.save-dir}
+      --log-dir ${test.log-dir}
+      --task ${test.task} 
+      --arch ${test.arch}
+      --batch-size ${test.batch-size}
+      --encoder-normalize-before
+      --decoder-normalize-before
+      --share-decoder-input-output-embed
+      --share-all-embeddings
+      --layernorm-embedding 
+      --patch-layernorm-embedding
+      --code-layernorm-embedding 
+      --resnet-drop-path-rate ${test.resnet-drop-path-rate} 
+      --encoder-drop-path-rate ${test.encoder-drop-path-rate}
+      --decoder-drop-path-rate ${test.decoder-drop-path-rate}
+      --dropout ${test.dropout} 
+      --attention-dropout ${test.attention-dropout}
+      --weight-decay ${test.weight-decay} 
+      --optimizer ${test.optimizer} 
+      --adam-betas ${test.adam-betas}
+      --adam-eps ${test.adam-eps}
+      --clip-norm ${test.clip-norm}
+      --lr ${test.lr} 
+      --max-epoch ${test.max-epoch} 
+      --fixed-validation-seed ${test.fixed-validation-seed} 
+      --max-src-length ${test.max-src-length}
+      --max-tgt-length ${test.max-tgt-length}
+      --find-unused-parameters 
+      --add-type-embedding 
+      --scale-attn 
+      --scale-fc 
+      --scale-heads 
+      --disable-entangle 
+      --num-bins ${test.num-bins}
+      --patch-image-size ${test.patch-image-size}
+      --prompt-type ${test.prompt-type} 
+      --add-caption 
+      --fp16 
+      --fp16-scale-window ${test.fp16-scale-window}
+      --num-workers ${test.num-workers}
+      --ema-alpha ${test.ema-alpha}
+      --fast-dev-run ${test.fast-dev-run}
+      --monitor-metric ${test.monitor-metric}
+      --monitor-metric-mode ${test.monitor-metric-mode}
+      --stopping-patience ${test.stopping-patience}
+      && echo "PASSED" > logs/test_hateful_ofa.log
+    deps:
+      - data/06_models/ofa/snli_ve_large_best.pt
+      - data/02_intermediate/hateful_memes_train_snli_ve.tsv
+      - data/02_intermediate/hateful_memes_valid_snli_ve.tsv
+      - hateful_memes/models/hateful_ofa.py
+    outs:
+      - logs/test_hateful_ofa.log
+
+  train_hateful_ofa:
+    vars:
+      - config/hateful_ofa.yaml
+    cmd: >
+      python -m hateful_memes.models.hateful_ofa
+      ${train.data}
+      --selected-cols ${train.selected-cols}
+      --restore-file ${train.restore-file}
+      --save-dir ${train.save-dir}
+      --log-dir ${train.log-dir}
+      --task ${train.task} 
+      --arch ${train.arch}
+      --batch-size ${train.batch-size}
+      --encoder-normalize-before
+      --decoder-normalize-before
+      --share-decoder-input-output-embed
+      --share-all-embeddings
+      --layernorm-embedding 
+      --patch-layernorm-embedding
+      --code-layernorm-embedding 
+      --resnet-drop-path-rate ${train.resnet-drop-path-rate} 
+      --encoder-drop-path-rate ${train.encoder-drop-path-rate}
+      --decoder-drop-path-rate ${train.decoder-drop-path-rate}
+      --dropout ${train.dropout} 
+      --attention-dropout ${train.attention-dropout}
+      --weight-decay ${train.weight-decay} 
+      --optimizer ${train.optimizer} 
+      --adam-betas ${train.adam-betas}
+      --adam-eps ${train.adam-eps}
+      --clip-norm ${train.clip-norm}
+      --lr ${train.lr} 
+      --max-epoch ${train.max-epoch} 
+      --fixed-validation-seed ${train.fixed-validation-seed} 
+      --max-src-length ${train.max-src-length}
+      --max-tgt-length ${train.max-tgt-length}
+      --find-unused-parameters 
+      --add-type-embedding 
+      --scale-attn 
+      --scale-fc 
+      --scale-heads 
+      --disable-entangle 
+      --num-bins ${train.num-bins}
+      --patch-image-size ${train.patch-image-size}
+      --prompt-type ${train.prompt-type} 
+      --add-caption 
+      --fp16 
+      --fp16-scale-window ${train.fp16-scale-window}
+      --num-workers ${train.num-workers}
+      --ema-alpha ${train.ema-alpha}
+      --fast-dev-run ${train.fast-dev-run}
+      --monitor-metric ${train.monitor-metric}
+      --monitor-metric-mode ${train.monitor-metric-mode}
+      --stopping-patience ${train.stopping-patience}
+    deps:
+      - data/06_models/ofa/snli_ve_large_best.pt
+      - data/02_intermediate/hateful_memes_train_snli_ve.tsv
+      - data/02_intermediate/hateful_memes_valid_snli_ve.tsv
+      - hateful_memes/models/hateful_ofa.py
+    outs:
+      - data/06_models/hateful_ofa

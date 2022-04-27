@@ -490,3 +490,85 @@ stages:
       md5: a24243ce73e7c58c675fe20ff739bc70.dir
       size: 718504169
       nfiles: 1
+  hateful_memes_to_snli_ve:
+    cmd: python hateful_memes/data/hateful_memes_snli_ve.py
+    deps:
+    - path: data/01_raw/hateful_memes
+      md5: 33e8a3b59cb044f3893d27962a127805.dir
+      size: 4232397658
+      nfiles: 12148
+    - path: hateful_memes/data/hateful_memes_snli_ve.py
+      md5: b99996b91149bb58162e3e49ca1d8843
+      size: 4483
+    outs:
+    - path: data/02_intermediate/hateful_memes_train_snli_ve.tsv
+      md5: cfdac03de35580554bd8f3d3dfc8a120
+      size: 4077445020
+    - path: data/02_intermediate/hateful_memes_valid_snli_ve.tsv
+      md5: e53d1c118761446cd00d926469da82f5
+      size: 252275396
+  test_hateful_ofa:
+    cmd: "python -m hateful_memes.models.hateful_ofa data/02_intermediate/hateful_memes_train_snli_ve.tsv,data/02_intermediate/hateful_memes_valid_snli_ve.tsv\
+      \ --selected-cols 0,2,3,4,5 --restore-file data/06_models/ofa/snli_ve_large_best.pt\
+      \ --save-dir data/06_models/hateful_ofa --log-dir logs/hateful_ofa --task snli_ve\
+      \  --arch ofa_large --batch-size 1 --encoder-normalize-before --decoder-normalize-before\
+      \ --share-decoder-input-output-embed --share-all-embeddings --layernorm-embedding\
+      \  --patch-layernorm-embedding --code-layernorm-embedding  --resnet-drop-path-rate\
+      \ 0.0  --encoder-drop-path-rate 0.2 --decoder-drop-path-rate 0.2 --dropout 0.1\
+      \  --attention-dropout 0.0 --weight-decay 0.01  --optimizer adam  --adam-betas\
+      \ 0.9,0.999 --adam-eps 1e-08 --clip-norm 1.0 --lr 2e-05  --max-epoch 6  --fixed-validation-seed\
+      \ 7  --max-src-length 80 --max-tgt-length 20 --find-unused-parameters  --add-type-embedding\
+      \  --scale-attn  --scale-fc  --scale-heads  --disable-entangle  --num-bins 1000\
+      \ --patch-image-size 480 --prompt-type prev_output  --add-caption  --fp16  --fp16-scale-window\
+      \ 512 --num-workers 0 --ema-alpha 0.1 --fast-dev-run 1 --monitor-metric val/loss\
+      \ --monitor-metric-mode min --stopping-patience 10 && echo \"PASSED\" > logs/test_hateful_ofa.log\n"
+    deps:
+    - path: data/02_intermediate/hateful_memes_train_snli_ve.tsv
+      md5: cfdac03de35580554bd8f3d3dfc8a120
+      size: 4077445020
+    - path: data/02_intermediate/hateful_memes_valid_snli_ve.tsv
+      md5: e53d1c118761446cd00d926469da82f5
+      size: 252275396
+    - path: data/06_models/ofa/snli_ve_large_best.pt
+      md5: 8368190a42477d2974fa0affb6279f00
+      size: 6230613509
+    - path: hateful_memes/models/hateful_ofa.py
+      md5: 09b54114a7200626c3514535c5ca8bff
+      size: 14475
+    outs:
+    - path: logs/test_hateful_ofa.log
+      md5: 15de982d1dc99ce52d089868a579de34
+      size: 7
+  train_hateful_ofa:
+    cmd: "python -m hateful_memes.models.hateful_ofa data/02_intermediate/hateful_memes_train_snli_ve.tsv,data/02_intermediate/hateful_memes_valid_snli_ve.tsv\
+      \ --selected-cols 0,2,3,4,5 --restore-file data/06_models/ofa/snli_ve_large_best.pt\
+      \ --save-dir data/06_models/hateful_ofa --log-dir logs/hateful_ofa --task snli_ve\
+      \  --arch ofa_large --batch-size 4 --encoder-normalize-before --decoder-normalize-before\
+      \ --share-decoder-input-output-embed --share-all-embeddings --layernorm-embedding\
+      \  --patch-layernorm-embedding --code-layernorm-embedding  --resnet-drop-path-rate\
+      \ 0.0  --encoder-drop-path-rate 0.2 --decoder-drop-path-rate 0.2 --dropout 0.1\
+      \  --attention-dropout 0.0 --weight-decay 0.01  --optimizer adam  --adam-betas\
+      \ 0.9,0.999 --adam-eps 1e-08 --clip-norm 1.0 --lr 2e-05  --max-epoch 6  --fixed-validation-seed\
+      \ 7  --max-src-length 80 --max-tgt-length 20 --find-unused-parameters  --add-type-embedding\
+      \  --scale-attn  --scale-fc  --scale-heads  --disable-entangle  --num-bins 1000\
+      \ --patch-image-size 480 --prompt-type prev_output  --add-caption  --fp16  --fp16-scale-window\
+      \ 512 --num-workers 8 --ema-alpha 0.11 --fast-dev-run 0 --monitor-metric val/loss\
+      \ --monitor-metric-mode min --stopping-patience 10\n"
+    deps:
+    - path: data/02_intermediate/hateful_memes_train_snli_ve.tsv
+      md5: cfdac03de35580554bd8f3d3dfc8a120
+      size: 4077445020
+    - path: data/02_intermediate/hateful_memes_valid_snli_ve.tsv
+      md5: e53d1c118761446cd00d926469da82f5
+      size: 252275396
+    - path: data/06_models/ofa/snli_ve_large_best.pt
+      md5: 8368190a42477d2974fa0affb6279f00
+      size: 6230613509
+    - path: hateful_memes/models/hateful_ofa.py
+      md5: 892fd3ea464c027a6903397a4f1fa840
+      size: 14653
+    outs:
+    - path: data/06_models/hateful_ofa
+      md5: f64d49abbf6cfe672d9f8d149ed9acf7.dir
+      size: 5719131170
+      nfiles: 1

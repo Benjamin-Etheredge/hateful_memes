@@ -3,7 +3,8 @@ from pytorch_lightning import LightningModule, Trainer
 from pytorch_lightning.utilities.cli import LightningCLI
 from hateful_memes.utils import get_project_logger
 from hateful_memes.data.hateful_memes import MaeMaeDataModule
-from dvclive.lightning import DvcLiveLogger
+#from dvclive.lightning import DvcLiveLogger
+
 import pytorch_lightning as pl
 from torch.nn import functional as F
 
