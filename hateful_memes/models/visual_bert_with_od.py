@@ -94,8 +94,6 @@ class Detectron2Module():
         return features
 
     def get_proposals(self, model, images, features):
-        ic(images)
-        ic(features)
         proposals, _ = model.proposal_generator(images, features)
         return proposals
     
