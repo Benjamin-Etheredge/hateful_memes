@@ -25,6 +25,7 @@ stages:
         --batch_size ${batch_size}
         --grad_clip ${gradient_clip_value}
         --model_dir data/06_models/visual_bert_with_od
+        --freeze ${freeze}
     deps:
       - logs/test_visual_bert_with_od.log
       - data/01_raw/hateful_memes
