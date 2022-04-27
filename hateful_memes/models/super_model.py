@@ -152,7 +152,7 @@ class SuperModel(BaseMaeMaeModel):
 @click.option('--beit_ckpt')
 @click.option('--electra_ckpt')
 @click.option('--distilbert_ckpt')
-@click.option('--grad_clip', default=0, help='Grad clip')
+@click.option('--grad_clip', default=0.0, help='Grad clip')
 @click.option('--batch_size', default=0, help='Batch size')
 @click.option('--epochs', default=10, help='Epochs')
 @click.option('--model_dir', default='/tmp', help='Save dir')
