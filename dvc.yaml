@@ -385,9 +385,10 @@ stages:
         --distilbert_ckpt data/06_models/distilbert
         --batch_size ${batch_size}
         --lr ${lr}
-        --num_dense_layers ${num_layers}
+        --num_dense_layers ${num_dense_layers}
         --dense_dim ${dense_dim}
         --dropout_rate ${dropout_rate}
+        --grad_clip ${grad_clip}
         --epochs ${epochs}
         --model_dir data/06_models/super_model
     deps:

@@ -4,5 +4,5 @@ lr: 1e-5
 epochs: 1000
 dense_dim: 256
 dropout_rate: 0.1
-num_layers: 2
-gradient_clip_value: 1.0
+num_dense_layers: 2
+grad_clip: 1.0

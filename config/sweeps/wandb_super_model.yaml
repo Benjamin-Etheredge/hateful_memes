@@ -1,0 +1,47 @@
+command:
+  - ${env}
+  - ${interpreter}
+  - -m
+  - hateful_memes.models.super_model
+  - ${args}
+project: super-model
+method: grid
+metric:
+  goal: maximize
+  name: val/auroc
+parameters:
+  lr: 
+    values: [1e-5]
+  epochs: 
+    values: [1000]
+  # frozen: 
+    # values: [true]
+  batch_size: 
+    values: [64]
+  dense_dim: 
+    values: [256]
+  dropout_rate: 
+    values: [0.1]
+  num_dense_layers: 
+    values: [2]
+  grad_clip: 
+    values: [1.0]
+
+  visual_bert_ckpt: 
+    values: [None, 'data/06_models/visual_bert']
+  simple_image_ckpt: 
+    values: [None, 'data/06_models/simple_image']
+  simple_mlp_image_ckpt: 
+    values: [None, 'data/06_models/simple_mlp_image']
+  simple_text_ckpt: 
+    values: [None, 'data/06_models/simple_text']
+  vit_ckpt: 
+    values: [None, 'data/06_models/vit']
+  beit_ckpt: 
+    values: [None, 'data/06_models/beit']
+  distilbert_ckpt: 
+    values: [None, 'data/06_models/distilbert']
+  electra_ckpt: 
+    values: [None, 'data/06_models/electra']
+  # visual_bert_with_od_ckpt: 
+    # values: [None, 'data/06_models/visual_bert_with_od']

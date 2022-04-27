@@ -40,10 +40,6 @@ class SuperModel(BaseMaeMaeModel):
         super().__init__()
         # self.hparams = hparams
         self.models = []
-        if visual_bert_ckpt:
-            visual_bert_ckpt = get_checkpoint_path(visual_bert_ckpt)
-            self.models.append(VisualBertModule.load_from_checkpoint(visual_bert_ckpt))
-
         if resnet_ckpt:
             # self.models.append(ResNetModule.load_from_checkpoint(resnet_ckpt))
             resnet = models.resnet50(pretrained=True)
@@ -52,35 +48,39 @@ class SuperModel(BaseMaeMaeModel):
             self.resnet = resnet
             self.models.append(resnet)
 
-        if simple_image_ckpt:
+        if visual_bert_ckpt and visual_bert_ckpt != "None":
+            visual_bert_ckpt = get_checkpoint_path(visual_bert_ckpt)
+            self.models.append(VisualBertModule.load_from_checkpoint(visual_bert_ckpt))
+
+        if simple_image_ckpt and simple_image_ckpt != "None":
             simple_image_ckpt = get_checkpoint_path(simple_image_ckpt)
             self.models.append(SimpleImageMaeMaeModel.load_from_checkpoint(simple_image_ckpt))
 
-        if simple_mlp_image_ckpt:
+        if simple_mlp_image_ckpt and simple_mlp_image_ckpt != "None":
             simple_mlp_image_ckpt = get_checkpoint_path(simple_mlp_image_ckpt)
             self.models.append(SimpleMLPImageMaeMaeModel.load_from_checkpoint(simple_mlp_image_ckpt))
 
-        if simple_text_ckpt:
+        if simple_text_ckpt and simple_text_ckpt != "None":
             simple_text_ckpt = get_checkpoint_path(simple_text_ckpt)
             self.models.append(BaseTextMaeMaeModel.load_from_checkpoint(simple_text_ckpt))
         
-        if vit_ckpt:
+        if vit_ckpt and vit_ckpt != "None":
             vit_ckpt = get_checkpoint_path(vit_ckpt)
             self.models.append(BaseITModule.load_from_checkpoint(vit_ckpt))
         
-        if beit_ckpt:
+        if beit_ckpt and beit_ckpt != "None":
             beit_ckpt = get_checkpoint_path(beit_ckpt)
             self.models.append(BaseITModule.load_from_checkpoint(beit_ckpt))
         
-        if electra_ckpt:
+        if electra_ckpt and electra_ckpt != "None":
             electra_ckpt = get_checkpoint_path(electra_ckpt)
             self.models.append(AutoTextModule.load_from_checkpoint(electra_ckpt))
 
-        if distilbert_ckpt:
+        if distilbert_ckpt and distilbert_ckpt != "None":
             distilbert_ckpt = get_checkpoint_path(distilbert_ckpt)
             self.models.append(AutoTextModule.load_from_checkpoint(distilbert_ckpt))
 
-        if visual_bert_with_od_ckpt:
+        if visual_bert_with_od_ckpt and visual_bert_with_od_ckpt != "None":
             visual_bert_with_od_ckpt = get_checkpoint_path(visual_bert_with_od_ckpt)
             self.models.append(VisualBertWithODModule.load_from_checkpoint(visual_bert_with_od_ckpt))
 
@@ -152,6 +152,7 @@ class SuperModel(BaseMaeMaeModel):
 @click.option('--beit_ckpt')
 @click.option('--electra_ckpt')
 @click.option('--distilbert_ckpt')
+@click.option('--grad_clip', default=0, help='Grad clip')
 @click.option('--batch_size', default=0, help='Batch size')
 @click.option('--epochs', default=10, help='Epochs')
 @click.option('--model_dir', default='/tmp', help='Save dir')
