@@ -19,6 +19,7 @@ import OFA.utils.BPE
 from OFA.tasks import OFATask
 import pathlib
 import sys
+import os
 
 from hateful_memes.utils import get_project_logger
 
@@ -328,7 +329,9 @@ def main(
         fast_dev_run=fast_dev_run,
         devices=1, 
         accelerator='auto',
-        logger=logger
+        logger=logger,
+        precision=16,
+        enable_progress_bar=os.environ.get('ENABLE_PROGRESS_BAR', 1) == 1,
     )
    
 
