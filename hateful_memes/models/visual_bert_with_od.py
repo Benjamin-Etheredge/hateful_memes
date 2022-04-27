@@ -215,7 +215,9 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         self.od_config = AutoConfig.from_pretrained('facebook/detr-resnet-50', num_queries=num_queries)
         self.od_feature_extractor = DetrFeatureExtractor.from_pretrained('facebook/detr-resnet-50')
         self.od_model = DetrForObjectDetection(self.od_config).to(self.device)
-        self.od_fc = nn.Linear(self.od_config.num_queries * 256, 2048)
+        self.num_queries = num_queries
+        self.od_poolsize = (self.num_queries//5) + 1
+        self.od_fc = nn.Linear(self.od_poolsize * 256, 1024)
 
         # self.detr2 = Detectron2Module(batch_size=batch_size, num_queries=num_queries)
          
@@ -243,7 +245,6 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         self.to_freeze = freeze
         self.visual_bert_config = self.visual_bert.config
         self.last_hidden_size = dense_dim
-        self.num_queries = num_queries
         self.image_transformer = torchvision.transforms.ToPILImage()
 
         self.save_hyperparameters()
@@ -272,26 +273,16 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         #     ic(key, od_outputs[key].shape)
 
         image_x = od_outputs.last_hidden_state
+        # ic(image_x.shape)
 
+        image_x = image_x.permute(0, 2, 1)
+        image_x = F.adaptive_avg_pool1d(image_x, self.od_poolsize)
+        image_x = image_x.permute(0, 2, 1)
+        image_x = torch.tanh(image_x)
+        # ic(image_x.shape)
         image_x = image_x.view(image_x.shape[0], 1, -1)
+        image_x = torch.squeeze(image_x, dim=-1)
         image_x = self.od_fc(image_x)
-        image_x = torch.tanh(image_x)
-        image_x = F.dropout(image_x, p=self.dropout_rate)
-
-
-        od_inputs = self.od_feature_extractor(images=images_list, return_tensors="pt")
-        od_inputs = od_inputs.to(self.device)
-        od_outputs = self.od_model(**od_inputs)
-
-        image_x = od_outputs.last_hidden_state
-
-        # image_x = image_x.view(image_x.shape[0], 1, -1)
-        image_x = self.od_fc(image_x)
-        image_x = image_x.permute(0, 2, 1)
-        image_x = F.adaptive_avg_pool1d(image_x, 1)
-        image_x = image_x.permute(0, 2, 1)
-        # image_x = torch.squeeze(image_x, dim=-1)
-        image_x = torch.tanh(image_x)
         ############################################
         # Obj Detection End
         ############################################

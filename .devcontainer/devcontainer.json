@@ -46,8 +46,8 @@
 
 	// Use 'postCreateCommand' to run commands after the container is created.
 	"postCreateCommand": "pip install -r requirements.txt && pip install -e . && dvc pull data/01_raw/* && dvc pull",
-	// "runArgs": ["--gpus=all", "--env-file=.env", "--shm-size=8g"],
-	"runArgs": ["--env-file=.env", "--shm-size=1g"],
+	"runArgs": ["--gpus=all", "--env-file=.env", "--shm-size=8g"],
+	// "runArgs": ["--env-file=.env", "--shm-size=1g"],
 
     "containerEnv": {
         "WANDB_ENTITY": "meme-team",
