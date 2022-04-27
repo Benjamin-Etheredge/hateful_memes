@@ -36,6 +36,7 @@ class Detectron2Module():
         self.MIN_BOXES=10
         self.MAX_BOXES=num_queries
         self.batch_size = batch_size
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     def load_config_and_model_weights(self, cfg_path):
         cfg = get_cfg()
@@ -71,7 +72,7 @@ class Detectron2Module():
         img_list = [transform_gen.get_transform(img).apply_image(img) for img in img_list]
 
         # Convert to C,H,W format
-        convert_to_tensor = lambda x: torch.Tensor(x.astype("float32").transpose(2, 0, 1))
+        convert_to_tensor = lambda x: torch.Tensor(x.astype("float32").transpose(2, 0, 1)).to(self.device)
 
         batched_inputs = [{"image":convert_to_tensor(img), "height": img.shape[0], "width": img.shape[1]} for img in img_list]
 
