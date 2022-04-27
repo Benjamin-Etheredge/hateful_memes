@@ -154,7 +154,7 @@ class Detectron2Module():
             det_boxes = cls_boxes[:,cls_ind,:]
             keep = np.array(nms(det_boxes, cls_scores, test_nms_thresh).cpu())
             max_conf[keep] = torch.where(cls_scores[keep] > max_conf[keep], cls_scores[keep], max_conf[keep])
-        keep_boxes = torch.where(max_conf >= test_score_thresh).to(self.device)[0]
+        keep_boxes = torch.where(max_conf >= test_score_thresh)[0]
         return keep_boxes, max_conf
 
     def get_visual_embeds(self, box_features, keep_boxes):
@@ -162,9 +162,9 @@ class Detectron2Module():
 
     def filter_boxes(self, keep_boxes, max_conf, min_boxes, max_boxes):
         if len(keep_boxes) < min_boxes:
-            keep_boxes = np.argsort(max_conf).cpu().numpy()[::-1][:min_boxes]
+            keep_boxes = torch.argsort(max_conf)[::-1][:min_boxes]
         elif len(keep_boxes) > max_boxes:
-            keep_boxes = np.argsort(max_conf).cpu().numpy()[::-1][:max_boxes]
+            keep_boxes = torch.argsort(max_conf)[::-1][:max_boxes]
         return keep_boxes
 
     def forward(self, img_list):
