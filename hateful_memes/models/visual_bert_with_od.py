@@ -78,8 +78,8 @@ class Detectron2Module():
 
         # Normalizing the image
         num_channels = len(cfg.MODEL.PIXEL_MEAN)
-        pixel_mean = torch.Tensor(cfg.MODEL.PIXEL_MEAN).view(num_channels, 1, 1)
-        pixel_std = torch.Tensor(cfg.MODEL.PIXEL_STD).view(num_channels, 1, 1)
+        pixel_mean = torch.Tensor(cfg.MODEL.PIXEL_MEAN).view(num_channels, 1, 1).to(self.device)
+        pixel_std = torch.Tensor(cfg.MODEL.PIXEL_STD).view(num_channels, 1, 1).to(self.device)
         normalizer = lambda x: (x - pixel_mean) / pixel_std
         images = [normalizer(x["image"]) for x in batched_inputs]
 
@@ -148,7 +148,7 @@ class Detectron2Module():
         test_nms_thresh = cfg.MODEL.ROI_HEADS.NMS_THRESH_TEST
         cls_prob = scores.detach()
         cls_boxes = output_boxes.tensor.detach().reshape(1000,80,4)
-        max_conf = torch.zeros((cls_boxes.shape[0]))
+        max_conf = torch.zeros((cls_boxes.shape[0])).to(self.device)
         for cls_ind in range(0, cls_prob.shape[1]-1):
             cls_scores = cls_prob[:, cls_ind+1]
             det_boxes = cls_boxes[:,cls_ind,:]
