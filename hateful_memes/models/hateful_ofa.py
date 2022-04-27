@@ -186,9 +186,8 @@ class HatefulOFA(pl.LightningModule):
         loss = self._label_smoothed_nll_loss(lprobs, targets, label_smoothing, constraints_masks)
         # Calculate accuracy
         pad_mask = targets.ne(padding_idx)
-        masked_preds = lprobs.argmax(1).masked_select(pad_mask)
-        masked_tgts = targets.masked_select(pad_mask).eq(pad_mask)
-        correct_mask = masked_preds.eq(masked_tgts)
+        preds = lprobs.argmax(1)
+        correct_mask = preds.eq(targets)
         num_correct = torch.sum(correct_mask)
         num_total = torch.sum(pad_mask)
         acc = num_correct/num_total        

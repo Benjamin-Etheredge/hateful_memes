@@ -419,16 +419,16 @@ stages:
   test_hateful_ofa:
     cmd: "python -m hateful_memes.models.hateful_ofa data/02_intermediate/hateful_memes_train_snli_ve.tsv,data/02_intermediate/hateful_memes_valid_snli_ve.tsv\
       \ --selected-cols 0,2,3,4,5 --restore-file data/06_models/ofa/snli_ve_large_best.pt\
-      \ --save-dir data/06_models/hateful_ofa --task snli_ve  --arch ofa_large --batch-size\
-      \ 1 --encoder-normalize-before --decoder-normalize-before --share-decoder-input-output-embed\
-      \ --share-all-embeddings --layernorm-embedding  --patch-layernorm-embedding\
-      \ --code-layernorm-embedding  --resnet-drop-path-rate 0.0  --encoder-drop-path-rate\
-      \ 0.2 --decoder-drop-path-rate 0.2 --dropout 0.1  --attention-dropout 0.0 --weight-decay\
-      \ 0.01  --optimizer adam  --adam-betas 0.9,0.999 --adam-eps 1e-08 --clip-norm\
-      \ 1.0 --lr 2e-05  --max-epoch 6  --fixed-validation-seed 7  --max-src-length\
-      \ 80 --max-tgt-length 20 --find-unused-parameters  --add-type-embedding  --scale-attn\
-      \  --scale-fc  --scale-heads  --disable-entangle  --num-bins 1000 --patch-image-size\
-      \ 480 --prompt-type prev_output  --add-caption  --fp16  --fp16-scale-window\
+      \ --save-dir data/06_models/hateful_ofa --log-dir logs/hateful_ofa --task snli_ve\
+      \  --arch ofa_large --batch-size 1 --encoder-normalize-before --decoder-normalize-before\
+      \ --share-decoder-input-output-embed --share-all-embeddings --layernorm-embedding\
+      \  --patch-layernorm-embedding --code-layernorm-embedding  --resnet-drop-path-rate\
+      \ 0.0  --encoder-drop-path-rate 0.2 --decoder-drop-path-rate 0.2 --dropout 0.1\
+      \  --attention-dropout 0.0 --weight-decay 0.01  --optimizer adam  --adam-betas\
+      \ 0.9,0.999 --adam-eps 1e-08 --clip-norm 1.0 --lr 2e-05  --max-epoch 6  --fixed-validation-seed\
+      \ 7  --max-src-length 80 --max-tgt-length 20 --find-unused-parameters  --add-type-embedding\
+      \  --scale-attn  --scale-fc  --scale-heads  --disable-entangle  --num-bins 1000\
+      \ --patch-image-size 480 --prompt-type prev_output  --add-caption  --fp16  --fp16-scale-window\
       \ 512 --num-workers 0 --ema-alpha 0.1 --fast-dev-run 1 --monitor-metric val/loss\
       \ --monitor-metric-mode min --stopping-patience 10 && echo \"PASSED\" > logs/test_hateful_ofa.log\n"
     deps:
@@ -442,8 +442,8 @@ stages:
       md5: 8368190a42477d2974fa0affb6279f00
       size: 6230613509
     - path: hateful_memes/models/hateful_ofa.py
-      md5: 9db82a50fa846d840dfa83be5ac9abb0
-      size: 13479
+      md5: 892fd3ea464c027a6903397a4f1fa840
+      size: 14653
     outs:
     - path: logs/test_hateful_ofa.log
       md5: 15de982d1dc99ce52d089868a579de34
