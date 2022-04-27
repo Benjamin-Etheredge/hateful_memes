@@ -156,6 +156,8 @@ class Detectron2Module():
         keep_boxes = torch.where(max_conf >= test_score_thresh)[0]
         return keep_boxes, max_conf
 
+    def get_visual_embeds(self, box_features, keep_boxes):
+            return box_features[keep_boxes.copy()]
 
     def filter_boxes(self, keep_boxes, max_conf, min_boxes, max_boxes):
         if len(keep_boxes) < min_boxes:
@@ -164,7 +166,7 @@ class Detectron2Module():
             keep_boxes = np.argsort(max_conf).numpy()[::-1][:max_boxes]
         return keep_boxes
 
-    def get_visual_embeds(self, img_list):
+    def forward(self, img_list):
         images, batched_inputs = self.prepare_image_inputs(self.cfg, img_list)
         features = self.get_features(self.model, images)
         proposals = self.get_proposals(self.model, images, features) 
@@ -283,7 +285,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         image = torch.transpose(image, 2, 3)
         images_list = [cv2.cv2.cvtColor(batch_img.cpu().numpy(), cv2.COLOR_RGB2BGR) for batch_img in image]
         # ic()
-        image_x = self.detr2.get_visual_embeds(images_list).to(self.device)
+        image_x = self.detr2.forward(images_list).to(self.device)
         # ic()
         # images_list = [self.image_transformer(x_) for x_ in image]
 
