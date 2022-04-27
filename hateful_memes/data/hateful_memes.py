@@ -42,36 +42,6 @@ class MaeMaeDataset(torch.utils.data.Dataset):
 
         self.include_text_features = include_text_features
         self.vocab = None
-        self.tokenizer = transformers.BertTokenizer.from_pretrained('bert-base-uncased')
-        self.text_pipeline = self.create_text_transform()
-        # self.imgs = 
-    
-    @staticmethod
-    def collate_batch(batch):
-        img_list, labels_list, raw_text, text_list, offsets = [], [], [], [], [0]
-        # ic(batch)
-        # if type(batch) == list:
-            # ic(batch)
-        for item in batch:
-            img_list.append(item['image'])
-            labels_list.append(item['label'])
-
-
-            raw_text.append(item['text'])
-            text_list.append(item['text_features'])
-            offsets.append(item['offset'])
-
-        img_list = torch.stack(img_list)
-        labels_list = torch.tensor(labels_list, dtype=torch.int32)
-        offsets = torch.tensor(offsets[:-1]).cumsum(dim=0)
-        text_list = torch.cat(text_list)
-        return dict(
-            text_features=text_list,
-            text_offset=offsets,
-            label=labels_list,
-            image=img_list,
-            text=raw_text,
-        )
 
     def __len__(self):
         return len(self.info)
@@ -143,20 +113,6 @@ class MaeMaeDataset(torch.utils.data.Dataset):
         self.vocab.set_default_index(self.vocab["<unk>"])
 
         return lambda x: self.vocab(self.tokenizer(x))
-    # def create_text_transform(self):
-    #     from torchtext.data.utils import get_tokenizer
-    #     from torchtext.vocab import build_vocab_from_iterator
-
-    #     self.tokenizer = get_tokenizer('basic_english')
-    #     def yield_tokens(data_iter):
-    #         for text in data_iter:
-    #             ic(text)
-    #             yield self.tokenizer(text)
-    #     self.vocab = build_vocab_from_iterator(yield_tokens(self.info['text']), specials=["<unk>"])
-    #     self.vocab.set_default_index(self.vocab["<unk>"])
-
-    #     return lambda x: self.vocab(self.tokenizer(x))
-
 
 class MaeMaeDataModule(pl.LightningDataModule):
     def __init__(
@@ -218,6 +174,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
         self.train_len = int(self.dataset_len * (1 - self.val_split))
         self.val_len = self.dataset_len - self.train_len
 
+        torch.manual_seed(4)
         self.train_dataset, self.val_dataset = random_split(self.dataset, [self.train_len, self.val_len])
     
     # def create_collate_fn(self):

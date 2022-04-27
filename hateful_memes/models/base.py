@@ -25,12 +25,13 @@ class BaseMaeMaeModel(LightningModule):
         super().__init__()
 
         # TODO log for each metric through macro
-        self.train_acc = torchmetrics.Accuracy()
-        self.train_f1 = torchmetrics.F1(average="micro")
-        self.train_auroc = torchmetrics.AUROC(average="micro")
-        self.val_acc = torchmetrics.Accuracy()
-        self.val_f1 = torchmetrics.F1(average="micro")
-        self.val_auroc = torchmetrics.AUROC(average="micro")
+        metrics_kwargs = dict(compute_on_cpu=True)
+        self.train_acc = torchmetrics.Accuracy(**metrics_kwargs)
+        self.train_f1 = torchmetrics.F1Score(average="micro", **metrics_kwargs)
+        self.train_auroc = torchmetrics.AUROC(average="micro", **metrics_kwargs)
+        self.val_acc = torchmetrics.Accuracy(**metrics_kwargs)
+        self.val_f1 = torchmetrics.F1Score(average="micro", **metrics_kwargs)
+        self.val_auroc = torchmetrics.AUROC(average="micro", **metrics_kwargs)
 
     def forward(self, batch):
         raise NotImplemented
@@ -80,7 +81,7 @@ class BaseMaeMaeModel(LightningModule):
         optimizer= torch.optim.Adam(self.parameters(), lr=self.lr)
         return {
             "optimizer": optimizer,
-            "lr_scheduler": ReduceLROnPlateau(optimizer, patience=8, verbose=True),
+            "lr_scheduler": ReduceLROnPlateau(optimizer, patience=5, verbose=True),
             "monitor": "train/loss",
         }
 
@@ -98,6 +99,7 @@ def base_train(
         monitor_metric="val/loss",
         monitor_metric_mode="min",
         stopping_patience=10,
+        mixed_precision=True,
     ):
     logger = get_project_logger(project=project, save_dir=log_dir, offline=fast_dev_run)
     # TODO pull out lr and maybe arg optimizer
@@ -128,8 +130,8 @@ def base_train(
         fast_dev_run=fast_dev_run, 
         # auto_lr_find=True,
         auto_scale_batch_size='power' if batch_size <= 0 else False,
-        precision=16,
-        amp_backend='native',
+        precision=16 if mixed_precision else 32,
+        # amp_backend='native',
         # detect_anomaly=True,
         enable_progress_bar=os.environ.get('ENABLE_PROGRESS_BAR', 1) == 1,
         callbacks=[checkpoint_callback, early_stopping])

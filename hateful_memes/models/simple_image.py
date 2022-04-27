@@ -30,14 +30,65 @@ class SimpleImageMaeMaeModel(BaseMaeMaeModel):
 
     ):
         super().__init__()
-        self.conv1 = nn.Conv2d(3, 16, 3, 1)
-        self.conv2 = nn.Conv2d(16, 32, 3, 1)
-        self.conv3 = nn.Conv2d(32, 64, 3, 1)
-        self.conv4 = nn.Conv2d(64, 128, 3, 1)
-        self.conv5 = nn.Conv2d(128, 256, 3, 1)
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(3, 16, 3, padding=1, bias=False),
+            nn.BatchNorm2d(16),
+            nn.ReLU(),
+            nn.Conv2d(16, 16, 3, padding=1, bias=False),
+            nn.BatchNorm2d(16),
+            nn.ReLU(),
+            nn.MaxPool2d(2)
+        )
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(16, 32, 3, padding=1, bias=False),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            nn.Conv2d(32, 32, 3, padding=1, bias=False),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            nn.MaxPool2d(2)
+        )
+        self.conv3 = nn.Sequential(
+            nn.Conv2d(32, 64, 3, padding=1, bias=False),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, 3, padding=1, bias=False),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.MaxPool2d(2)
+        )
+        self.conv4 = nn.Sequential(
+            nn.Conv2d(64, 128, 3, padding=1, bias=False),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.Conv2d(128, 128, 3, padding=1, bias=False),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.MaxPool2d(2)
+        )
+        self.conv5 = nn.Sequential(
+            nn.Conv2d(128, 256, 3, padding=1, bias=False),
+            nn.BatchNorm2d(256),
+            nn.ReLU(),
+            nn.Conv2d(256, 256, 3, padding=1, bias=False),
+            nn.BatchNorm2d(256),
+            nn.ReLU(),
+            nn.MaxPool2d(2)
+        )
+        self.conv6 = nn.Sequential(
+            nn.Conv2d(256, 512, 3, padding=1, bias=False),
+            nn.BatchNorm2d(512),
+            nn.ReLU(),
+            nn.Conv2d(512, 512, 3, padding=1, bias=False),
+            nn.BatchNorm2d(512),
+            nn.ReLU(),
+            nn.MaxPool2d(2)
+        )
+
+
         # TODO better batch norm usage and remove bias
 
-        self.l1 = nn.Linear(6400, dense_dim)
+        self.l1 = nn.Linear(4608, dense_dim)
         self.l2 = nn.Linear(dense_dim, dense_dim)
         self.l3 = nn.Linear(dense_dim, 1)
 
@@ -53,35 +104,13 @@ class SimpleImageMaeMaeModel(BaseMaeMaeModel):
     def forward(self, batch):
         x_img = batch['image']
         x = x_img
+
         x = self.conv1(x)
-        # if self.batch_norm:
-            # x = F.batch_norm(x)
-        x = F.relu(x)
-        x = F.max_pool2d(x, 2)
-
         x = self.conv2(x)
-        # if self.batch_norm:
-            # x = F.batch_norm(x, training=self.training)
-        x = F.relu(x)
-        x = F.max_pool2d(x, 2)
-
         x = self.conv3(x)
-        # if self.batch_norm:
-            # x = F.batch_norm(x, training=self.training)
-        x = F.relu(x)
-        x = F.max_pool2d(x, 2)
-
         x = self.conv4(x)
-        # if self.batch_norm:
-            # x = F.batch_norm(x, training=self.training)
-        x = F.relu(x)
-        x = F.max_pool2d(x, 2)
-
         x = self.conv5(x)
-        # if self.batch_norm:
-            # x = F.batch_norm(x, training=self.training)
-        x = F.relu(x)
-        x = F.max_pool2d(x, 2)
+        x = self.conv6(x)
 
         x = x.view(x.shape[0], -1)
 
