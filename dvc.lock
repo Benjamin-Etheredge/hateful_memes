@@ -224,8 +224,8 @@ stages:
       md5: 01c81b43a5a49a99ab40dfd8dab6c037
       size: 6681
     - path: hateful_memes/models/super_model.py
-      md5: 287efc820a7a9cfc2a90c590ca6e914b
-      size: 6427
+      md5: 708ec89d91177342d1a17924d5f4232e
+      size: 6758
     outs:
     - path: logs/test_super_model.log
       md5: 15de982d1dc99ce52d089868a579de34
@@ -458,8 +458,8 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/models/visual_bert_with_od.py
-      md5: 4479967af3e338546f53bf7b8cd562ef
-      size: 6221
+      md5: 0ee096b1fa467eae064ac2db8cc6bdf7
+      size: 6195
     outs:
     - path: logs/test_visual_bert_with_od.log
       md5: 15de982d1dc99ce52d089868a579de34
