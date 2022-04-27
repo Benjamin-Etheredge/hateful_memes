@@ -1,6 +1,7 @@
 import torch
 from torch.utils.data import SequentialSampler, BatchSampler
 from torch.utils.data import DataLoader
+import torchmetrics
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import StochasticWeightAveraging, EarlyStopping, ModelCheckpoint
 import math
@@ -20,6 +21,7 @@ from OFA.tasks import OFATask
 import pathlib
 import sys
 import os
+from icecream import ic
 
 from hateful_memes.utils import get_project_logger
 
@@ -62,11 +64,10 @@ class HatefulOFADataModule(pl.LightningDataModule):
         # Create data loader
         train_itr = DataLoader(
             self.train_dataset,
-            batch_sampler=BatchSampler(SequentialSampler(self.train_dataset), batch_size=self.batch_size, drop_last=True),
+            # batch_sampler=BatchSampler(SequentialSampler(self.train_dataset), batch_size=self.batch_size, drop_last=True),
             collate_fn=self.train_dataset.collater,
             num_workers=self.fs_cfg.dataset.num_workers,
-            timeout=0,
-            pin_memory=False
+            # timeout=0,
         )
         return train_itr
 
@@ -74,11 +75,10 @@ class HatefulOFADataModule(pl.LightningDataModule):
         # Create data loader
         val_itr = DataLoader(
             self.val_dataset,
-            batch_sampler=BatchSampler(SequentialSampler(self.val_dataset), batch_size=self.batch_size, drop_last=True),
+            # batch_sampler=BatchSampler(SequentialSampler(self.val_dataset), batch_size=self.batch_size, drop_last=True),
             collate_fn=self.val_dataset.collater,
             num_workers=self.fs_cfg.dataset.num_workers,
-            timeout=0,
-            pin_memory=False
+            # timeout=0,
         )
         return val_itr
 
@@ -120,6 +120,16 @@ class HatefulOFA(pl.LightningModule):
                 "Cannot load model parameters from checkpoint {}; "
                 "please ensure that the architectures match.".format(filename)
             )
+
+        # Metrics
+        metrics_kwargs = dict(compute_on_cpu=True, num_classes=59_457)
+        self.train_acc = torchmetrics.Accuracy(**metrics_kwargs)
+        self.train_f1 = torchmetrics.F1Score(average="micro", **metrics_kwargs)
+        # self.train_auroc = torchmetrics.AUROC(average="micro", **metrics_kwargs)
+        self.train_auroc = torchmetrics.AUROC(**metrics_kwargs)
+        self.val_acc = torchmetrics.Accuracy(**metrics_kwargs)
+        self.val_f1 = torchmetrics.F1Score(average="micro", **metrics_kwargs)
+        self.val_auroc = torchmetrics.AUROC(**metrics_kwargs)
 
     """Forward function"""
     def forward(self, batch) -> torch.Tensor:
@@ -168,13 +178,23 @@ class HatefulOFA(pl.LightningModule):
             smooth_loss = -lprobs.sum(dim=-1, keepdim=True).squeeze(-1)
             eps_i = epsilon / (lprobs.size(-1) - 1)
         loss = (1.0 - epsilon - eps_i) * nll_loss + eps_i * smooth_loss
-        loss = loss.sum()
+        loss = loss.mean()
         return loss
 
     """Training and validation"""
     def _shared_step(self, batch) -> torch.Tensor:
         # Get raw output, y_hat
+        # for key in batch.keys():
+        #     try:
+        #         ic(key)
+        #         ic(batch[key].shape)
+        #     except:
+        #         pass
+        # ic(batch)
         net_output = self(batch)
+        # ic(net_output[0].shape)
+        # ic(net_output[1].keys())
+        # ic(net_output)
         # Prep for loss function
         ign_prefix_sz = self.ign_prefix_sz
         padding_idx = self.padding_idx
@@ -184,27 +204,44 @@ class HatefulOFA(pl.LightningModule):
                                                                                 batch)
         # Calculate label-smoothed CE loss
         label_smoothing = self.label_smoothing
+        # ic(lprobs.shape, targets.shape)
         loss = self._label_smoothed_nll_loss(lprobs, targets, label_smoothing, constraints_masks)
         # Calculate accuracy
-        preds = lprobs.argmax(1)
-        correct_mask = preds.eq(targets)
-        num_correct = torch.sum(correct_mask)
-        num_total = torch.numel(correct_mask)
-        acc = num_correct/num_total        
-        return loss, acc
+        # ic(lprobs.shape)
+        # preds = lprobs.argmax(1)
+        # ic(preds.shape, preds)
+        # ic(targets)
+        # correct_mask = preds.eq(targets)
+        # num_correct = torch.sum(correct_mask)
+        # num_total = torch.numel(correct_mask)
+        # acc = num_correct/num_total        
+        # ic(correct_mask)
+        # ic(preds.shape, targets.squeeze())
+        # ic(lprobs.shape, targets)
+        return loss, lprobs, targets.squeeze()
 
     """Training"""
     def training_step(self, batch, batch_idx) -> torch.Tensor:
-        loss, acc = self._shared_step(batch)
-        self.log("train/loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        self.log("train/acc", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        loss, preds, targets = self._shared_step(batch)
+        self.train_acc(preds, targets)
+        self.train_f1(preds, targets)
+        self.train_auroc(preds, targets)
+
+        self.log("train/loss", self.train_acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("train/acc", self.train_f1, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("train/auroc", self.train_auroc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         return loss
 
     """Validation"""
     def validation_step(self, batch, batch_idx) -> torch.Tensor:
-        loss, acc = self._shared_step(batch)
-        self.log("val/loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        self.log("val/acc", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        loss, preds, targets = self._shared_step(batch)
+        self.val_acc(preds, targets)
+        self.val_f1(preds, targets)
+        self.val_auroc(preds, targets)
+
+        self.log("val/loss", self.val_acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("val/acc", self.val_f1, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("val/auroc", self.val_auroc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         return loss
 
     """Testing"""
