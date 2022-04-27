@@ -33,8 +33,6 @@ jobs:
       - name: work around permission issue
         run: git config --global --add safe.directory /__w/hateful_memes/hateful_memes
       - uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
 
       - name: Branch name
         run: echo running on branch ${GITHUB_REF##*/}
@@ -43,6 +41,8 @@ jobs:
         run: |
           pip install -r requirements.txt --no-cache-dir
           pip install -e .
+          python -c 'import torch; from torch.utils.cpp_extension import CUDA_HOME; print(torch.cuda.is_available(), CUDA_HOME)'
+          python -m pip install 'git+https://github.com/facebookresearch/detectron2.git@v0.5'
 
       - name: Pull data
         run: dvc pull data/01_raw/hateful_memes
@@ -51,60 +51,14 @@ jobs:
         continue-on-error: true
         run: dvc pull -a --run-cache
 
-      # - name: Train Electra
-      #   # continue-on-error: true
-      #   run: |
-      #     dvc repro --pull electra
-      #     dvc push -d electra
 
-      # - name: Train Distilbert
-      #   # continue-on-error: true
-      #   run: |
-      #     dvc repro --pull distilbert
-      #     dvc push -d distilbert
+      - name: Train VisualBERT
+        continue-on-error: true
+        run: |
+          dvc repro visual_bert
+          dvc push --run-cache -d visual_bert
 
-      # - name: Train Simple Image Model
-
-      #   # continue-on-error: true
-      #   run: |
-      #     dvc repro simple_image
-      #     dvc push --run-cache -d simple_image
-
-      # - name: Train Simple MLP Image Model
-      #   # continue-on-error: true
-      #   run: |
-      #     dvc repro simple_mlp_image
-      #     dvc push --run-cache -d simple_mlp_image
-            
-      # - name: Train Simple Text Model
-      #   run: |
-      #     dvc repro simple_text
-      #     dvc push --run-cache -d simple_text
-
-      # # - name: Train VisualBERT with OD
-      # #   # continue-on-error: true
-      # #   run: |
-      # #     dvc repro visual_bert_with_od
-      # #     dvc push --run-cache -d visual_bert_with_od
-
-      # - name: Train VisualBERT
-      #   # continue-on-error: true
-      #   run: |
-      #     dvc repro visual_bert
-      #     dvc push --run-cache -d visual_bert
-
-      # - name: Train ViT
-      #   continue-on-error: true
-      #   run: |
-      #     dvc repro --pull vit
-      #     dvc push -d vit
-
-      # - name: Train BEit
-      #   continue-on-error: true
-      #   run: |
-      #     dvc repro --pull beit
-      #     dvc push -d beit
-
+<<<<<<< HEAD
       - name: Train OFA
         continue-on-error: true
         run: |
@@ -116,6 +70,13 @@ jobs:
       #   run: |
       #     dvc repro super_model
       #     dvc push --run-cache -d super_model
+=======
+      - name: Train Super Model
+        continue-on-error: true
+        run: |
+          dvc repro super_model
+          dvc push --run-cache -d super_model
+>>>>>>> 3dfd7b7 (Reverting changes to train.yml.)
 
       - name: Commit run
         run: |
