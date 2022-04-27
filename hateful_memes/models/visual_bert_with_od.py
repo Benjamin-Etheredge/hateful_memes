@@ -283,9 +283,9 @@ class VisualBertWithODModule(BaseMaeMaeModel):
 
         image = torch.transpose(image, 1, 2)
         image = torch.transpose(image, 2, 3)
-        images_list = [cv2.cv2.cvtColor(batch_img.cpu().numpy(), cv2.COLOR_RGB2BGR) for batch_img in image]
+        images_list = [cv2.cvtColor(batch_img.cpu().numpy(), cv2.COLOR_RGB2BGR).to(self.device) for batch_img in image]
         # ic()
-        image_x = self.detr2.forward(images_list).to(self.device)
+        image_x = self.detr2.forward(images_list)
         ic()
         # images_list = [self.image_transformer(x_) for x_ in image]
 
@@ -321,7 +321,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
 
         inputs.update(
             {
-                "visual_embeds": image_x,
+                "visual_embeds": image_x.to(self.device),
                 "visual_token_type_ids": torch.ones(image_x.shape[:-1], dtype=torch.long).to(self.device),
                 "visual_attention_mask": torch.ones(image_x.shape[:-1], dtype=torch.float).to(self.device),
             }
