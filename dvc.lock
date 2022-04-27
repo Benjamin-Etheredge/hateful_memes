@@ -494,16 +494,16 @@ stages:
     cmd: python hateful_memes/data/hateful_memes_snli_ve.py
     deps:
     - path: data/01_raw/hateful_memes
-      md5: 33e8a3b59cb044f3893d27962a127805.dir
-      size: 4232397658
+      md5: 8844b5201ff55743fcd36c40d7352a88.dir
+      size: 4232567214
       nfiles: 12148
     - path: hateful_memes/data/hateful_memes_snli_ve.py
       md5: b99996b91149bb58162e3e49ca1d8843
       size: 4483
     outs:
     - path: data/02_intermediate/hateful_memes_train_snli_ve.tsv
-      md5: cfdac03de35580554bd8f3d3dfc8a120
-      size: 4077445020
+      md5: a4aa96507523cfab3af40019c2020f8a
+      size: 4077674756
     - path: data/02_intermediate/hateful_memes_valid_snli_ve.tsv
       md5: e53d1c118761446cd00d926469da82f5
       size: 252275396
@@ -556,8 +556,8 @@ stages:
       \ --monitor-metric-mode min --stopping-patience 10\n"
     deps:
     - path: data/02_intermediate/hateful_memes_train_snli_ve.tsv
-      md5: cfdac03de35580554bd8f3d3dfc8a120
-      size: 4077445020
+      md5: a4aa96507523cfab3af40019c2020f8a
+      size: 4077674756
     - path: data/02_intermediate/hateful_memes_valid_snli_ve.tsv
       md5: e53d1c118761446cd00d926469da82f5
       size: 252275396
@@ -565,10 +565,10 @@ stages:
       md5: 8368190a42477d2974fa0affb6279f00
       size: 6230613509
     - path: hateful_memes/models/hateful_ofa.py
-      md5: 892fd3ea464c027a6903397a4f1fa840
-      size: 14653
+      md5: 6965dbf385ca878f170249ba4e446cf8
+      size: 14416
     outs:
     - path: data/06_models/hateful_ofa
-      md5: f64d49abbf6cfe672d9f8d149ed9acf7.dir
-      size: 5719131170
+      md5: 6dd58cb3ed6d31dca6c7d93ba3d3d35f.dir
+      size: 5719131362
       nfiles: 1
