@@ -176,8 +176,8 @@ def main(freeze, lr, max_length, dense_dim, dropout_rate, num_queries, **train_k
         max_length=max_length, 
         dense_dim=dense_dim, 
         dropout_rate=dropout_rate,
-        num_queries=num_queries,)
-    base_train(model=model, **train_kwargs)
+        num_queries=num_queries)
+    base_train(model=model, accumulate_grad_batches=4, **train_kwargs)
 
 
 if __name__ == "__main__":

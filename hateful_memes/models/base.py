@@ -100,6 +100,7 @@ def base_train(
         monitor_metric_mode="min",
         stopping_patience=10,
         mixed_precision=True,
+        accumulate_grad_batches=None,
     ):
     logger = get_project_logger(project=project, save_dir=log_dir, offline=fast_dev_run)
     # TODO pull out lr and maybe arg optimizer
@@ -134,6 +135,8 @@ def base_train(
         # amp_backend='native',
         # detect_anomaly=True,
         enable_progress_bar=os.environ.get('ENABLE_PROGRESS_BAR', 1) == 1,
+        accumulate_grad_batches=accumulate_grad_batches,
+        # profiler="simple",
         callbacks=[checkpoint_callback, early_stopping])
         # callbacks=[checkpoint_callback, early_stopping, stw])
 
