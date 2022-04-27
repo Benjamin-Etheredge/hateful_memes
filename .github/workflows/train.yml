@@ -51,6 +51,41 @@ jobs:
         continue-on-error: true
         run: dvc pull -a --run-cache
 
+      - name: Train VisualBERT with OD
+        continue-on-error: true
+        run: |
+          dvc repro visual_bert_with_od
+          dvc push --run-cache -d visual_bert_with_od
+
+      - name: Train Electra
+        # continue-on-error: true
+        run: |
+          dvc repro --pull electra
+          dvc push -d electra
+
+      - name: Train Distilbert
+        # continue-on-error: true
+        run: |
+          dvc repro --pull distilbert
+          dvc push -d distilbert
+
+      - name: Train Simple Image Model
+
+        # continue-on-error: true
+        run: |
+          dvc repro simple_image
+          dvc push --run-cache -d simple_image
+
+      - name: Train Simple MLP Image Model
+        # continue-on-error: true
+        run: |
+          dvc repro simple_mlp_image
+          dvc push --run-cache -d simple_mlp_image
+            
+      - name: Train Simple Text Model
+        run: |
+          dvc repro simple_text
+          dvc push --run-cache -d simple_text
 
       - name: Train VisualBERT
         continue-on-error: true
@@ -58,25 +93,23 @@ jobs:
           dvc repro visual_bert
           dvc push --run-cache -d visual_bert
 
-<<<<<<< HEAD
-      - name: Train OFA
+      - name: Train ViT
         continue-on-error: true
         run: |
-          dvc repro train_hateful_ofa
-          dvc push -d train_hateful_ofa
+          dvc repro --pull vit
+          dvc push -d vit
 
-      # - name: Train Super Model
-      #   continue-on-error: true
-      #   run: |
-      #     dvc repro super_model
-      #     dvc push --run-cache -d super_model
-=======
+      - name: Train BEit
+        continue-on-error: true
+        run: |
+          dvc repro --pull beit
+          dvc push -d beit
+
       - name: Train Super Model
         continue-on-error: true
         run: |
           dvc repro super_model
           dvc push --run-cache -d super_model
->>>>>>> 3dfd7b7 (Reverting changes to train.yml.)
 
       - name: Commit run
         run: |
