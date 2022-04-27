@@ -199,7 +199,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         """ Visual Bert Model """
         super().__init__()
         # self.hparams = hparams
-        self.visual_bert = VisualBertModel.from_pretrained("uclanlp/visualbert-vqa-coco-pre")
+        self.visual_bert = VisualBertModel.from_pretrained("uclanlp/visualbert-nlvr2-coco-pre")
         if freeze:
             for param in self.visual_bert.parameters():
                 param.requires_grad = False
