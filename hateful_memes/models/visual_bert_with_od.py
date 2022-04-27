@@ -30,13 +30,14 @@ from hateful_memes.models.base import BaseMaeMaeModel, base_train
 
 class Detectron2Module():
     def __init__(self, batch_size, num_queries):
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
         self.cfg_path = "COCO-InstanceSegmentation/mask_rcnn_R_101_FPN_3x.yaml"
         self.cfg = self.load_config_and_model_weights(self.cfg_path)
-        self.model = self.get_model(self.cfg)
+        self.model = self.get_model(self.cfg).to(self.device)
         self.MIN_BOXES=10
         self.MAX_BOXES=num_queries
         self.batch_size = batch_size
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     def load_config_and_model_weights(self, cfg_path):
         cfg = get_cfg()
@@ -202,7 +203,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         """ Visual Bert Model """
         super().__init__()
         # self.hparams = hparams
-        self.visual_bert = VisualBertModel.from_pretrained("uclanlp/visualbert-nlvr2-coco-pre")
+        self.visual_bert = VisualBertModel.from_pretrained("uclanlp/visualbert-nlvr2-coco-pre").to(self.device)
         if freeze:
             for param in self.visual_bert.parameters():
                 param.requires_grad = False
