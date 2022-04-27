@@ -394,6 +394,7 @@ stages:
       --selected-cols ${test.selected-cols}
       --restore-file ${test.restore-file}
       --save-dir ${test.save-dir}
+      --log-dir ${test.log-dir}
       --task ${test.task} 
       --arch ${test.arch}
       --batch-size ${test.batch-size}
@@ -455,6 +456,7 @@ stages:
       --selected-cols ${train.selected-cols}
       --restore-file ${train.restore-file}
       --save-dir ${train.save-dir}
+      --log-dir ${train.log-dir}
       --task ${train.task} 
       --arch ${train.arch}
       --batch-size ${train.batch-size}

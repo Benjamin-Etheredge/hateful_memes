@@ -9,6 +9,7 @@ test:
   #reset-dataloader: True #Maybe unused 
   #reset-meters: True #Maybe unused  
   save-dir: data/06_models/hateful_ofa
+  log-dir: logs/hateful_ofa
   task: snli_ve
   arch: ofa_large
   #criterion: adjust_label_smoothed_cross_entropy  #Maybe unused
@@ -78,6 +79,7 @@ train:
   #reset-dataloader: True #Maybe unused 
   #reset-meters: True #Maybe unused  
   save-dir: data/06_models/hateful_ofa
+  log-dir: logs/hateful_ofa
   task: snli_ve
   arch: ofa_large
   #criterion: adjust_label_smoothed_cross_entropy  #Maybe unused

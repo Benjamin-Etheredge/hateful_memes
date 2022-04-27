@@ -20,6 +20,8 @@ from OFA.tasks import OFATask
 import pathlib
 import sys
 
+from hateful_memes.utils import get_project_logger
+
 # For SWA callback in Trainer
 class ExponentialMovingAverage:
     def __init__(self, alpha:float):
@@ -182,16 +184,28 @@ class HatefulOFA(pl.LightningModule):
         # Calculate label-smoothed CE loss
         label_smoothing = self.label_smoothing
         loss = self._label_smoothed_nll_loss(lprobs, targets, label_smoothing, constraints_masks)
-        return loss
+        # Calculate accuracy
+        pad_mask = targets.ne(padding_idx)
+        masked_preds = lprobs.argmax(1).masked_select(pad_mask)
+        masked_tgts = targets.masked_select(pad_mask).eq(pad_mask)
+        correct_mask = masked_preds.eq(masked_tgts)
+        num_correct = torch.sum(correct_mask)
+        num_total = torch.sum(pad_mask)
+        acc = num_correct/num_total        
+        return loss, acc
 
     """Training"""
     def training_step(self, batch, batch_idx) -> torch.Tensor:
-        loss = self._shared_step(batch)
+        loss, acc = self._shared_step(batch)
+        self.log("train/loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, batch_size=batch['target'].size(0))
+        self.log("train/acc", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True, batch_size=batch['target'].size(0))
         return loss
 
     """Validation"""
     def validation_step(self, batch, batch_idx) -> torch.Tensor:
-        loss = self._shared_step(batch)
+        loss, acc = self._shared_step(batch)
+        self.log("val/loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, batch_size=batch['target'].size(0))
+        self.log("val/acc", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True, batch_size=batch['target'].size(0))
         return loss
 
     """Testing"""
@@ -257,9 +271,8 @@ def main(
     my_parser.add_argument("--monitor-metric", dest='monitor_metric', type=str, default="val/loss")
     my_parser.add_argument("--monitor-metric-mode", dest='monitor_metric_mode', type=str, default="min", choices=["min", "max"])
     my_parser.add_argument("--stopping-patience", dest='stopping_patience', type=int, default=10)
+    my_parser.add_argument("--log-dir", dest='log_dir', type=str, default='logs/')
     my_args, _ = my_parser.parse_known_args(extra)
-    print("parsed args")
-    print(my_args)
 
     # Build the model
     OFA_TASK = fs_tasks.setup_task(cfg.task)
@@ -278,6 +291,7 @@ def main(
     
     # Set up training strategy
     #TODO logger
+    logger = get_project_logger(project='test_hateful_ofa', save_dir=my_args.log_dir, offline=True)
     max_epoch = cfg.optimization.max_epoch or math.inf
     model_dir = cfg.checkpoint.save_dir
     fast_dev_run = my_args.fast_dev_run > 0
@@ -302,6 +316,7 @@ def main(
             mode=monitor_metric_mode,
             verbose=True)
         trainer_callbacks.append(early_stopping)
+        logger = get_project_logger(project='train_hateful_ofa', save_dir=my_args.log_dir, offline=True)
     else:
         print("FAST DEV RUN")
     # If EMA is specified
@@ -314,7 +329,10 @@ def main(
         max_epochs=max_epoch,
         callbacks=trainer_callbacks,
         gradient_clip_val=grad_norm_clip,
-        fast_dev_run=fast_dev_run
+        fast_dev_run=fast_dev_run,
+        device=1,
+        accelerator='auto',
+        logger=logger
     )
 
     # Training
