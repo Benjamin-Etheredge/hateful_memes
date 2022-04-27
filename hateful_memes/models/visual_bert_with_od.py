@@ -44,8 +44,8 @@ class Detectron2Module():
         # ROI HEADS SCORE THRESHOLD
         cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
 
-        # Comment the next line if you're using 'cuda'
-        cfg['MODEL']['DEVICE']='cpu'
+        if not torch.cuda.is_available():
+            cfg['MODEL']['DEVICE']='cpu'
 
         cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(cfg_path)
 
@@ -280,13 +280,11 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         # image_x = F.dropout(image_x, p=self.dropout_rate)
         # # ic(image_x.shape)
 
-
         image = torch.transpose(image, 1, 2)
         image = torch.transpose(image, 2, 3)
-        images_list = [cv2.cvtColor(batch_img.cpu().numpy(), cv2.COLOR_RGB2BGR).to(self.device) for batch_img in image]
-        # ic()
+        image = image.cpu().numpy()
+        images_list = [cv2.cvtColor(batch_img, cv2.COLOR_RGB2BGR) for batch_img in image]
         image_x = self.detr2.forward(images_list)
-        ic()
         # images_list = [self.image_transformer(x_) for x_ in image]
 
         # od_inputs = self.od_feature_extractor(images=images_list, return_tensors="pt")
@@ -317,7 +315,6 @@ class VisualBertWithODModule(BaseMaeMaeModel):
             truncation=True, 
             max_length=self.max_length)
         inputs = inputs.to(self.device)
-        ic()
 
         inputs.update(
             {
@@ -326,7 +323,6 @@ class VisualBertWithODModule(BaseMaeMaeModel):
                 "visual_attention_mask": torch.ones(image_x.shape[:-1], dtype=torch.float).to(self.device),
             }
         )
-        ic()
 
         if self.to_freeze:
             with torch.no_grad():
