@@ -93,6 +93,8 @@ class Detectron2Module():
         return features
 
     def get_proposals(self, model, images, features):
+        ic(images)
+        ic(features)
         proposals, _ = model.proposal_generator(images, features)
         return proposals
     
@@ -162,9 +164,9 @@ class Detectron2Module():
 
     def filter_boxes(self, keep_boxes, max_conf, min_boxes, max_boxes):
         if len(keep_boxes) < min_boxes:
-            keep_boxes = torch.argsort(max_conf)[::-1][:min_boxes]
+            keep_boxes = np.argsort(max_conf).numpy()[::-1][:min_boxes]
         elif len(keep_boxes) > max_boxes:
-            keep_boxes = torch.argsort(max_conf)[::-1][:max_boxes]
+            keep_boxes = np.argsort(max_conf).numpy()[::-1][:max_boxes]
         return keep_boxes
 
     def forward(self, img_list):
