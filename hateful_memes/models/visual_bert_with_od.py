@@ -286,7 +286,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         images_list = [cv2.cv2.cvtColor(batch_img.cpu().numpy(), cv2.COLOR_RGB2BGR) for batch_img in image]
         # ic()
         image_x = self.detr2.forward(images_list).to(self.device)
-        # ic()
+        ic()
         # images_list = [self.image_transformer(x_) for x_ in image]
 
         # od_inputs = self.od_feature_extractor(images=images_list, return_tensors="pt")
@@ -317,6 +317,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
             truncation=True, 
             max_length=self.max_length)
         inputs = inputs.to(self.device)
+        ic()
 
         inputs.update(
             {
@@ -325,6 +326,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
                 "visual_attention_mask": torch.ones(image_x.shape[:-1], dtype=torch.float).to(self.device),
             }
         )
+        ic()
 
         if self.to_freeze:
             with torch.no_grad():
