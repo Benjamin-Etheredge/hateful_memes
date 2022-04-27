@@ -330,7 +330,7 @@ def main(
         callbacks=trainer_callbacks,
         gradient_clip_val=grad_norm_clip,
         fast_dev_run=fast_dev_run,
-        device=1,
+        devices=1, 
         accelerator='auto',
         logger=logger
     )
