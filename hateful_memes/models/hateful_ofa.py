@@ -1,3 +1,4 @@
+import os
 import torch
 from torch.utils.data import SequentialSampler, BatchSampler
 from torch.utils.data import DataLoader
@@ -330,6 +331,8 @@ def main(
         fast_dev_run=fast_dev_run,
         devices=1, 
         accelerator='auto',
+        precision=16,
+        enable_progress_bar=os.environ.get('ENABLE_PROGRESS_BAR', 1) == 1,
         logger=logger
     )
 
