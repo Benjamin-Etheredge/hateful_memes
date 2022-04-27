@@ -442,8 +442,8 @@ stages:
       md5: 8368190a42477d2974fa0affb6279f00
       size: 6230613509
     - path: hateful_memes/models/hateful_ofa.py
-      md5: 892fd3ea464c027a6903397a4f1fa840
-      size: 14653
+      md5: 09b54114a7200626c3514535c5ca8bff
+      size: 14475
     outs:
     - path: logs/test_hateful_ofa.log
       md5: 15de982d1dc99ce52d089868a579de34

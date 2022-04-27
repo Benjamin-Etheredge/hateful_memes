@@ -196,15 +196,15 @@ class HatefulOFA(pl.LightningModule):
     """Training"""
     def training_step(self, batch, batch_idx) -> torch.Tensor:
         loss, acc = self._shared_step(batch)
-        self.log("train/loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, batch_size=batch['target'].size(0))
-        self.log("train/acc", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True, batch_size=batch['target'].size(0))
+        self.log("train/loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("train/acc", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         return loss
 
     """Validation"""
     def validation_step(self, batch, batch_idx) -> torch.Tensor:
         loss, acc = self._shared_step(batch)
-        self.log("val/loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, batch_size=batch['target'].size(0))
-        self.log("val/acc", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True, batch_size=batch['target'].size(0))
+        self.log("val/loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("val/acc", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         return loss
 
     """Testing"""
@@ -247,7 +247,7 @@ class HatefulOFA(pl.LightningModule):
         
         return optim_dict
 
-# TODO click arguments 
+
 def main(
              modify_parser: Optional[Callable[[argparse.ArgumentParser], None]] = None
         ):
@@ -315,9 +315,8 @@ def main(
             mode=monitor_metric_mode,
             verbose=True)
         trainer_callbacks.append(early_stopping)
-        logger = get_project_logger(project='train_hateful_ofa', save_dir=my_args.log_dir, offline=True)
-    else:
-        print("FAST DEV RUN")
+        logger = get_project_logger(project='train_hateful_ofa', save_dir=my_args.log_dir, offline=False)
+    
     # If EMA is specified
     if ema_alpha > 0.0:
         ema_fn = ExponentialMovingAverage(alpha=ema_alpha)
