@@ -289,8 +289,6 @@ def main(
     hateful_ofa_data = HatefulOFADataModule(cfg, hateful_ofa_model.ofa_model, ofa_task=OFA_TASK)
     
     # Set up training strategy
-    #TODO logger
-    logger = get_project_logger(project='test_hateful_ofa', save_dir=my_args.log_dir, offline=True)
     max_epoch = cfg.optimization.max_epoch or math.inf
     model_dir = cfg.checkpoint.save_dir
     fast_dev_run = my_args.fast_dev_run > 0
@@ -315,8 +313,8 @@ def main(
             mode=monitor_metric_mode,
             verbose=True)
         trainer_callbacks.append(early_stopping)
-        logger = get_project_logger(project='train_hateful_ofa', save_dir=my_args.log_dir, offline=False)
-    
+    # Logging
+    logger = get_project_logger(project='hateful_ofa', save_dir=my_args.log_dir, offline=fast_dev_run)
     # If EMA is specified
     if ema_alpha > 0.0:
         ema_fn = ExponentialMovingAverage(alpha=ema_alpha)
@@ -332,6 +330,7 @@ def main(
         accelerator='auto',
         logger=logger
     )
+   
 
     # Training
     hateful_ofa_trainer.fit(hateful_ofa_model, datamodule=hateful_ofa_data)
