@@ -69,7 +69,6 @@ class VisualBertModule(BaseMaeMaeModel):
         """ Shut up """
         text = batch['text']
         image = batch['image']
-        image_x = self.resnet(image)
         if self.to_freeze:
             with torch.no_grad():
                 image_x = self.resnet(image)
