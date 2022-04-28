@@ -145,6 +145,7 @@ class SuperModel(BaseMaeMaeModel):
 @click.option('--dense_dim', default=256, help='Dense dim')
 @click.option('--dropout_rate', default=0.1, help='Dropout rate')
 @click.option('--visual_bert_ckpt')
+@click.option('--visual_bert_with_od_ckpt')
 @click.option('--simple_image_ckpt')
 @click.option('--simple_mlp_image_ckpt')
 @click.option('--simple_text_ckpt')
@@ -159,7 +160,8 @@ class SuperModel(BaseMaeMaeModel):
 @click.option('--fast_dev_run', default=False, help='Fast dev run')
 @click.option('--project', default="super-model", help='Project')
 def main(freeze, lr, num_dense_layers, dense_dim, dropout_rate,
-         visual_bert_ckpt, simple_image_ckpt, simple_mlp_image_ckpt, simple_text_ckpt,
+         visual_bert_ckpt, visual_bert_with_od_ckpt, 
+         simple_image_ckpt, simple_mlp_image_ckpt, simple_text_ckpt,
          vit_ckpt, beit_ckpt, electra_ckpt, distilbert_ckpt,
          **train_kwargs):
     """ train model """
@@ -171,6 +173,7 @@ def main(freeze, lr, num_dense_layers, dense_dim, dropout_rate,
         dense_dim=dense_dim, 
         dropout_rate=dropout_rate,
         visual_bert_ckpt=visual_bert_ckpt,
+        visual_bert_with_od_ckpt=visual_bert_with_od_ckpt,
         simple_image_ckpt=simple_image_ckpt,
         simple_mlp_image_ckpt=simple_mlp_image_ckpt,
         simple_text_ckpt=simple_text_ckpt,

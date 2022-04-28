@@ -41,9 +41,14 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
             embed_dim, 
             dense_dim, 
             batch_first=True, 
-            dropout=dropout_rate,
+            # dropout=dropout_rate,
             # proj_size=dense_dim,
             num_layers=num_layers)
+
+        # #
+        # self.trans = nn.TransformerEncoderLayer()
+
+
         self.l1 = nn.Linear(dense_dim, dense_dim)
         self.l2 = nn.Linear(dense_dim, 1)
         # TODO consider 3 classes for offensive detection
@@ -60,6 +65,7 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
     def forward(self, batch):
         text_features = batch['text']
         input = self.tokenizer(text_features, padding='max_length', truncation=True, max_length=self.max_length)
+        # ic(input.keys())
         ids = torch.tensor(input['input_ids']).to(self.device)
         x = self.embedder(ids)
         x = F.dropout(x, self.dropout_rate)
@@ -93,8 +99,6 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
 @click.option('--fast_dev_run', type=bool, default=False, help='Fast dev run')
 @click.option('--log_dir', default="data/08_reporting/simple_text", help='Fast dev run')
 @click.option('--project', default="simple-text", help='Project name')
-@click.option('--monitor_metric', default="val/loss", help='Metric to monitor')
-@click.option('--monitor_metric_mode', default="min", help='Min or max')
 def main(lr, num_layers, embed_dim, dense_dim, max_length, tokenizer_name, dropout_rate,
          **train_kwargs):
 
