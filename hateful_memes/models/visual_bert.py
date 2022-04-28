@@ -69,7 +69,6 @@ class VisualBertModule(BaseMaeMaeModel):
         """ Shut up """
         text = batch['text']
         image = batch['image']
-        image_x = self.resnet(image)
         if self.to_freeze:
             with torch.no_grad():
                 image_x = self.resnet(image)
@@ -117,8 +116,8 @@ class VisualBertModule(BaseMaeMaeModel):
 
         if self.include_top:
             x = self.fc3(x)
-
-        x = torch.squeeze(x, dim=1)
+        
+        x = torch.squeeze(x, dim=1) if x.dim() > 1 else x
         return x
 
 
