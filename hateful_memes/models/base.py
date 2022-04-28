@@ -37,18 +37,10 @@ class BaseMaeMaeModel(LightningModule):
         raise NotImplemented
     
     def training_step(self, batch, batch_idx):
-
-        # ic.enable()
         y = batch['label']
         y_hat = self(batch)
         y_hat = torch.squeeze(y_hat)
-        # if batch_idx % 1 == 0:
-        # if batch_idx == 0:
-        #     ic(batch, y_hat, torch.sigmoid(y_hat), y)
-            # ic(y_hat, torch.sigmoid(y_hat), y)
-            # input()
         loss = F.binary_cross_entropy_with_logits(y_hat, y.to(y_hat.dtype))
-        # loss = F.binary_cross_entropy(torch.sigmoid(y_hat), y.to(y_hat.dtype))
 
         self.train_acc(y_hat, y)
         self.train_f1(y_hat, y)
@@ -56,7 +48,7 @@ class BaseMaeMaeModel(LightningModule):
         self.log("train/loss", loss, on_step=False, on_epoch=True, batch_size=len(y))
         self.log("train/acc", self.train_acc, on_step=False, on_epoch=True, batch_size=len(y))
         self.log("train/f1", self.train_f1, prog_bar=True, on_step=False, on_epoch=True, batch_size=len(y))
-        self.log("train/auroc", self.train_auroc, on_step=False, on_epoch=True, batch_size=len(y))
+        self.log("train/auroc", self.train_auroc, prog_bar=True, on_step=False, on_epoch=True, batch_size=len(y))
 
         return loss
 
@@ -69,11 +61,10 @@ class BaseMaeMaeModel(LightningModule):
         self.val_acc(y_hat, y)
         self.val_f1(y_hat, y)
         self.val_auroc(y_hat, y)
-
         self.log("val/loss", loss, on_step=False, on_epoch=True, batch_size=len(y))
         self.log("val/accuracy", self.val_acc, on_step=False, on_epoch=True, batch_size=len(y))
         self.log("val/f1", self.val_f1, prog_bar=True, on_step=False, on_epoch=True, batch_size=len(y))
-        self.log("val/auroc", self.val_auroc, on_step=False, on_epoch=True, batch_size=len(y))
+        self.log("val/auroc", self.val_auroc, on_step=False, prog_bar=True, on_epoch=True, batch_size=len(y))
 
         return loss
 
@@ -96,10 +87,11 @@ def base_train(
         log_dir=None, 
         grad_clip=1.0, 
         fast_dev_run=False,
-        monitor_metric="val/loss",
-        monitor_metric_mode="min",
+        monitor_metric="val/auroc",
+        monitor_metric_mode="max",
         stopping_patience=10,
         mixed_precision=True,
+        accumulate_grad_batches=None,
     ):
     logger = get_project_logger(project=project, save_dir=log_dir, offline=fast_dev_run)
     # TODO pull out lr and maybe arg optimizer
@@ -134,6 +126,8 @@ def base_train(
         # amp_backend='native',
         # detect_anomaly=True,
         enable_progress_bar=os.environ.get('ENABLE_PROGRESS_BAR', 1) == 1,
+        accumulate_grad_batches=accumulate_grad_batches,
+        # profiler="simple",
         callbacks=[checkpoint_callback, early_stopping])
         # callbacks=[checkpoint_callback, early_stopping, stw])
 

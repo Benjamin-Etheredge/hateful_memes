@@ -32,7 +32,9 @@ class MaeMaeDataset(torch.utils.data.Dataset):
 
         if train: 
             self.info = pd.read_json(self.root_dir/"train.jsonl", lines=True)
+            # self.info += pd.read_json(self.root_dir/"dev_seen.jsonl", lines=True)
         else:
+            # self.info = pd.read_json(self.root_dir/"dev_unseen.jsonl", lines=True),
             self.info = pd.read_json(self.root_dir/"test_seen.jsonl", lines=True)
 
         # if self.txt_transforms is None:
@@ -90,7 +92,6 @@ class MaeMaeDataset(torch.utils.data.Dataset):
             # transforms.ToPILImage(mode='RGB'),
             T.Resize(size=(224,224)),
             T.ToTensor(), # this already seems to scale okay
-
             # T.Normalize(mean=[0.485, 0.456, 0.406],
             #                       std=[0.229, 0.224, 0.225]),
         ])

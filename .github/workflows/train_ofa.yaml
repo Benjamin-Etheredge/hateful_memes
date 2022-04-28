@@ -5,9 +5,11 @@ on:
       paths:
         - '**.js'
         - '**.py'
-        - 'config/*yaml'
+        - '**.dvc'
+        - 'config/hateful_ofa.yaml'
         - 'dvc.yaml'
         - .github/workflows/train_ofa.yml
+        - hateful_memes/models/hateful_ofa.py
 # defaults:
 #     run:
 #       shell: bash

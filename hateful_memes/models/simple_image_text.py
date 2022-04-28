@@ -11,7 +11,7 @@ from hateful_memes.utils import get_project_logger
 from hateful_memes.models.base import BaseMaeMaeModel, base_train
 
 
-class BaseTextMaeMaeModel(BaseMaeMaeModel):
+class BaseImageTextMaeMaeModel(BaseMaeMaeModel):
     def __init__(
         self, 
         lr=0.003, 
@@ -25,7 +25,6 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
         tokenizer_name='bert-base-uncased',
         include_top=True,
     ):
-
         super().__init__()
         
         # https://huggingface.co/docs/transformers/v4.18.0/en/model_doc/auto#transformers.AutoTokenizer
@@ -37,20 +36,79 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
 
         self.lr = lr
 
+        # Text
         self.lstm = nn.LSTM(
             embed_dim, 
             dense_dim, 
             batch_first=True, 
-            # dropout=dropout_rate,
+            dropout=dropout_rate,
             # proj_size=dense_dim,
             num_layers=num_layers)
+        
+        # Image
+        self.conv = nn.Sequential(
+            nn.Conv2d(3, 16, 3, padding=1, bias=False),
+            nn.BatchNorm2d(16),
+            nn.ReLU(),
+            nn.Conv2d(16, 16, 3, padding=1, bias=False),
+            nn.BatchNorm2d(16),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+            #
+            nn.Conv2d(16, 32, 3, padding=1, bias=False),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            nn.Conv2d(32, 32, 3, padding=1, bias=False),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+            #
+            nn.Conv2d(32, 64, 3, padding=1, bias=False),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, 3, padding=1, bias=False),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+            #
+            nn.Conv2d(64, 128, 3, padding=1, bias=False),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.Conv2d(128, 128, 3, padding=1, bias=False),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+            #
+            nn.Conv2d(128, 256, 3, padding=1, bias=False),
+            nn.BatchNorm2d(256),
+            nn.ReLU(),
+            nn.Conv2d(256, 256, 3, padding=1, bias=False),
+            nn.BatchNorm2d(256),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+            #
+            nn.Conv2d(256, 512, 3, padding=1, bias=False),
+            nn.BatchNorm2d(512),
+            nn.ReLU(),
+            nn.Conv2d(512, 512, 3, padding=1, bias=False),
+            nn.BatchNorm2d(512),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+        )
 
-        # #
-        # self.trans = nn.TransformerEncoderLayer()
+        conv_out_size = 4608
 
+        self.dense_layers = nn.Sequential(
+            nn.Linear(dense_dim + conv_out_size, dense_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout_rate),
+            nn.Linear(dense_dim, dense_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout_rate),
+        )
 
-        self.l1 = nn.Linear(dense_dim, dense_dim)
-        self.l2 = nn.Linear(dense_dim, 1)
+        self.final_fc = nn.Linear(dense_dim, 1)
+
         # TODO consider 3 classes for offensive detection
 
         self.embed_dim = embed_dim
@@ -63,21 +121,32 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
         self.save_hyperparameters()
     
     def forward(self, batch):
+        # Text
         text_features = batch['text']
         input = self.tokenizer(text_features, padding='max_length', truncation=True, max_length=self.max_length)
-        # ic(input.keys())
         ids = torch.tensor(input['input_ids']).to(self.device)
+
         x = self.embedder(ids)
         x = F.dropout(x, self.dropout_rate)
         x, (ht, ct) = self.lstm(x)
         # x = x[:, -1, :]
-        x = ht[-1]
-        # x = x.view(x.shape[0], -1)
-        x = self.l1(x)
-        x = F.relu(x)
+        # ic(x.shape, ht.shape, ct.shape)
+
+        final_text_x = ht[-1]
+
+        # Image
+        images = batch['image']
+
+        x = self.conv(images)
+
+        final_image_x = x.view(x.size(0), -1)
+
+        x = torch.cat((final_text_x, final_image_x), dim=1)
+
+        x = self.dense_layers(x)
 
         if self.include_top:
-            x = self.l2(x)
+            x = self.final_fc(x)
 
         x = torch.squeeze(x)
         return x
@@ -97,13 +166,13 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
 @click.option('--epochs', default=100, help='Epochs')
 @click.option('--model_dir', default='/tmp', help='Model path')
 @click.option('--fast_dev_run', type=bool, default=False, help='Fast dev run')
-@click.option('--log_dir', default="data/08_reporting/simple_text", help='Fast dev run')
-@click.option('--project', default="simple-text", help='Project name')
+@click.option('--log_dir', default="data/08_reporting/simple_image_text", help='Fast dev run')
+@click.option('--project', default="simple-image-text", help='Project name')
 def main(lr, num_layers, embed_dim, dense_dim, max_length, tokenizer_name, dropout_rate,
          **train_kwargs):
 
     """ Train Text model """
-    model = BaseTextMaeMaeModel(
+    model = BaseImageTextMaeMaeModel(
         embed_dim=embed_dim,
         tokenizer_name=tokenizer_name,
         lr=lr,

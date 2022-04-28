@@ -346,6 +346,47 @@ stages:
     outs:
       - data/06_models/simple_text
 
+  ################################################################################
+  # Simple Models 
+  ################################################################################
+  test_simple_image_text:
+    cmd: >
+        python -m hateful_memes.models.simple_image_text
+        --fast_dev_run True
+        && echo "PASSED" > logs/test_simple_image_text.log
+    deps:
+      - data/01_raw/hateful_memes
+      - hateful_memes/data/hateful_memes.py
+      - hateful_memes/models/base.py
+      - hateful_memes/models/simple_image_text.py
+    outs:
+      - logs/test_simple_image_text.log
+
+  simple_image_text:
+    vars: 
+      - config/simple_image_text.yaml
+    cmd: >
+        python -m hateful_memes.models.simple_image_text
+        --batch_size ${batch_size}
+        --lr ${lr}
+        --num_layers ${num_layers}
+        --embed_dim ${embed_dim}
+        --dense_dim ${dense_dim}
+        --max_length ${max_length}
+        --tokenizer_name ${tokenizer_name}
+        --grad_clip ${grad_clip}
+        --dropout_rate ${dropout_rate}
+        --epochs ${epochs}
+        --model_dir data/06_models/simple_image_text
+    deps:
+      - data/01_raw/hateful_memes
+      - hateful_memes/data/hateful_memes.py
+      - logs/test_simple_image_text.log
+      - hateful_memes/models/base.py
+      - hateful_memes/models/simple_text.py
+    outs:
+      - data/06_models/simple_image_text
+
   test_super_model:
     cmd: >
         python -m hateful_memes.models.super_model
@@ -372,6 +413,7 @@ stages:
         --simple_mlp_image_ckpt data/06_models/simple_mlp_image
         --simple_text_ckpt data/06_models/simple_text
         --visual_bert_ckpt data/06_models/visual_bert
+        --visual_bert_with_od_ckpt data/06_models/visual_bert
         --vit_ckpt data/06_models/vit
         --beit_ckpt data/06_models/beit
         --electra_ckpt data/06_models/electra
@@ -394,6 +436,7 @@ stages:
       - data/06_models/simple_mlp_image
       - data/06_models/simple_text
       - data/06_models/visual_bert
+      - data/06_models/visual_bert_with_od
       - data/06_models/vit
       - data/06_models/beit
       - data/06_models/electra
@@ -403,6 +446,9 @@ stages:
     outs:
       - data/06_models/super_model
   
+  ################################################################################
+  # OFA
+  ################################################################################
   hateful_memes_to_snli_ve:
     cmd: python hateful_memes/data/hateful_memes_snli_ve.py
     deps: 
