@@ -8,6 +8,7 @@ from icecream import ic
 from typing import Tuple
 from transformers import BertTokenizer
 from torchvision.transforms import PILToTensor, ToPILImage
+import cv2
 
 from hateful_memes.data.hateful_memes import MaeMaeDataModule
 from hateful_memes.models import(
@@ -36,8 +37,6 @@ def wrapper_forward(image, input_ids, tokenizer_pl_module):
     return pl_module(batch)
 
 
-@click.command
-@click.option('--ckpt_dir', default='data/06_models/visual_bert')
 def get_attributions(ckpt_dir:str):
     ## DataLoader
     datamodule = MaeMaeDataModule(batch_size=1) # SHAP wants one sample at a time
@@ -48,7 +47,7 @@ def get_attributions(ckpt_dir:str):
     ## True model (Just Visual BERT for now)
     assert(Path(ckpt_dir).exists())
     ckpt_search = os.path.join(ckpt_dir, "*.ckpt")
-    ckpt_path = glob.glob(ckpt_search)[0]
+    ckpt_path = glob.glob(ckpt_search)[0]  # Grab the most recent checkpoint?
     pl_module = VisualBertModule.load_from_checkpoint(checkpoint_path=ckpt_path)
     
     ## Calculate feature attribution
@@ -73,11 +72,23 @@ def get_attributions(ckpt_dir:str):
     attr = ks.attribute(inputs=image_text, show_progress=True,
         additional_forward_args=[(tokenizer, pl_module)])
     
-    ## Visualize feature attribution
-    ic(attr)
+    return attr
 
-    ## Store results
+
+def visualize_attributions(attrs, save_results=False, save_dir="data/08_reporting"):
+    ic(attrs)
+    if(save_results):
+        raise NotImplementedError 
+
+
+@click.command
+@click.option('--ckpt_dir', default='data/06_models/visual_bert')
+@click.option('--save_vis', default=False)
+@click.option('--save_dir', default='data/08_reporting')
+def interp(ckpt_dir:str, save_vis:bool, save_dir:str):
+    attrs = get_attributions(ckpt_dir)
+    visualize_attributions(attrs, save_vis, save_dir)
 
 
 if __name__ == '__main__':
-    get_attributions()
+    interp()
