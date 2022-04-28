@@ -62,7 +62,7 @@ class BaseMaeMaeModel(LightningModule):
         self.val_f1(y_hat, y)
         self.val_auroc(y_hat, y)
         self.log("val/loss", loss, on_step=False, on_epoch=True, batch_size=len(y))
-        self.log("val/accuracy", self.val_acc, on_step=False, on_epoch=True, batch_size=len(y))
+        self.log("val/acc", self.val_acc, on_step=False, on_epoch=True, batch_size=len(y))
         self.log("val/f1", self.val_f1, prog_bar=True, on_step=False, on_epoch=True, batch_size=len(y))
         self.log("val/auroc", self.val_auroc, on_step=False, prog_bar=True, on_epoch=True, batch_size=len(y))
 
