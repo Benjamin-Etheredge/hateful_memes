@@ -36,6 +36,7 @@ class AutoTextModule(BaseMaeMaeModel):
         self.dense_dim = dense_dim
 
         self.fc1 = nn.Linear(self.config.hidden_size * self.max_length, dense_dim)
+        self.last_hidden_size = dense_dim
         self.fc2 = nn.Linear(dense_dim, 1)
 
     
