@@ -17,12 +17,13 @@ class AutoTextModule(BaseMaeMaeModel):
 
     def __init__(
         self, 
+        model_name,
         lr=0.003, 
         max_length=512, 
         include_top=True,
         dropout_rate=0.0,
         dense_dim=256,
-        model_name='google/electra-small-discriminator',
+        # model_name='google/electra-small-discriminator',
     ):
         super().__init__()
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -38,6 +39,7 @@ class AutoTextModule(BaseMaeMaeModel):
         self.fc1 = nn.Linear(self.config.hidden_size * self.max_length, dense_dim)
         self.last_hidden_size = dense_dim
         self.fc2 = nn.Linear(dense_dim, 1)
+        self.save_hyperparameters()
 
     
     def forward(self, batch):
@@ -76,7 +78,7 @@ class AutoTextModule(BaseMaeMaeModel):
 @click.option('--model_dir', default='/tmp', help='Save dir')
 @click.option('--grad_clip', default=1.0, help='Gradient clip')
 @click.option('--fast_dev_run', default=False, help='Fast dev run')
-@click.option('--project', default='Electra', help='Simple model name for wandb')
+@click.option('--project', default='', help='Simple model name for wandb')
 def main(lr, max_length, dense_dim, dropout_rate, model_name,
          **train_kwargs):
     
