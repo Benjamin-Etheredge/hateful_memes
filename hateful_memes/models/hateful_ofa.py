@@ -227,8 +227,9 @@ class HatefulOFA(pl.LightningModule):
         self.train_f1(preds, targets)
         self.train_auroc(preds, targets)
 
-        self.log("train/loss", self.train_acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        self.log("train/acc", self.train_f1, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("train/loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("train/acc", self.train_acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("train/f1", self.train_f1, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         self.log("train/auroc", self.train_auroc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         return loss
 
@@ -239,8 +240,9 @@ class HatefulOFA(pl.LightningModule):
         self.val_f1(preds, targets)
         self.val_auroc(preds, targets)
 
-        self.log("val/loss", self.val_acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        self.log("val/acc", self.val_f1, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("val/loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("val/acc", self.val_acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("val/f1", self.val_f1, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         self.log("val/auroc", self.val_auroc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         return loss
 
