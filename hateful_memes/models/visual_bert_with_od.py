@@ -42,33 +42,20 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         ############################################
         # Obj Detection Start
         ############################################
-        self.od_config = AutoConfig.from_pretrained('facebook/detr-resnet-50', num_queries=num_queries)
+        self.od_config = AutoConfig.from_pretrained('facebook/detr-resnet-50')
         self.od_feature_extractor = DetrFeatureExtractor.from_pretrained('facebook/detr-resnet-50')
         self.od_model = DetrForObjectDetection(self.od_config).to(self.device)
         self.num_queries = num_queries
         # self.od_poolsize = (self.num_queries//5) + 1
 
         # Original
-        # self.od_fc = nn.Sequential(
-        #     nn.Linear(256, 256),
-        #     nn.ReLU(),
-        #     nn.Linear(256, 1024),
-        #     # nn.Dropout(dropout_rate),
-        # )
-
-        # For use w/o pooling
         self.od_fc = nn.Sequential(
             nn.Linear(256, 256),
             nn.ReLU(),
-            nn.Linear(256, 32),
-            nn.ReLU(),
+            nn.Linear(256, 1024),
             # nn.Dropout(dropout_rate),
         )
 
-        self.od_fc2 = nn.Sequential(
-            nn.Linear(32 * self.num_queries, 1024),
-            nn.ReLU()
-        )
         if freeze:
             for param in self.od_model.parameters():
                 param.requires_grad = False
@@ -115,11 +102,9 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         image_x = od_outputs.last_hidden_state
 
         image_x = self.od_fc(image_x)
-        image_x = image_x.view(image_x.shape[0], 1, -1)
-        image_x = self.od_fc2(image_x)
-        # image_x = image_x.permute(0, 2, 1)
-        # image_x = F.adaptive_avg_pool1d(image_x, 1)
-        # image_x = image_x.permute(0, 2, 1)
+        image_x = image_x.permute(0, 2, 1)
+        image_x = F.adaptive_avg_pool1d(image_x, 1)
+        image_x = image_x.permute(0, 2, 1)
         image_x = torch.squeeze(image_x, dim=-1)
         ############################################
         # Obj Detection End
