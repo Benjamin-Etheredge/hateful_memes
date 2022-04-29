@@ -138,7 +138,7 @@ def base_train(
     data = MaeMaeDataModule(batch_size=batch_size if batch_size > 0 else 32)
     ic(model.lr)
 
-    if not fast_dev_run:
+    if not fast_dev_run and batch_size <= 0:
         # TODO should I move datamodule inside lightning module?
         result = trainer.tune(
             model, 
@@ -148,6 +148,7 @@ def base_train(
                 update_attr=True),
             datamodule=data,
         )
+        ic(result)
         batch_size = result['scale_batch_size']
         # lr_find = result['lr_find']
         # plt = lr_find.plot(suggest=True)
