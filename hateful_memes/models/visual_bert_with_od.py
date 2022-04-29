@@ -4,13 +4,12 @@ from icecream import ic
 import torch
 from torch.nn import functional as F
 from torch import nn
-import torchvision.models as models
 import torchvision.transforms 
+import torchvision.transforms.functional as TF
 
 from transformers import BertTokenizer, VisualBertModel
 from transformers import DetrFeatureExtractor, DetrForObjectDetection, AutoConfig
 
-import cv2
 import numpy as np
 
 import pytorch_lightning as pl
@@ -93,7 +92,6 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         self.to_freeze = freeze
         self.visual_bert_config = self.visual_bert.config
         self.last_hidden_size = dense_dim
-        self.image_transformer = torchvision.transforms.ToPILImage()
 
         self.save_hyperparameters()
     
@@ -105,7 +103,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         ############################################
         # Obj Detection Start
         ############################################
-        images_list = [self.image_transformer(batch_img) for batch_img in image]
+        images_list = [batch_img for batch_img in image.cpu()]
 
         od_inputs = self.od_feature_extractor(images=images_list, return_tensors="pt")
         od_inputs = od_inputs.to(self.device)
@@ -137,9 +135,9 @@ class VisualBertWithODModule(BaseMaeMaeModel):
 
         inputs.update(
             {
-                "visual_embeds": image_x.to(self.device),
-                "visual_token_type_ids": torch.ones(image_x.shape[:-1], dtype=torch.long).to(self.device),
-                "visual_attention_mask": torch.ones(image_x.shape[:-1], dtype=torch.float).to(self.device),
+                "visual_embeds": image_x,
+                "visual_token_type_ids": torch.ones(image_x.shape[:-1], dtype=torch.long, device=self.device),
+                "visual_attention_mask": torch.ones(image_x.shape[:-1], dtype=torch.float, device=self.device),
             }
         )
 
