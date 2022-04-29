@@ -75,9 +75,7 @@ class VisualBertModule(BaseMaeMaeModel):
         else:
             image_x = self.resnet(image)
 
-        image_x = image_x.view(image_x.shape[0], -1)
-
-        image_x = image_x.unsqueeze(1)
+        image_x = image_x.view(image_x.shape[0], 1, -1)
 
         inputs = self.tokenizer(
             text, 
@@ -90,8 +88,8 @@ class VisualBertModule(BaseMaeMaeModel):
         inputs.update(
             {
                 "visual_embeds": image_x,
-                "visual_token_type_ids": torch.ones(image_x.shape[:-1], dtype=torch.long).to(self.device),
-                "visual_attention_mask": torch.ones(image_x.shape[:-1], dtype=torch.float).to(self.device),
+                "visual_token_type_ids": torch.ones(image_x.shape[:-1], dtype=torch.long, device=self.device),
+                "visual_attention_mask": torch.ones(image_x.shape[:-1], dtype=torch.float, device=self.device),
             }
         )
 
