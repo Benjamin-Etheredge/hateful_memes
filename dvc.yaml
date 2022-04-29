@@ -1,3 +1,6 @@
+vars:
+  - project_prefix: "iso_"
+
 stages:
   test_visual_bert_with_od:
     cmd: >
@@ -25,6 +28,7 @@ stages:
         --batch_size ${batch_size}
         --grad_clip ${gradient_clip_value}
         --model_dir data/06_models/visual_bert_with_od
+        --project ${project_prefix}visual_bert_with_od
         --freeze ${freeze}
     deps:
       - logs/test_visual_bert_with_od.log
@@ -63,7 +67,7 @@ stages:
         --dropout_rate ${dropout_rate}
         --grad_clip ${gradient_clip_value}
         --model_dir data/06_models/beit
-        --project beit
+        --project ${project_prefix}beit
     deps:
       - logs/test_beit.log
       - data/01_raw/hateful_memes
@@ -102,7 +106,7 @@ stages:
         --dropout_rate ${dropout_rate}
         --grad_clip ${grad_clip}
         --model_dir data/06_models/vit
-        --project vit
+        --project ${project_prefix}vit
     deps:
       - logs/test_vit.log
       - data/01_raw/hateful_memes
@@ -141,6 +145,7 @@ stages:
         --grad_clip ${gradient_clip_value}
         --model_dir data/06_models/visual_bert
         --freeze ${freeze}
+        --project ${project_prefix}visual_bert
     deps:
       - logs/test_visual_bert.log
       - data/01_raw/hateful_memes
@@ -179,8 +184,8 @@ stages:
         --dropout_rate ${dropout_rate}
         --grad_clip ${gradient_clip_value}
         --model_name ${model_name}
-        --project electra
         --model_dir data/06_models/electra
+        --project ${project_prefix}electra
     deps:
       - logs/test_electra.log
       - data/01_raw/hateful_memes
@@ -218,8 +223,8 @@ stages:
         --dropout_rate ${dropout_rate}
         --grad_clip ${gradient_clip_value}
         --model_name ${model_name}
-        --project distilbert
         --model_dir data/06_models/distilbert
+        --project ${project_prefix}distilbert
     deps:
       - logs/test_distilbert.log
       - data/01_raw/hateful_memes
@@ -255,6 +260,7 @@ stages:
         --dropout_rate ${dropout_rate}
         --grad_clip ${gradient_clip_value}
         --model_dir data/06_models/simple_mlp_image
+        --project ${project_prefix}simple_mlp_image
     deps:
       - logs/test_simple_mlp_image.log
       - data/01_raw/hateful_memes
@@ -292,6 +298,7 @@ stages:
         --grad_clip ${gradient_clip_value}
         --model_dir data/06_models/simple_image
         --batch_norm ${batch_norm}
+        --project ${project_prefix}simple_image
     deps:
       - logs/test_simple_image.log
       - data/01_raw/hateful_memes
@@ -337,6 +344,7 @@ stages:
         --dropout_rate ${dropout_rate}
         --epochs ${epochs}
         --model_dir data/06_models/simple_text
+        --project ${project_prefix}simple_text
     deps:
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes.py
@@ -378,6 +386,7 @@ stages:
         --dropout_rate ${dropout_rate}
         --epochs ${epochs}
         --model_dir data/06_models/simple_image_text
+        --project ${project_prefix}simple_image_text
     deps:
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes.py
@@ -426,6 +435,7 @@ stages:
         --grad_clip ${grad_clip}
         --epochs ${epochs}
         --model_dir data/06_models/super_model
+        --project ${project_prefix}super_model
     deps:
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes.py
