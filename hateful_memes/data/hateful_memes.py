@@ -13,6 +13,7 @@ from multiprocessing import Pool
 import os
 import transformers
 from torchvision import transforms as T
+import numpy as np
 
 
 def create_vocab_tokenizer(root_dir):
@@ -70,6 +71,7 @@ class MaeMaeDataset(torch.utils.data.Dataset):
         img_path = self.root_dir/data['img']
         # image = io.imread(img_path)
         image = Image.open(img_path).convert('RGB')
+        # raw_image = np.asarray(image)
         if self.img_transforms:
             image = self.img_transforms(image)
 
@@ -84,6 +86,7 @@ class MaeMaeDataset(torch.utils.data.Dataset):
 
         sample = dict(
             image=image,
+            # raw_image=raw_image,
             text=text,
             label=label,
             **extra_text_info
@@ -96,7 +99,7 @@ class MaeMaeDataset(torch.utils.data.Dataset):
         return T.Compose([
             # T.RandomHorizontalFlip(),
             # transforms.ToPILImage(mode='RGB'),
-            T.Resize(size=(224,224)),
+            T.Resize(size=(448,448)),
             T.ToTensor(), # this already seems to scale okay
             T.Normalize(mean=[0.485, 0.456, 0.406],
                                   std=[0.229, 0.224, 0.225]),
