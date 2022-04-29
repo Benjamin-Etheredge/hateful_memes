@@ -1,3 +1,4 @@
+freeze: true
 model_name: 'vit'
 batch_size: 0
 lr: 1e-5

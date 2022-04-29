@@ -1,4 +1,4 @@
-freeze: False
+freeze: true
 batch_size: 16
 lr: 1e-5
 epochs: 100
