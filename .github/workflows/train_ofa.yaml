@@ -1,12 +1,12 @@
 name: Train OFA model
 on: 
     workflow_dispatch:
-    push:
-      paths:
-        - 'config/hateful_ofa.yaml'
-        - 'dvc.yaml'
-        - .github/workflows/train_ofa.yml
-        - hateful_memes/models/hateful_ofa.py
+    # push:
+    #   paths:
+    #     - 'config/hateful_ofa.yaml'
+    #     - 'dvc.yaml'
+    #     - .github/workflows/train_ofa.yml
+    #     - hateful_memes/models/hateful_ofa.py
 # defaults:
 #     run:
 #       shell: bash
