@@ -91,7 +91,6 @@ def base_train(
         monitor_metric_mode="max",
         stopping_patience=10,
         mixed_precision=True,
-        accumulate_grad_batches=None,
     ):
     logger = get_project_logger(project=project, save_dir=log_dir, offline=fast_dev_run)
     # TODO pull out lr and maybe arg optimizer
@@ -112,6 +111,11 @@ def base_train(
 
     stw = StochasticWeightAveraging()
 
+    if batch_size > 0:
+        accumulate_grad_batches = max(1, 64//batch_size)
+    else:
+        accumulate_grad_batches = None
+    
     trainer = Trainer(
         devices=1, 
         accelerator='auto',
@@ -144,9 +148,7 @@ def base_train(
                 update_attr=True),
             datamodule=data,
         )
-
-        # ic.enable()
-        # ic(result)
+        batch_size = result['scale_batch_size']
         # lr_find = result['lr_find']
         # plt = lr_find.plot(suggest=True)
         # wandb.log({"lr_plot": plt})
@@ -156,6 +158,7 @@ def base_train(
     #     # new_lr = trainer.tuner.lr_find.suggestion()
     #     # model.hparams.lr = new_lr
     #     # model.lr = new_lr
+    data = MaeMaeDataModule(batch_size=batch_size)
 
     ic(model.lr)
     trainer.fit(
