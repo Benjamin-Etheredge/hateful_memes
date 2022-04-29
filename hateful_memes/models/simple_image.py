@@ -88,7 +88,7 @@ class SimpleImageMaeMaeModel(BaseMaeMaeModel):
 
         # TODO better batch norm usage and remove bias
 
-        self.l1 = nn.Linear(4608, dense_dim)
+        self.l1 = nn.Linear(25088, dense_dim)
         self.l2 = nn.Linear(dense_dim, dense_dim)
         self.l3 = nn.Linear(dense_dim, 1)
 

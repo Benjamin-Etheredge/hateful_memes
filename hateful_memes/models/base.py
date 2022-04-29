@@ -25,7 +25,8 @@ class BaseMaeMaeModel(LightningModule):
         super().__init__()
 
         # TODO log for each metric through macro
-        metrics_kwargs = dict(compute_on_cpu=True)
+        # metrics_kwargs = dict(compute_on_cpu=True)
+        metrics_kwargs = dict()
         self.train_acc = torchmetrics.Accuracy(**metrics_kwargs)
         self.train_f1 = torchmetrics.F1Score(average="micro", **metrics_kwargs)
         self.train_auroc = torchmetrics.AUROC(average="micro", **metrics_kwargs)

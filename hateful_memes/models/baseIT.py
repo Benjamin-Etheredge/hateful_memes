@@ -44,31 +44,36 @@ class BaseITModule(BaseMaeMaeModel):
                 param.requires_grad = False
             self.model.eval()
 
-        self.conv1 = nn.Sequential(
-            nn.Conv2d(1, 16, kernel_size=(3, 5), stride=(1, 1), padding=(1, 1), bias=False),
-            nn.BatchNorm2d(16),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=(2, 3), stride=(2, 3))
-        )
-        self.conv2 = nn.Sequential(
-            nn.Conv2d(16, 32, kernel_size=(3, 5), stride=(1, 1), padding=(1, 1), bias=False),
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=(2, 3), stride=(2, 3))
-        )
-        self.conv3 = nn.Sequential(
-            nn.Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2))
-        )
-        self.conv4 = nn.Sequential(
-            nn.Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2))
-        )
-        self.fc1 = nn.Linear(16128, dense_dim)
+        # self.conv1 = nn.Sequential(
+        #     nn.Conv2d(1, 16, kernel_size=(3, 5), stride=(1, 1), padding=(1, 1), bias=False),
+        #     nn.BatchNorm2d(16),
+        #     nn.ReLU(),
+        #     nn.MaxPool2d(kernel_size=(2, 3), stride=(2, 3))
+        # )
+        # self.conv2 = nn.Sequential(
+        #     nn.Conv2d(16, 32, kernel_size=(3, 5), stride=(1, 1), padding=(1, 1), bias=False),
+        #     nn.BatchNorm2d(32),
+        #     nn.ReLU(),
+        #     nn.MaxPool2d(kernel_size=(2, 3), stride=(2, 3))
+        # )
+        # self.conv3 = nn.Sequential(
+        #     nn.Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False),
+        #     nn.BatchNorm2d(64),
+        #     nn.ReLU(),
+        #     nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2))
+        # )
+        # self.conv4 = nn.Sequential(
+        #     nn.Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False),
+        #     nn.BatchNorm2d(64),
+        #     nn.ReLU(),
+        #     nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2))
+        # )
+        # self.fc1 = nn.Linear(16128, dense_dim)
+        # self.fc2 = nn.Linear(dense_dim, dense_dim)
+        # self.fc3 = nn.Linear(dense_dim, 1)
+
+        # TODO pool avg
+        self.fc1 = nn.Linear(768, dense_dim)
         self.fc2 = nn.Linear(dense_dim, dense_dim)
         self.fc3 = nn.Linear(dense_dim, 1)
 
@@ -85,6 +90,7 @@ class BaseITModule(BaseMaeMaeModel):
     def forward(self, batch):
         image = batch['image']
         image = [ToPILImage()(x_) for x_ in image]
+        # image = [x_ for x_ in image]
         # TODO look into using model config options for classification
 
         inputs = self.feature_extractor(images=image, return_tensors="pt")
@@ -96,16 +102,21 @@ class BaseITModule(BaseMaeMaeModel):
                 x = self.model(**inputs)
         else:
             x = self.model(**inputs)
+
         x = x.hidden_states[-1]
 
-        x = x.view(x.shape[0], 1, x.shape[1], x.shape[2])
+        # x = x.view(x.shape[0], 1, x.shape[1], x.shape[2])
 
-        x = self.conv1(x)
-        x = self.conv2(x)
-        x = self.conv3(x)
-        x = self.conv4(x)
+        # x = self.conv1(x)
+        # x = self.conv2(x)
+        # x = self.conv3(x)
+        # x = self.conv4(x)
 
-        x = x.view(x.shape[0], -1)
+        # ic(x.shape)
+        # x = x.view(x.shape[0], -1)
+        # x = x[:, 0, :]
+        x = x.mean(dim=1)
+        # ic(x.shape)
 
         x = self.fc1(x)
         x = F.relu(x)
@@ -128,6 +139,7 @@ class BaseITModule(BaseMaeMaeModel):
 @click.option('--max_length', default=128, help='Max length')
 @click.option('--dense_dim', default=256, help='Dense dim')
 @click.option('--dropout_rate', default=0.1, help='Dropout rate')
+@click.option('--freeze', default=True, help='Freeze')
 # Train kwargs
 @click.option('--batch_size', default=0, help='Batch size')
 @click.option('--epochs', default=10, help='Epochs')
@@ -136,7 +148,7 @@ class BaseITModule(BaseMaeMaeModel):
 @click.option('--fast_dev_run', default=False, help='Fast dev run')
 @click.option('--log_dir', default="data/08_reporting/vit", help='Log dir')
 @click.option('--project', default="vit", help='Project')
-def main(model_name, lr, max_length, dense_dim, dropout_rate, 
+def main(model_name, lr, max_length, dense_dim, dropout_rate, freeze,
          **train_kwargs):
     """ train model """
 
@@ -145,6 +157,7 @@ def main(model_name, lr, max_length, dense_dim, dropout_rate,
         lr=lr, 
         max_length=max_length, 
         dense_dim=dense_dim, 
+        freeze=freeze,
         dropout_rate=dropout_rate)
     
     base_train(model=model, **train_kwargs)

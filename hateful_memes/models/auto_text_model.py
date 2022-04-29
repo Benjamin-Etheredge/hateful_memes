@@ -5,13 +5,9 @@ import click
 from transformers import AutoTokenizer, AutoModel, AutoConfig
 from torch.nn import functional as F
 from torch import nn
-from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.callbacks.early_stopping import EarlyStopping
-from pytorch_lightning.loggers import WandbLogger
 from icecream import ic
 
 from hateful_memes.models.base import BaseMaeMaeModel, base_train
-from hateful_memes.data.hateful_memes import MaeMaeDataModule
 
 class AutoTextModule(BaseMaeMaeModel):
 
@@ -23,12 +19,17 @@ class AutoTextModule(BaseMaeMaeModel):
         include_top=True,
         dropout_rate=0.0,
         dense_dim=256,
+        freeze=True,
         # model_name='google/electra-small-discriminator',
     ):
         super().__init__()
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.config = AutoConfig.from_pretrained(model_name)
         self.model = AutoModel.from_pretrained(model_name, config=self.config)
+        if freeze:
+            for param in self.model.parameters():
+                param.requires_grad = False
+            # model.eval()
 
         self.lr = lr
         self.max_length = max_length
@@ -39,6 +40,8 @@ class AutoTextModule(BaseMaeMaeModel):
         self.fc1 = nn.Linear(self.config.hidden_size * self.max_length, dense_dim)
         self.last_hidden_size = dense_dim
         self.fc2 = nn.Linear(dense_dim, 1)
+        self.to_freeze = freeze
+
         self.save_hyperparameters()
 
     
@@ -53,7 +56,11 @@ class AutoTextModule(BaseMaeMaeModel):
         )
         inputs = inputs.to(self.device)
         
-        x = self.model(**inputs)
+        if self.to_freeze:
+            with torch.no_grad():
+                x = self.model(**inputs)
+        else:
+            x = self.model(**inputs)
         x = x.last_hidden_state
         x = x.view(x.shape[0], -1)
 
@@ -72,6 +79,7 @@ class AutoTextModule(BaseMaeMaeModel):
 @click.option('--dense_dim', default=256, help='Dense dim')
 @click.option('--dropout_rate', default=0.1, help='Dropout rate')
 @click.option('--model_name', default='google/electra-small-discriminator', help='Model name')
+@click.option('--freeze', default=True, help='Freeze')
 # Train kwargs
 @click.option('--batch_size', default=0, help='Batch size')
 @click.option('--epochs', default=10, help='Epochs')
@@ -79,7 +87,7 @@ class AutoTextModule(BaseMaeMaeModel):
 @click.option('--grad_clip', default=1.0, help='Gradient clip')
 @click.option('--fast_dev_run', default=False, help='Fast dev run')
 @click.option('--project', default='', help='Simple model name for wandb')
-def main(lr, max_length, dense_dim, dropout_rate, model_name,
+def main(lr, max_length, dense_dim, dropout_rate, model_name, freeze,
          **train_kwargs):
     
     model = AutoTextModule(
@@ -88,6 +96,7 @@ def main(lr, max_length, dense_dim, dropout_rate, model_name,
         dense_dim=dense_dim, 
         dropout_rate=dropout_rate,
         model_name=model_name,
+        freeze=freeze,
     )
 
     base_train(model=model, **train_kwargs)
