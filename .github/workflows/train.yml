@@ -50,31 +50,37 @@ jobs:
         run: dvc pull -a --run-cache
 
       - name: Train Electra
-        # continue-on-error: true
+        continue-on-error: true
         run: |
           dvc repro --pull electra
           dvc push -d electra
 
       - name: Train Distilbert
-        # continue-on-error: true
+        continue-on-error: true
         run: |
           dvc repro --pull distilbert
           dvc push -d distilbert
 
-      - name: Train Simple Image Model
-
-        # continue-on-error: true
-        run: |
-          dvc repro simple_image
-          dvc push --run-cache -d simple_image
-
       - name: Train Simple MLP Image Model
-        # continue-on-error: true
+        continue-on-error: true
         run: |
           dvc repro simple_mlp_image
           dvc push --run-cache -d simple_mlp_image
             
+      - name: Train Simple Image Model
+        continue-on-error: true
+        run: |
+          dvc repro simple_image
+          dvc push --run-cache -d simple_image
+
+      - name: Train Simple Image Text Model
+        continue-on-error: true
+        run: |
+          dvc repro simple_image_text
+          dvc push --run-cache -d simple_image_text
+
       - name: Train Simple Text Model
+        continue-on-error: true
         run: |
           dvc repro simple_text
           dvc push --run-cache -d simple_text
