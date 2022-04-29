@@ -159,7 +159,7 @@ def base_train(
     #     # new_lr = trainer.tuner.lr_find.suggestion()
     #     # model.hparams.lr = new_lr
     #     # model.lr = new_lr
-    data = MaeMaeDataModule(batch_size=batch_size)
+    data = MaeMaeDataModule(batch_size=batch_size if batch_size > 0 else 32)
 
     ic(model.lr)
     trainer.fit(
