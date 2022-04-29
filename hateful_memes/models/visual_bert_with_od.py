@@ -85,14 +85,14 @@ class VisualBertWithODModule(BaseMaeMaeModel):
     def forward(self, batch):
         """ Shut up """
         text = batch['text']
-        image = batch['image']
+        image = batch['raw_pil_image']
 
         ############################################
         # Obj Detection Start
         ############################################
-        images_list = [batch_img for batch_img in image.cpu()]
+        # images_list = [batch_img for batch_img in image.cpu()]
 
-        od_inputs = self.od_feature_extractor(images=images_list, return_tensors="pt")
+        od_inputs = self.od_feature_extractor(images=image, return_tensors="pt")
         od_inputs = od_inputs.to(self.device)
         od_outputs = self.od_model(**od_inputs)
         # ic(od_outputs.keys())
@@ -101,11 +101,17 @@ class VisualBertWithODModule(BaseMaeMaeModel):
 
         image_x = od_outputs.last_hidden_state
 
+        image_x = image_x.mean(dim=1, keepdim=True)
         image_x = self.od_fc(image_x)
-        image_x = image_x.permute(0, 2, 1)
-        image_x = F.adaptive_avg_pool1d(image_x, 1)
-        image_x = image_x.permute(0, 2, 1)
-        image_x = torch.squeeze(image_x, dim=-1)
+        image_x = image_x.mean(dim=1, keepdim=True)
+        # image_x = image_x.permute(0, 2, 1)
+        image_x = image_x.mean(dim=1, keepdim=True)
+        # image_x = F.adaptive_avg_pool1d(image_x, 1)
+        image_x = image_x.mean(dim=1, keepdim=True)
+        # ic(image_x.shape)
+        # image_x = image_x.permute(0, 2, 1)
+        # image_x = torch.squeeze(image_x, dim=-1)
+        image_x = image_x.mean(dim=1, keepdim=True)
         ############################################
         # Obj Detection End
         ############################################
