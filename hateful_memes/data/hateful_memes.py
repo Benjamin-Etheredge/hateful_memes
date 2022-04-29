@@ -71,7 +71,8 @@ class MaeMaeDataset(torch.utils.data.Dataset):
         img_path = self.root_dir/data['img']
         # image = io.imread(img_path)
         image = Image.open(img_path).convert('RGB')
-        # raw_image = np.asarray(image)
+        raw_pil_image = image
+        raw_np_image = np.asarray(image)
         if self.img_transforms:
             image = self.img_transforms(image)
 
@@ -86,7 +87,8 @@ class MaeMaeDataset(torch.utils.data.Dataset):
 
         sample = dict(
             image=image,
-            # raw_image=raw_image,
+            raw_np_image=raw_np_image,
+            raw_pil_image=raw_pil_image,
             text=text,
             label=label,
             **extra_text_info
@@ -97,12 +99,16 @@ class MaeMaeDataset(torch.utils.data.Dataset):
     # TODO vocab is broken between train and test
     def base_train_img_transforms(self):
         return T.Compose([
-            # T.RandomHorizontalFlip(),
+            T.RandomHorizontalFlip(),
+            T.RandomVerticalFlip(),
             # transforms.ToPILImage(mode='RGB'),
-            T.Resize(size=(448,448)),
+            T.RandomResizedCrop(size=(448,448)),
+            T.RandomRotation(degrees=15),
+            # T.Resize(size=(448,448)),
             T.ToTensor(), # this already seems to scale okay
             T.Normalize(mean=[0.485, 0.456, 0.406],
                                   std=[0.229, 0.224, 0.225]),
+            T.RandomErasing(p=0.5, scale=(0.02, 0.33), ratio=(0.3, 3.3), value=0, inplace=True),
         ])
 
     def base_test_img_transforms(self):
@@ -115,6 +121,31 @@ class MaeMaeDataset(torch.utils.data.Dataset):
                                   std=[0.229, 0.224, 0.225]),
         ])
 
+    @staticmethod
+    def collate_fn(batch):
+        images = []
+        raw_pil_images = []
+        raw_np_images = []
+        texts = []
+        labels = []
+        for sample in batch:
+            images.append(sample['image'])
+            raw_pil_images.append(sample['raw_pil_image'])
+            raw_np_images.append(sample['raw_np_image'])
+            texts.append(sample['text'])
+            labels.append(sample['label'])
+        
+        images = torch.stack(images, dim=0)
+        labels = torch.tensor(labels)
+        return dict(
+            image=images,
+            raw_pil_image=raw_pil_images,
+            raw_np_image=raw_np_images,
+            text=texts,
+            label=labels
+        )
+
+
 class MaeMaeDataModule(pl.LightningDataModule):
     def __init__(
         self, 
@@ -124,7 +155,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
         txt_transforms=None,
         num_workers=None,
         pin_memory=False,
-        collate_fn=None,
+        # collate_fn=None,
         # tokenizer=None,
     ):
         super().__init__()
@@ -141,7 +172,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
 
         self.tokenizer = None
         self.vocab = None
-        self.collate_fn = collate_fn
+        self.collate_fn = MaeMaeDataset.collate_fn
         self.save_hyperparameters()
     
     def prepare_data(self) -> None:
@@ -177,6 +208,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
             pin_memory=self.pin_memory,
             drop_last=drop_last,
             persistent_workers=False,
+            collate_fn=self.collate_fn,
         )
 
     def val_dataloader(self):
@@ -187,6 +219,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
             persistent_workers=False,
+            collate_fn=self.collate_fn,
         )
     
     def test_dataloader(self):
@@ -196,5 +229,6 @@ class MaeMaeDataModule(pl.LightningDataModule):
             shuffle=False,
             num_workers=self.test_num_workers,
             pin_memory=self.pin_memory,
+            collate_fn=self.collate_fn,
         ) 
 

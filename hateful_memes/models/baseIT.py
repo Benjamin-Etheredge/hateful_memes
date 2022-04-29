@@ -88,8 +88,7 @@ class BaseITModule(BaseMaeMaeModel):
         self.save_hyperparameters()
     
     def forward(self, batch):
-        image = batch['image']
-        image = [ToPILImage()(x_) for x_ in image]
+        image = batch['raw_pil_image']
         # image = [x_ for x_ in image]
         # TODO look into using model config options for classification
 
