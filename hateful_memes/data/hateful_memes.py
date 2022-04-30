@@ -154,7 +154,8 @@ class MaeMaeDataModule(pl.LightningDataModule):
         img_transforms=None, 
         txt_transforms=None,
         num_workers=None,
-        pin_memory=False,
+        pin_memory=True,
+        persistent_workers=True,
         # collate_fn=None,
         # tokenizer=None,
     ):
@@ -169,6 +170,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
         self.num_workers = num_workers
 
         self.pin_memory = pin_memory
+        self.persitent_workers = persistent_workers
 
         self.tokenizer = None
         self.vocab = None
@@ -206,8 +208,8 @@ class MaeMaeDataModule(pl.LightningDataModule):
             shuffle=shuffle,
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
+            persistent_workers=self.persitent_workers,
             drop_last=drop_last,
-            persistent_workers=False,
             collate_fn=self.collate_fn,
         )
 
@@ -218,7 +220,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
             shuffle=False,
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
-            persistent_workers=False,
+            persistent_workers=self.persitent_workers,
             collate_fn=self.collate_fn,
         )
     
@@ -229,6 +231,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
             shuffle=False,
             num_workers=self.test_num_workers,
             pin_memory=self.pin_memory,
+            persistent_workers=self.persitent_workers,
             collate_fn=self.collate_fn,
         ) 
 
