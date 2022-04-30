@@ -7,15 +7,8 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.nn import functional as F
 
 import pytorch_lightning as pl
-from pytorch_lightning.utilities.cli import LightningCLI
-from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.callbacks.early_stopping import EarlyStopping
-from pytorch_lightning.loggers import WandbLogger
-from pytorch_lightning import LightningModule, Trainer
 
 from hateful_memes.models.base import BaseMaeMaeModel, base_train
-from hateful_memes.data.hateful_memes import MaeMaeDataModule
-from hateful_memes.utils import get_project_logger
 
 
 class SimpleImageMaeMaeModel(BaseMaeMaeModel):

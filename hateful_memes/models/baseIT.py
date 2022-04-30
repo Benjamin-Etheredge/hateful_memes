@@ -3,11 +3,8 @@ from pyrsistent import freeze
 import pytorch_lightning as pl
 import torch
 import click
-from transformers import ViTFeatureExtractor, ViTForImageClassification
 from transformers import AutoFeatureExtractor, AutoModelForImageClassification
 import torchvision.models as models
-from hateful_memes.data.hateful_memes import MaeMaeDataModule
-from hateful_memes.utils import get_project_logger
 from hateful_memes.models.base import BaseMaeMaeModel, base_train
 from torch.nn import functional as F
 from torch import nn
