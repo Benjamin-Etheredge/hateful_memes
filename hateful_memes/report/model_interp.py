@@ -29,13 +29,14 @@ from hateful_memes.models import(
     SimpleMLPImageMaeMaeModel,
     BaseTextMaeMaeModel,
     VisualBertModule,
-    BaseITModule
+    BaseITModule,
+    SuperModel
 )
+from hateful_memes.utils import get_checkpoint_filename
 
 
 class InterpModel():
     def __init__(self, model_name:str, ckpt_dir:str):
-        ## True model (Just Visual BERT for now)
         assert(Path(ckpt_dir).exists())
         ckpt_search = os.path.join(ckpt_dir, "*.ckpt")
         ckpt_path = glob.glob(ckpt_search)[0]  # Grab the most recent checkpoint?
@@ -43,8 +44,9 @@ class InterpModel():
         self.image_embed_layer = None
         self.text_embed_layer = None
         self.tokenizer = None
+        self.ensemble_layer = None
         if model_name == '':
-            raise ValueError
+            raise ValueError("Expected non-empty model name.")
         elif model_name == 'visual-bert':
             self.inner_model = VisualBertModule.load_from_checkpoint(checkpoint_path=ckpt_path)
             self.image_embed_layer = self.inner_model.resnet
@@ -60,6 +62,26 @@ class InterpModel():
             self.inner_model = AutoTextModule.load_from_checkpoint(checkpoint_path=ckpt_path)
             self.text_embed_layer = self.inner_model.model.embeddings.word_embeddings
             self.tokenizer = self.inner_model.tokenizer
+        elif model_name == 'visual-bert-with-od':
+            self.inner_model = VisualBertWithODModule.load_from_checkpoint(checkpoint_path=ckpt_path)
+            self.image_embed_layer = self.inner_model.resnet
+            self.text_embed_layer = self.inner_model.visual_bert.embeddings.word_embeddings
+            self.tokenizer = self.inner_model.tokenizer 
+        elif model_name == 'super-model':
+            ckpt_storage = os.path.dirname(ckpt_dir)
+            self.inner_model = SuperModel.load_from_checkpoint(checkpoint_path=ckpt_path,
+                visual_bert_ckpt=os.path.join(ckpt_storage, "visual_bert"),
+                #resnet_ckpt=None,
+                simple_image_ckpt=os.path.join(ckpt_storage, "simple_image"),
+                simple_mlp_image_ckpt=os.path.join(ckpt_storage, "simple_mlp_image"),
+                simple_text_ckpt=os.path.join(ckpt_storage, "simple_text"),
+                vit_ckpt=os.path.join(ckpt_storage, "vit"),
+                beit_ckpt=os.path.join(ckpt_storage, "beit"),
+                electra_ckpt=os.path.join(ckpt_storage, "electra"),
+                distilbert_ckpt=os.path.join(ckpt_storage, "distilbert"),
+                visual_bert_with_od_ckpt=os.path.join(ckpt_storage, "visual_bert_with_od")
+                )
+            self.ensemble_layer = self.inner_model.dense_model
             
     # Used as wrapper for model forward()
     def __call__(self, image, input_ids, tokenizer):
@@ -75,7 +97,7 @@ class InterpModel():
         return self.inner_model(batch)
     
 
-def get_attributions(interp_model:InterpModel, data_sample):
+def get_input_attributions(interp_model:InterpModel, data_sample):
     ## Calculate feature attribution
     # Features
     image = data_sample['image']
@@ -95,6 +117,8 @@ def get_attributions(interp_model:InterpModel, data_sample):
     # Layer Integrated Gradients
     attrs = {}
     interp_model.inner_model.eval()
+    if interp_model.image_embed_layer is None and interp_model.text_embed_layer is None:
+        raise RuntimeError("Interpretable Model is missing an input feature layer.")
     if interp_model.image_embed_layer is not None:
         lig_image = LayerIntegratedGradients(interp_model, interp_model.image_embed_layer)
         img_attr = lig_image.attribute(inputs=image_text,
@@ -112,7 +136,40 @@ def get_attributions(interp_model:InterpModel, data_sample):
     return attrs
 
 
-def visualize_attributions(attrs, inputs, y_hat, y, tokenizer, model_name,
+def get_model_attributions(interp_model:InterpModel, data_sample):
+    ## Calculate feature attribution
+    # Features
+    image = data_sample['image']
+    text = data_sample['text']
+    tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+    token_dict = tokenizer(text, add_special_tokens=False, return_tensors="pt")
+    token_ids = token_dict['input_ids']
+    image_text = (image, token_ids)
+    # Feature masks (?)
+    image_mask = torch.tensor(felzenszwalb(image.squeeze(dim=0).numpy(), channel_axis=0,
+        scale=0.25, min_size=5))
+    text_mask = torch.arange(token_ids.numel()) + image_mask.max()
+    # Feature baselines
+    image_baselines = torch.zeros_like(image)
+    token_ref= TokenReferenceBase(reference_token_idx=tokenizer.convert_tokens_to_ids("[PAD]"))
+    text_baselines = token_ref.generate_reference(token_ids.numel(), device='cpu').unsqueeze(0)
+    # Layer Integrated Gradients
+    attrs = {}
+    interp_model.inner_model.eval()
+    if interp_model.ensemble_layer is None:
+        raise RuntimeError("Interpretable Model is missing an Ensemble Layer")
+    lig_mod = LayerIntegratedGradients(interp_model, interp_model.ensemble_layer)
+    mod_attr = lig_mod.attribute(inputs=image_text,
+        baselines=(image_baselines, text_baselines),
+        additional_forward_args=tokenizer,
+        attribute_to_layer_input=True)
+    attrs['models'] = mod_attr
+    ic(mod_attr.shape)
+    
+    return attrs
+
+
+def visualize_input_attributions(attrs, inputs, y_hat, y, tokenizer, model_name,
     save_dir="data/08_reporting", save_name="tmp.png"):
     
     # Prediction string
@@ -216,23 +273,48 @@ def visualize_attributions(attrs, inputs, y_hat, y, tokenizer, model_name,
     fig.savefig(os.path.join(save_dir, save_name))
        
 
+def visualize_model_attributrions(attrs, inputs, y_hat, y, tokenizer, model_name, 
+        save_dir, save_name):
+        raise NotImplementedError
+
+
+def visualize_attributions(attrs, inputs, y_hat, y, tokenizer, model_name,
+    save_dir="data/08_reporting", save_name="tmp.png", ensemble=False):
+    if ensemble:
+        visualize_model_attributions(attrs, inputs, y_hat, y, tokenizer, model_name, 
+            save_dir, save_name)
+    else:
+        visualize_input_attributions(attrs, inputs, y_hat, y, tokenizer, model_name, 
+            save_dir, save_name)
+   
+
 @click.command
 @click.option('--model_name', default='visual-bert')
 @click.option('--ckpt_dir', default='data/06_models/visual_bert')
 @click.option('--no_save', is_flag=True, help='Flag for disabling vis. saving (e.g. for testing)')
 @click.option('--save_dir', default='data/08_reporting')
 @click.option('--save_name', default='tmp.png')
-def interp(model_name:str, ckpt_dir:str, no_save:bool, save_dir:str, save_name:str):
+@click.option('--ensemble', is_flag=True, help='Perform model attribution for an ensemble')
+def interp(model_name:str, ckpt_dir:str, no_save:bool, save_dir:str, save_name:str,
+    ensemble:bool):
+    
     ## DataLoader
     datamodule = MaeMaeDataModule(batch_size=1) # Attributors want one sample at a time?
     datamodule.prepare_data()
     datamodule.setup("fit")
     dataloader = datamodule.train_dataloader()    
     data_sample = next(iter(dataloader))
+
     ## Model to interpret
     interp_model = InterpModel(model_name, ckpt_dir)
+
     ## Get attributions
-    attrs = get_attributions(interp_model, data_sample)
+    attrs = None
+    if ensemble:
+        attrs = get_model_attributions(interp_model, data_sample)
+    else:
+        attrs = get_input_attributions(interp_model, data_sample)
+    
     ## Visualize attributions
     if(~no_save):
         inputs = {
@@ -242,7 +324,7 @@ def interp(model_name:str, ckpt_dir:str, no_save:bool, save_dir:str, save_name:s
         y_hat = interp_model.inner_model(data_sample).item()
         y = data_sample["label"] 
         visualize_attributions(attrs, inputs, y_hat, y, interp_model.tokenizer,
-            model_name, save_dir, save_name)
+            model_name, save_dir, save_name, ensemble)
 
 
 if __name__ == '__main__':
