@@ -96,11 +96,13 @@ class BaseImageTextMaeMaeModel(BaseMaeMaeModel):
             nn.MaxPool2d(2),
         )
 
-        conv_out_size = 4608
+        # conv_out_size = 4608
+        conv_out_size = 4864
 
             # nn.Linear(dense_dim + conv_out_size, dense_dim),
+            # nn.LazyLinear(dense_dim),
         self.dense_layers = nn.Sequential(
-            nn.LazyLinear(dense_dim),
+            nn.Linear(conv_out_size, dense_dim),
             nn.ReLU(),
             nn.Dropout(dropout_rate),
             nn.Linear(dense_dim, dense_dim),
