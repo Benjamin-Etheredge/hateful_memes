@@ -60,8 +60,10 @@ class MaeMaeDataset(torch.utils.data.Dataset):
         #     self.txt_transforms = self.create_text_transform()
         if self.img_transforms is None:
             if set == "train":
+                ic("train set")
                 self.img_transforms = self.base_train_img_transforms()
             else:
+                ic("test set")
                 self.img_transforms = self.base_test_img_transforms()
 
         self.include_text_features = include_text_features
@@ -131,8 +133,8 @@ class MaeMaeDataset(torch.utils.data.Dataset):
             # transforms.ToPILImage(mode='RGB'),
             T.Resize(size=(224,224)),
             T.ToTensor(), # this already seems to scale okay
-            # T.Normalize(mean=[0.485, 0.456, 0.406],
-            #                       std=[0.229, 0.224, 0.225]),
+            T.Normalize(mean=[0.485, 0.456, 0.406],
+                                  std=[0.229, 0.224, 0.225]),
         ])
 
 def collate_fn(batch):
