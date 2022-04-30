@@ -372,10 +372,11 @@ def main(
         callbacks=trainer_callbacks,
         gradient_clip_val=grad_norm_clip,
         fast_dev_run=fast_dev_run,
-        devices=-1, 
+        devices=1, 
+        # strategy='ddp',
         accelerator='auto',
         logger=logger,
-        precision=16,
+        # precision=16,
         enable_progress_bar=os.environ.get('ENABLE_PROGRESS_BAR', 1) == 1,
     )
    
