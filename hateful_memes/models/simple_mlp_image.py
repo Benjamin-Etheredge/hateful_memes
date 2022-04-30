@@ -21,7 +21,7 @@ class SimpleMLPImageMaeMaeModel(BaseMaeMaeModel):
         super().__init__()
         # TODO better batch norm usage and remove bias
 
-        self.l1 = nn.Linear(4*224*224*3, dense_dim)
+        self.l1 = nn.Linear(1*224*224*3, dense_dim)
         dense_layers = []
 
         for _ in range(num_dense_layers):

@@ -25,6 +25,7 @@ class AutoTextModule(BaseMaeMaeModel):
         super().__init__()
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.config = AutoConfig.from_pretrained(model_name)
+        ic(self.config)
         self.model = AutoModel.from_pretrained(model_name, config=self.config)
         if freeze:
             for param in self.model.parameters():
@@ -39,7 +40,7 @@ class AutoTextModule(BaseMaeMaeModel):
 
         # self.fc1 = nn.Linear(self.config.hidden_size * self.max_length, dense_dim)
         self.dense_layers = nn.Sequential(
-            nn.Linear(self.config.hidden_size, dense_dim),
+            nn.Linear(self.config.hidden_size*self.max_length, dense_dim),
             nn.ReLU(),
             nn.Dropout(dropout_rate),
             nn.Linear(dense_dim, dense_dim),
@@ -70,8 +71,8 @@ class AutoTextModule(BaseMaeMaeModel):
         else:
             x = self.model(**inputs)
         x = x.last_hidden_state
-        # x = x.view(x.shape[0], -1)
-        x = x.mean(dim=1)
+        x = x.view(x.shape[0], -1)
+        # x = x.mean(dim=1)
 
         x = self.dense_layers(x)
 

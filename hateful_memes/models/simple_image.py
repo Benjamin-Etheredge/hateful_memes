@@ -3,7 +3,6 @@ import click
 
 import torch
 from torch import nn
-from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.nn import functional as F
 
 import pytorch_lightning as pl
@@ -78,13 +77,18 @@ class SimpleImageMaeMaeModel(BaseMaeMaeModel):
             nn.MaxPool2d(2)
         )
 
-
         # TODO better batch norm usage and remove bias
 
         # self.l1 = nn.Linear(25088, dense_dim)
-        self.l1 = nn.LazyLinear(dense_dim)
-        self.l2 = nn.Linear(dense_dim, dense_dim)
-        self.l3 = nn.Linear(dense_dim, 1)
+        self.dense_layers = nn.Sequential(
+            nn.Linear(4608, dense_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout_rate),
+            nn.Linear(dense_dim, dense_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout_rate),
+        )
+        self.fc = nn.Linear(dense_dim, 1)
 
         self.lr = lr
         self.dense_dim = dense_dim
@@ -108,16 +112,10 @@ class SimpleImageMaeMaeModel(BaseMaeMaeModel):
 
         x = x.view(x.shape[0], -1)
 
-        x = self.l1(x)
-        x = F.relu(x)
-        x = F.dropout(input=x, p=self.dropout_rate)
-
-        x = self.l2(x)
-        x = F.relu(x)
-        x = F.dropout(input=x, p=self.dropout_rate)
+        x = self.dense_layers(x)
 
         if self.include_top:
-            x = self.l3(x)
+            x = self.fc(x)
 
         x = torch.squeeze(x)
         return x
