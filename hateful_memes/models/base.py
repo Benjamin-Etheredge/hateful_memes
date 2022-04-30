@@ -25,8 +25,8 @@ class BaseMaeMaeModel(LightningModule):
         super().__init__()
 
         # TODO log for each metric through macro
-        # metrics_kwargs = dict(compute_on_cpu=True)
-        metrics_kwargs = dict()
+        metrics_kwargs = dict(compute_on_cpu=True)
+        # metrics_kwargs = dict()
         self.train_acc = torchmetrics.Accuracy(**metrics_kwargs)
         self.train_f1 = torchmetrics.F1Score(average="micro", **metrics_kwargs)
         self.train_auroc = torchmetrics.AUROC(average="micro", **metrics_kwargs)
@@ -40,32 +40,32 @@ class BaseMaeMaeModel(LightningModule):
     def training_step(self, batch, batch_idx):
         y = batch['label']
         y_hat = self(batch)
-        y_hat = torch.squeeze(y_hat)
+        # y_hat = torch.squeeze(y_hat)
         loss = F.binary_cross_entropy_with_logits(y_hat, y.to(y_hat.dtype))
 
-        self.train_acc(y_hat, y)
-        self.train_f1(y_hat, y)
-        self.train_auroc(y_hat, y)
-        self.log("train/loss", loss, on_step=False, on_epoch=True, batch_size=len(y))
-        self.log("train/acc", self.train_acc, on_step=False, on_epoch=True, batch_size=len(y))
-        self.log("train/f1", self.train_f1, prog_bar=True, on_step=False, on_epoch=True, batch_size=len(y))
-        self.log("train/auroc", self.train_auroc, prog_bar=True, on_step=False, on_epoch=True, batch_size=len(y))
+        self.train_acc.update(y_hat, y)
+        self.train_f1.update(y_hat, y)
+        self.train_auroc.update(y_hat, y)
+        self.log("train/loss", loss, on_step=False, on_epoch=True, batch_size=len(y), sync_dist=True)
+        self.log("train/acc", self.train_acc, on_step=False, on_epoch=True, batch_size=len(y), sync_dist=True)
+        self.log("train/f1", self.train_f1, prog_bar=True, on_step=False, on_epoch=True, batch_size=len(y), sync_dist=True)
+        self.log("train/auroc", self.train_auroc, prog_bar=True, on_step=False, on_epoch=True, batch_size=len(y), sync_dist=True)
 
         return loss
 
     def validation_step(self, batch, batch_idx):
         y = batch['label']
         y_hat = self(batch)
-        y_hat = torch.squeeze(y_hat)
+        # y_hat = torch.squeeze(y_hat)
         loss = F.binary_cross_entropy_with_logits(y_hat, y.to(y_hat.dtype))
 
-        self.val_acc(y_hat, y)
-        self.val_f1(y_hat, y)
-        self.val_auroc(y_hat, y)
-        self.log("val/loss", loss, on_step=False, on_epoch=True, batch_size=len(y))
-        self.log("val/acc", self.val_acc, on_step=False, on_epoch=True, batch_size=len(y))
-        self.log("val/f1", self.val_f1, prog_bar=True, on_step=False, on_epoch=True, batch_size=len(y))
-        self.log("val/auroc", self.val_auroc, on_step=False, prog_bar=True, on_epoch=True, batch_size=len(y))
+        self.val_acc.update(y_hat, y)
+        self.val_f1.update(y_hat, y)
+        self.val_auroc.update(y_hat, y)
+        self.log("val/loss", loss, on_step=False, on_epoch=True, batch_size=len(y), sync_dist=True)
+        self.log("val/acc", self.val_acc, on_step=False, on_epoch=True, batch_size=len(y), sync_dist=True)
+        self.log("val/f1", self.val_f1, prog_bar=True, on_step=False, on_epoch=True, batch_size=len(y), sync_dist=True)
+        self.log("val/auroc", self.val_auroc, on_step=False, prog_bar=True, on_epoch=True, batch_size=len(y), sync_dist=True)
 
         return loss
 
