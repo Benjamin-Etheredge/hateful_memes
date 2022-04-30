@@ -89,7 +89,7 @@ class BaseITModule(BaseMaeMaeModel):
         # image = [x_ for x_ in image]
         # TODO look into using model config options for classification
 
-        inputs = self.feature_extractor(images=image, return_tensors="pt")
+        inputs = self.feature_extractor(images=image, return_tensors="pt", device=self.device)
         inputs = inputs.to(self.device)        
 
         # TODO pooled output?
