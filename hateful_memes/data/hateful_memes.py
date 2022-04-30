@@ -179,7 +179,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
         self.txt_transforms = txt_transforms
 
         if num_workers is None:
-            num_workers = max(1, min(os.cpu_count()//2, 8))
+            num_workers = max(1, min(os.cpu_count()//2, 12))
         self.num_workers = num_workers
         ic(self.num_workers)
 
@@ -233,7 +233,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
             self.val_dataset,
             batch_size=self.batch_size,
             shuffle=False,
-            num_workers=self.num_workers,
+            num_workers=4,
             pin_memory=self.pin_memory,
             persistent_workers=self.persitent_workers,
             collate_fn=self.collate_fn,
@@ -244,7 +244,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
             self.test_dataset,
             batch_size=self.batch_size,
             shuffle=False,
-            num_workers=self.test_num_workers,
+            num_workers=2,
             pin_memory=self.pin_memory,
             persistent_workers=self.persitent_workers,
             collate_fn=self.collate_fn,
