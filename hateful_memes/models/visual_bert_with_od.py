@@ -33,7 +33,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         """ Visual Bert Model """
         super().__init__()
         # self.hparams = hparams
-        self.visual_bert = VisualBertModel.from_pretrained("uclanlp/visualbert-nlvr2-coco-pre").to(self.device)
+        self.visual_bert = VisualBertModel.from_pretrained("uclanlp/visualbert-vqa-coco-pre").to(self.device)
         if freeze:
             for param in self.visual_bert.parameters():
                 param.requires_grad = False
@@ -48,7 +48,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         resnet.to(self.device)
         self.resnet = resnet
         
-        self.fc_bridge = nn.Linear(2048, 1024)
+        # self.fc_bridge = nn.Linear(2048, 1024)
 
         ############################################
         # Obj Detection Start
@@ -154,8 +154,8 @@ class VisualBertWithODModule(BaseMaeMaeModel):
                 batch_outputs.append(img_outputs)
             image_x = torch.stack(batch_outputs)
 
-        image_x = self.fc_bridge(image_x)
-        image_x = F.relu(image_x)
+        # image_x = self.fc_bridge(image_x)
+        # image_x = F.relu(image_x)
         ############################################
         # Obj Detection End
         ############################################
