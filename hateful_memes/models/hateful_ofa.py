@@ -1,3 +1,4 @@
+from regex import D
 import torch
 from torch.utils.data import SequentialSampler, BatchSampler
 from torch.utils.data import DataLoader
@@ -64,7 +65,10 @@ class HatefulOFADataModule(pl.LightningDataModule):
         # Create data loader
         train_itr = DataLoader(
             self.train_dataset,
-            batch_sampler=BatchSampler(SequentialSampler(self.train_dataset), batch_size=self.batch_size, drop_last=True),
+            # batch_sampler=BatchSampler(SequentialSampler(self.train_dataset), batch_size=self.batch_size, drop_last=True),
+            batch_size=self.batch_size,
+            shuffle=True,
+            drop_last=True,
             collate_fn=self.train_dataset.collater,
             num_workers=self.fs_cfg.dataset.num_workers,
             # timeout=0,
@@ -75,7 +79,10 @@ class HatefulOFADataModule(pl.LightningDataModule):
         # Create data loader
         val_itr = DataLoader(
             self.val_dataset,
-            batch_sampler=BatchSampler(SequentialSampler(self.val_dataset), batch_size=self.batch_size, drop_last=True),
+            # batch_sampler=BatchSampler(SequentialSampler(self.val_dataset), batch_size=self.batch_size, drop_last=True),
+            batch_size=self.batch_size,
+            shuffle=False,
+            drop_last=False,
             collate_fn=self.val_dataset.collater,
             num_workers=self.fs_cfg.dataset.num_workers,
             # timeout=0,
