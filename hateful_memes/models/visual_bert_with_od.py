@@ -53,6 +53,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
             nn.Linear(256, 256),
             nn.ReLU(),
             nn.Linear(256, 1024),
+            nn.Tanh(),
             # nn.Dropout(dropout_rate),
         )
 
@@ -84,8 +85,8 @@ class VisualBertWithODModule(BaseMaeMaeModel):
     
     def forward(self, batch):
         """ Shut up """
-        text = batch['text']
         image = batch['raw_pil_image']
+        text = batch['text']
 
         ############################################
         # Obj Detection Start
@@ -93,25 +94,10 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         # images_list = [batch_img for batch_img in image.cpu()]
 
         od_inputs = self.od_feature_extractor(images=image, return_tensors="pt")
-        od_inputs = od_inputs.to(self.device)
-        od_outputs = self.od_model(**od_inputs)
-        # ic(od_outputs.keys())
-        # for key in od_outputs.keys():
-        #     ic(key, od_outputs[key].shape)
+        # for k, v in od_inputs.items():
+            # od_inputs[k] = v.to(self.device, non_blocking=True)
+        od_inputs = od_inputs.to(device=self.device)
 
-        image_x = od_outputs.last_hidden_state
-
-        image_x = image_x.mean(dim=1, keepdim=True)
-        image_x = self.od_fc(image_x)
-        image_x = image_x.mean(dim=1, keepdim=True)
-        # image_x = image_x.permute(0, 2, 1)
-        image_x = image_x.mean(dim=1, keepdim=True)
-        # image_x = F.adaptive_avg_pool1d(image_x, 1)
-        image_x = image_x.mean(dim=1, keepdim=True)
-        # ic(image_x.shape)
-        # image_x = image_x.permute(0, 2, 1)
-        # image_x = torch.squeeze(image_x, dim=-1)
-        image_x = image_x.mean(dim=1, keepdim=True)
         ############################################
         # Obj Detection End
         ############################################
@@ -122,15 +108,21 @@ class VisualBertWithODModule(BaseMaeMaeModel):
             padding='max_length', 
             truncation=True, 
             max_length=self.max_length)
+
+        # for k, v in inputs.items():
+            # inputs[k] = v.to(self.device, non_blocking=True)
         inputs = inputs.to(self.device)
 
-        inputs.update(
-            {
-                "visual_embeds": image_x,
-                "visual_token_type_ids": torch.ones(image_x.shape[:-1], dtype=torch.long, device=self.device),
-                "visual_attention_mask": torch.ones(image_x.shape[:-1], dtype=torch.float, device=self.device),
-            }
-        )
+        od_outputs = self.od_model(**od_inputs)
+        image_x = od_outputs.last_hidden_state
+        image_x = self.od_fc(image_x)
+        image_x = image_x.mean(dim=1, keepdim=True)
+
+        inputs.update( {
+            "visual_embeds": image_x,
+            "visual_token_type_ids": torch.ones(image_x.shape[:-1], dtype=torch.long, device=self.device),
+            "visual_attention_mask": torch.ones(image_x.shape[:-1], dtype=torch.float, device=self.device),
+        })
 
         if self.to_freeze:
             with torch.no_grad():
@@ -140,8 +132,6 @@ class VisualBertWithODModule(BaseMaeMaeModel):
 
         x = x.pooler_output
         x = x.view(x.shape[0], -1)
-
-        x = torch.squeeze(x)
 
         x = self.fc1(x)
         x = F.relu(x)
