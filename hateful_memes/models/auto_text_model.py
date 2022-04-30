@@ -37,7 +37,8 @@ class AutoTextModule(BaseMaeMaeModel):
         self.dropout_rate = dropout_rate
         self.dense_dim = dense_dim
 
-        self.fc1 = nn.Linear(self.config.hidden_size * self.max_length, dense_dim)
+        # self.fc1 = nn.Linear(self.config.hidden_size * self.max_length, dense_dim)
+        self.fc1 = nn.Linear(self.config.hidden_size, dense_dim)
         self.last_hidden_size = dense_dim
         self.fc2 = nn.Linear(dense_dim, 1)
         self.to_freeze = freeze
@@ -62,14 +63,15 @@ class AutoTextModule(BaseMaeMaeModel):
         else:
             x = self.model(**inputs)
         x = x.last_hidden_state
-        x = x.view(x.shape[0], -1)
+        # x = x.view(x.shape[0], -1)
+        x = x.mean(dim=1)
 
         x = self.fc1(x)
         x = F.relu(x)
         x = F.dropout(input=x, p=self.dropout_rate)
         if self.include_top:
             x = self.fc2(x)
-            x.squeeze_(dim=-1)
+            x = x.squeeze(dim=-1)
 
         return x
     
