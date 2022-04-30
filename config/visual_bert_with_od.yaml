@@ -1,7 +1,7 @@
 freeze: False
 batch_size: 32
-lr: 1e-5
-epochs: 5
+lr: 3e-5
+epochs: 20
 max_length: 64
 dense_dim: 256
 num_queries: 20
