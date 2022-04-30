@@ -4,8 +4,9 @@ from icecream import ic
 import torch
 from torch.nn import functional as F
 from torch import nn
-import torchvision.transforms 
+import torchvision.transforms as T
 import torchvision.transforms.functional as TF
+import torchvision.models as models
 
 from transformers import BertTokenizer, VisualBertModel
 from transformers import DetrFeatureExtractor, DetrForObjectDetection, AutoConfig
@@ -39,13 +40,30 @@ class VisualBertWithODModule(BaseMaeMaeModel):
             self.visual_bert.eval()
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 
+        resnet = models.resnet50(pretrained=True)
+        resnet.fc = nn.Flatten()
+        for param in resnet.parameters():
+            param.requires_grad = False
+        resnet.eval()
+        resnet.to(self.device)
+        self.resnet = resnet
+        
+        self.fc_bridge = nn.Linear(2048, 1024)
+
         ############################################
         # Obj Detection Start
         ############################################
-        self.od_config = AutoConfig.from_pretrained('facebook/detr-resnet-50', num_queries=num_queries)
-        self.od_feature_extractor = DetrFeatureExtractor.from_pretrained('facebook/detr-resnet-50')
-        self.od_model = DetrForObjectDetection(self.od_config).to(self.device)
+        # self.od_config = AutoConfig.from_pretrained('facebook/detr-resnet-50')
+        # self.od_feature_extractor = DetrFeatureExtractor.from_pretrained('facebook/detr-resnet-50')
+        # self.od_model = DetrForObjectDetection(self.od_config).to(self.device).eval()
         self.num_queries = num_queries
+
+        od_model = torch.hub.load('facebookresearch/detr', 'detr_resnet101', pretrained=True)
+        for param in od_model.parameters():
+            param.requires_grad = False
+        od_model.eval()
+        od_model.to(self.device)
+        self.od_model = od_model
         # self.od_poolsize = (self.num_queries//5) + 1
 
         # Original
@@ -57,22 +75,22 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         # )
 
         # For use w/o pooling
-        self.od_fc = nn.Sequential(
-            nn.Linear(256, 256),
-            nn.ReLU(),
-            nn.Linear(256, 32),
-            nn.ReLU(),
-            # nn.Dropout(dropout_rate),
-        )
+        # self.od_fc = nn.Sequential(
+        #     nn.Linear(256, 256),
+        #     nn.ReLU(),
+        #     nn.Linear(256, 32),
+        #     nn.ReLU(),
+        #     # nn.Dropout(dropout_rate),
+        # )
 
-        self.od_fc2 = nn.Sequential(
-            nn.Linear(32 * self.num_queries, 1024),
-            nn.ReLU()
-        )
-        if freeze:
-            for param in self.od_model.parameters():
-                param.requires_grad = False
-            self.od_model.eval()
+        # self.od_fc2 = nn.Sequential(
+        #     nn.Linear(32 * self.num_queries, 1024),
+        #     nn.ReLU()
+        # )
+        # if freeze:
+        #     for param in self.od_model.parameters():
+        #         param.requires_grad = False
+        #     self.od_model.eval()
         ############################################
         # Obj Detection End
         ############################################
@@ -82,7 +100,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         self.fc1 = nn.Linear(768, dense_dim)
         self.fc2 = nn.Linear(dense_dim, dense_dim)
         self.fc3 = nn.Linear(dense_dim, 1)
-        # TODO config modification
+        # # TODO config modification
 
         self.lr = lr
         self.max_length = max_length
@@ -103,24 +121,44 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         ############################################
         # Obj Detection Start
         ############################################
-        images_list = [batch_img for batch_img in image.cpu()]
+        self.od_model.eval()
+        self.resnet.eval()
 
-        od_inputs = self.od_feature_extractor(images=images_list, return_tensors="pt")
-        od_inputs = od_inputs.to(self.device)
-        od_outputs = self.od_model(**od_inputs)
-        # ic(od_outputs.keys())
-        # for key in od_outputs.keys():
-        #     ic(key, od_outputs[key].shape)
+        with torch.no_grad():
+            images_list = [batch_img.half() for batch_img in image]
+            od_outputs = self.od_model(images_list)
+            batch_pred_boxes = od_outputs['pred_boxes']
 
-        image_x = od_outputs.last_hidden_state
-
-        image_x = self.od_fc(image_x)
-        image_x = image_x.view(image_x.shape[0], 1, -1)
-        image_x = self.od_fc2(image_x)
-        # image_x = image_x.permute(0, 2, 1)
-        # image_x = F.adaptive_avg_pool1d(image_x, 1)
-        # image_x = image_x.permute(0, 2, 1)
-        image_x = torch.squeeze(image_x, dim=-1)
+            # crop images
+            batch_outputs = []
+            for idx, batch_img in enumerate(images_list):
+                pred_boxes = batch_pred_boxes[idx]
+                w, h = batch_img.shape[2], batch_img.shape[1]
+                img_outputs = []
+                for i in range(self.num_queries):
+                    box = pred_boxes[i]
+                    center_x, center_y, norm_w, norm_h = box
+                    left = int((center_x - norm_w / 2) * w)
+                    upper = int((center_y - norm_h / 2) * h)
+                    right = int((center_x + norm_w / 2) * w)
+                    lower = int((center_y + norm_h / 2) * h)
+                    if right - left > 7 and lower - upper > 7: # 7 is the kernel size for renset. need input to be larger                    
+                        obj_img = batch_img[:, upper:lower, left:right]
+                        obj_img = torch.unsqueeze(obj_img, 0)
+                        try:
+                            obj_x = self.resnet(obj_img)
+                        except:
+                            obj_x = torch.zeros(1, 2048).to(self.device)
+                    else:
+                        obj_x = torch.zeros(1, 2048).to(self.device)
+                    img_outputs.append(obj_x)
+                img_outputs = torch.stack(img_outputs)
+                img_outputs = torch.squeeze(img_outputs)
+                batch_outputs.append(img_outputs)
+            image_x = torch.stack(batch_outputs)
+            
+        image_x = self.fc_bridge(image_x)
+        image_x = F.relu(image_x)
         ############################################
         # Obj Detection End
         ############################################
