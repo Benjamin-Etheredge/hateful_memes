@@ -64,7 +64,7 @@ class VisualBertModule(BaseMaeMaeModel):
         self.last_hidden_size = dense_dim
 
         self.save_hyperparameters()
-    
+
     def forward(self, batch):
         """ Shut up """
         text = batch['text']
@@ -116,8 +116,8 @@ class VisualBertModule(BaseMaeMaeModel):
 
         if self.include_top:
             x = self.fc3(x)
-
-        x = torch.squeeze(x, dim=1)
+        
+        x = torch.squeeze(x, dim=1) if x.dim() > 1 else x
         return x
 
 
