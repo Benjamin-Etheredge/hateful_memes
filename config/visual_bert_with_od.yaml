@@ -5,5 +5,5 @@ epochs: 1000
 max_length: 64
 dense_dim: 256
 num_queries: 70
-dropout_rate: 0.0
+dropout_rate: 0.5
 gradient_clip_value: 1.0

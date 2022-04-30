@@ -88,8 +88,8 @@ def base_train(
         log_dir=None, 
         grad_clip=1.0, 
         fast_dev_run=False,
-        monitor_metric="val/auroc",
-        monitor_metric_mode="max",
+        monitor_metric="val/loss",
+        monitor_metric_mode="min",
         stopping_patience=10,
         mixed_precision=True,
     ):
