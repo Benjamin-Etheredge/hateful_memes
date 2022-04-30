@@ -20,18 +20,18 @@ from captum.attr import (
 from PIL import Image, ImageDraw, ImageFont
 import matplotlib.pyplot as plt
 import numpy as np
+import hateful_memes
 
 from hateful_memes.data.hateful_memes import MaeMaeDataModule
-from hateful_memes.models import(
-    VisualBertWithODModule,
-    AutoTextModule,
-    SimpleImageMaeMaeModel, 
-    SimpleMLPImageMaeMaeModel,
-    BaseTextMaeMaeModel,
-    VisualBertModule,
-    BaseITModule,
-    SuperModel
-)
+from hateful_memes.models.auto_text_model import AutoTextModel
+from hateful_memes.models.baseIT import BaseITModule
+from hateful_memes.models.visual_bert import VisualBertModule
+from hateful_memes.models.visual_bert_with_od import VisualBertWithODModule
+from hateful_memes.models.super_model import SuperModel
+from hateful_memes.models.simple_image import SimpleImageMaeMaeModel
+from hateful_memes.models.simple_mlp_image import SimpleMLPImageMaeMaeModel
+from hateful_memes.models.base import BaseMaeMaeModel
+
 from hateful_memes.utils import get_checkpoint_filename
 
 
