@@ -120,6 +120,7 @@ def base_train(
     trainer = Trainer(
         devices=1, 
         accelerator='auto',
+        auto_select_gpus=True,
         logger=logger,
         max_epochs=epochs,
         gradient_clip_val=grad_clip,
