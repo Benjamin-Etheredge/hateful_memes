@@ -105,6 +105,7 @@ class SuperModel(BaseMaeMaeModel):
         # TODO auto size
         dense_layers = [
             nn.Linear(self.latent_dim, dense_dim),
+            dense_layers.append(nn.ReLU())
         ]
         for _ in range(num_dense_layers):
             dense_layers.append(nn.Linear(dense_dim, dense_dim))
@@ -121,6 +122,7 @@ class SuperModel(BaseMaeMaeModel):
         self.dropout_rate = dropout_rate
         self.dense_dim = dense_dim
         self.to_freeze = freeze
+        self.last_hidden_size = dense_dim
 
         self.hparams['latent_dim'] = self.latent_dim
         self.save_hyperparameters()
