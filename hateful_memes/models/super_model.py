@@ -12,6 +12,7 @@ from hateful_memes.models import *
 from hateful_memes.models.base import BaseMaeMaeModel, base_train
 from hateful_memes.utils import get_project_logger
 from hateful_memes.utils import get_checkpoint_path
+import sys
 
 
 class SuperModel(BaseMaeMaeModel):
@@ -128,13 +129,21 @@ class SuperModel(BaseMaeMaeModel):
     def forward(self, batch):
         """ Shut up """
         with torch.no_grad():
-            x = torch.cat([model(batch) for model in self.models], dim=1)
+            mod_out = []
+            for model in self.models:
+                out_i = model(batch)
+                if out_i.dim() == 1:
+                    out_i = torch.unsqueeze(out_i, 0)
+                mod_out.append(out_i)
+
+            x = torch.cat(mod_out, dim=1) 
+            #x = torch.cat([model(batch) for model in self.models], dim=1)
 
         x = self.dense_model(x)
         if self.include_top:
             x = self.final_layer(x)
 
-        x = torch.squeeze(x, dim=1)
+        x = torch.squeeze(x, dim=1) if x.dim() > 1 else x
         return x
 
 
