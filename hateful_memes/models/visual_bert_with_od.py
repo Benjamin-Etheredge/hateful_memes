@@ -64,6 +64,8 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         od_model.eval()
         od_model.to(self.device)
         self.od_model = od_model
+
+        self.pad = nn.ZeroPad2d(3)
         # self.od_poolsize = (self.num_queries//5) + 1
 
         # Original
@@ -142,21 +144,16 @@ class VisualBertWithODModule(BaseMaeMaeModel):
                     upper = int((center_y - norm_h / 2) * h)
                     right = int((center_x + norm_w / 2) * w)
                     lower = int((center_y + norm_h / 2) * h)
-                    if right - left > 7 and lower - upper > 7: # 7 is the kernel size for renset. need input to be larger                    
-                        obj_img = batch_img[:, upper:lower, left:right]
-                        obj_img = torch.unsqueeze(obj_img, 0)
-                        try:
-                            obj_x = self.resnet(obj_img)
-                        except:
-                            obj_x = torch.zeros(1, 2048).to(self.device)
-                    else:
-                        obj_x = torch.zeros(1, 2048).to(self.device)
+                    obj_img = batch_img[:, upper:lower, left:right]
+                    obj_img = torch.unsqueeze(obj_img, 0)
+                    obj_img = self.pad(obj_img)
+                    obj_x = self.resnet(obj_img)
                     img_outputs.append(obj_x)
                 img_outputs = torch.stack(img_outputs)
                 img_outputs = torch.squeeze(img_outputs)
                 batch_outputs.append(img_outputs)
             image_x = torch.stack(batch_outputs)
-            
+
         image_x = self.fc_bridge(image_x)
         image_x = F.relu(image_x)
         ############################################
