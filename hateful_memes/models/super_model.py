@@ -14,8 +14,9 @@ from hateful_memes.models.visual_bert_with_od import *
 from hateful_memes.models.simple_image import *
 from hateful_memes.models.simple_text import *
 from hateful_memes.models.auto_text_model import *
+from hateful_memes.models.simple_mlp_image import *
+
 from hateful_memes.models.base import BaseMaeMaeModel, base_train
-from hateful_memes.utils import get_project_logger
 from hateful_memes.utils import get_checkpoint_path
 
 
@@ -110,7 +111,7 @@ class SuperModel(BaseMaeMaeModel):
         # TODO auto size
         dense_layers = [
             nn.Linear(self.latent_dim, dense_dim),
-            dense_layers.append(nn.ReLU())
+            nn.ReLU()
         ]
         for _ in range(num_dense_layers):
             dense_layers.append(nn.Linear(dense_dim, dense_dim))

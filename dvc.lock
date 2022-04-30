@@ -10,11 +10,11 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/data/hateful_memes.py
-      md5: baff3a0dc62bee2106012dec5d4d32a5
-      size: 6616
+      md5: bc25c3be82ac9be1b764e29485657875
+      size: 8405
     - path: hateful_memes/models/base.py
-      md5: d6f06c51b53ea7d100ac7d35d573182b
-      size: 6983
+      md5: 22080bb08b4c0662e1d83cb50348ea2b
+      size: 7377
     - path: hateful_memes/models/visual_bert.py
       md5: db809f697b2c8a6baf565f71b9d5c706
       size: 4749
@@ -31,43 +31,43 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/data/hateful_memes.py
-      md5: baff3a0dc62bee2106012dec5d4d32a5
-      size: 6616
+      md5: bc25c3be82ac9be1b764e29485657875
+      size: 8405
     - path: hateful_memes/models/base.py
-      md5: d6f06c51b53ea7d100ac7d35d573182b
-      size: 6983
+      md5: 22080bb08b4c0662e1d83cb50348ea2b
+      size: 7377
     - path: hateful_memes/models/simple_image.py
-      md5: 8ea5f06df2d024d4749e9a6bacf3ba81
-      size: 4921
+      md5: 1b30201283bd34c2384aa3a15f7487a2
+      size: 4515
     outs:
     - path: logs/test_simple_image.log
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
   simple_image:
-    cmd: "python -m hateful_memes.models.simple_image --batch_size 0 --lr 1e-05 --epochs\
-      \ 100 --dense_dim 512 --dropout_rate 0.5 --grad_clip 1.0 --model_dir data/06_models/simple_image\
-      \ --batch_norm true --project iso_simple_image\n"
+    cmd: "python -m hateful_memes.models.simple_image --batch_size 128 --lr 1e-05\
+      \ --epochs 1000 --dense_dim 512 --dropout_rate 0.5 --grad_clip 1.0 --model_dir\
+      \ data/06_models/simple_image --batch_norm true --project iso_simple_image\n"
     deps:
     - path: data/01_raw/hateful_memes
       md5: 8844b5201ff55743fcd36c40d7352a88.dir
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/data/hateful_memes.py
-      md5: baff3a0dc62bee2106012dec5d4d32a5
-      size: 6616
+      md5: bc25c3be82ac9be1b764e29485657875
+      size: 8405
     - path: hateful_memes/models/base.py
-      md5: d6f06c51b53ea7d100ac7d35d573182b
-      size: 6983
+      md5: 22080bb08b4c0662e1d83cb50348ea2b
+      size: 7377
     - path: hateful_memes/models/simple_image.py
-      md5: 8ea5f06df2d024d4749e9a6bacf3ba81
-      size: 4921
+      md5: 1b30201283bd34c2384aa3a15f7487a2
+      size: 4515
     - path: logs/test_simple_image.log
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
     outs:
     - path: data/06_models/simple_image
-      md5: d866438b2833b508411981074933cd09.dir
-      size: 214024505
+      md5: 976dcc17c94e0edf2ea1cb079a9cb997.dir
+      size: 88193081
       nfiles: 1
   test_simple_mlp_image:
     cmd: "python -m hateful_memes.models.simple_mlp_image --fast_dev_run True --log_dir\
@@ -79,20 +79,20 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/data/hateful_memes.py
-      md5: baff3a0dc62bee2106012dec5d4d32a5
-      size: 6616
+      md5: bc25c3be82ac9be1b764e29485657875
+      size: 8405
     - path: hateful_memes/models/base.py
-      md5: d6f06c51b53ea7d100ac7d35d573182b
-      size: 6983
+      md5: 22080bb08b4c0662e1d83cb50348ea2b
+      size: 7377
     - path: hateful_memes/models/simple_mlp_image.py
-      md5: b2a9525c36307846352805e75f4179ce
+      md5: 7b222559694ae8b81a2d3ba8f861dcbc
       size: 2727
     outs:
     - path: logs/test_simple_mlp_image.log
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
   simple_mlp_image:
-    cmd: "python -m hateful_memes.models.simple_mlp_image --batch_size 0 --lr 1e-05\
+    cmd: "python -m hateful_memes.models.simple_mlp_image --batch_size 128 --lr 1e-05\
       \ --epochs 100 --dense_dim 128 --dropout_rate 0.1 --grad_clip 1.0 --model_dir\
       \ data/06_models/simple_mlp_image --project iso_simple_mlp_image\n"
     deps:
@@ -101,21 +101,21 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/data/hateful_memes.py
-      md5: baff3a0dc62bee2106012dec5d4d32a5
-      size: 6616
+      md5: bc25c3be82ac9be1b764e29485657875
+      size: 8405
     - path: hateful_memes/models/base.py
-      md5: d6f06c51b53ea7d100ac7d35d573182b
-      size: 6983
+      md5: 22080bb08b4c0662e1d83cb50348ea2b
+      size: 7377
     - path: hateful_memes/models/simple_mlp_image.py
-      md5: b2a9525c36307846352805e75f4179ce
+      md5: 7b222559694ae8b81a2d3ba8f861dcbc
       size: 2727
     - path: logs/test_simple_mlp_image.log
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
     outs:
     - path: data/06_models/simple_mlp_image
-      md5: 18e704e34393f698e9f74dacfee4bede.dir
-      size: 925263603
+      md5: fc3f80dc49d56261d0c429675ef0886c.dir
+      size: 231628339
       nfiles: 1
   baseline:
     cmd: python -m hateful_memes.models.baseline_algorithm
@@ -128,7 +128,7 @@ stages:
       md5: 5b5bbee254ba72de45450417e2b0efc5
       size: 2214
   visual_bert:
-    cmd: "python -m hateful_memes.models.visual_bert --batch_size 0 --lr 1e-05 --epochs\
+    cmd: "python -m hateful_memes.models.visual_bert --batch_size 128 --lr 1e-05 --epochs\
       \ 1000 --max_length 64 --dense_dim 256 --dropout_rate 0.0 --grad_clip 1.0 --model_dir\
       \ data/06_models/visual_bert --freeze true --project iso_visual_bert\n"
     deps:
@@ -137,11 +137,11 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/data/hateful_memes.py
-      md5: baff3a0dc62bee2106012dec5d4d32a5
-      size: 6616
+      md5: bc25c3be82ac9be1b764e29485657875
+      size: 8405
     - path: hateful_memes/models/base.py
-      md5: d6f06c51b53ea7d100ac7d35d573182b
-      size: 6983
+      md5: 22080bb08b4c0662e1d83cb50348ea2b
+      size: 7377
     - path: hateful_memes/models/visual_bert.py
       md5: db809f697b2c8a6baf565f71b9d5c706
       size: 4749
@@ -150,11 +150,11 @@ stages:
       size: 7
     outs:
     - path: data/06_models/visual_bert
-      md5: 9c4f8c435a6a28589e28dc631474154f.dir
-      size: 543410117
+      md5: 595d066890fab77d2296f14131076e6a.dir
+      size: 543407621
       nfiles: 1
   simple_text:
-    cmd: "python -m hateful_memes.models.simple_text --batch_size 0 --lr 1e-05 --num_layers\
+    cmd: "python -m hateful_memes.models.simple_text --batch_size 128 --lr 1e-05 --num_layers\
       \ 8 --embed_dim 512 --dense_dim 512 --max_length 64 --tokenizer_name bert-base-uncased\
       \ --grad_clip 1.0 --dropout_rate 0.0 --epochs 1000 --model_dir data/06_models/simple_text\
       \ --project iso_simple_text\n"
@@ -164,11 +164,11 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/data/hateful_memes.py
-      md5: baff3a0dc62bee2106012dec5d4d32a5
-      size: 6616
+      md5: bc25c3be82ac9be1b764e29485657875
+      size: 8405
     - path: hateful_memes/models/base.py
-      md5: d6f06c51b53ea7d100ac7d35d573182b
-      size: 6983
+      md5: 22080bb08b4c0662e1d83cb50348ea2b
+      size: 7377
     - path: hateful_memes/models/simple_text.py
       md5: dc17095a2280b0c9909cb1eb3fa341c4
       size: 3857
@@ -177,8 +177,8 @@ stages:
       size: 7
     outs:
     - path: data/06_models/simple_text
-      md5: b5741e48ac3038f524868d43e4655337.dir
-      size: 392436591
+      md5: 88d501d9a5bec8956627599a994d67d0.dir
+      size: 392434031
       nfiles: 1
   test_simple_text:
     cmd: "python -m hateful_memes.models.simple_text --fast_dev_run True && echo \"\
@@ -189,11 +189,11 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/data/hateful_memes.py
-      md5: baff3a0dc62bee2106012dec5d4d32a5
-      size: 6616
+      md5: bc25c3be82ac9be1b764e29485657875
+      size: 8405
     - path: hateful_memes/models/base.py
-      md5: d6f06c51b53ea7d100ac7d35d573182b
-      size: 6983
+      md5: 22080bb08b4c0662e1d83cb50348ea2b
+      size: 7377
     - path: hateful_memes/models/simple_text.py
       md5: dc17095a2280b0c9909cb1eb3fa341c4
       size: 3857
@@ -211,22 +211,22 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: data/06_models/simple_image
-      md5: d866438b2833b508411981074933cd09.dir
-      size: 214024505
+      md5: 976dcc17c94e0edf2ea1cb079a9cb997.dir
+      size: 88193081
       nfiles: 1
     - path: data/06_models/simple_text
-      md5: b5741e48ac3038f524868d43e4655337.dir
-      size: 392436591
+      md5: 88d501d9a5bec8956627599a994d67d0.dir
+      size: 392434031
       nfiles: 1
     - path: hateful_memes/data/hateful_memes.py
-      md5: baff3a0dc62bee2106012dec5d4d32a5
-      size: 6616
+      md5: bc25c3be82ac9be1b764e29485657875
+      size: 8405
     - path: hateful_memes/models/base.py
-      md5: d6f06c51b53ea7d100ac7d35d573182b
-      size: 6983
+      md5: 22080bb08b4c0662e1d83cb50348ea2b
+      size: 7377
     - path: hateful_memes/models/super_model.py
-      md5: 7625d873bd06896b7d09fa78030c5d77
-      size: 6899
+      md5: 189eb9c520d313bcb62e005d7da75d6e
+      size: 7220
     outs:
     - path: logs/test_super_model.log
       md5: 15de982d1dc99ce52d089868a579de34
@@ -246,57 +246,57 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: data/06_models/beit
-      md5: 12f34475ff7e93b450a3486af36f8938.dir
-      size: 415445763
+      md5: ea2d488e014a883ac5f12c0e044f94c7.dir
+      size: 415443203
       nfiles: 1
     - path: data/06_models/distilbert
-      md5: 4be3b0e8ad862d180c0af8bee226de3c.dir
-      size: 416499741
+      md5: 59828a2067fad14e022cb6093144c43e.dir
+      size: 417288785
       nfiles: 1
     - path: data/06_models/electra
-      md5: 4e44ccb2ba8edb683184c6761d818fa8.dir
-      size: 104363669
+      md5: 886a1da10cc097fb97da302dd354867e.dir
+      size: 105152713
       nfiles: 1
     - path: data/06_models/simple_image
-      md5: d866438b2833b508411981074933cd09.dir
-      size: 214024505
+      md5: 976dcc17c94e0edf2ea1cb079a9cb997.dir
+      size: 88193081
       nfiles: 1
     - path: data/06_models/simple_mlp_image
-      md5: 18e704e34393f698e9f74dacfee4bede.dir
-      size: 925263603
+      md5: fc3f80dc49d56261d0c429675ef0886c.dir
+      size: 231628339
       nfiles: 1
     - path: data/06_models/simple_text
-      md5: b5741e48ac3038f524868d43e4655337.dir
-      size: 392436591
+      md5: 88d501d9a5bec8956627599a994d67d0.dir
+      size: 392434031
       nfiles: 1
     - path: data/06_models/visual_bert
-      md5: 9c4f8c435a6a28589e28dc631474154f.dir
-      size: 543410117
+      md5: 595d066890fab77d2296f14131076e6a.dir
+      size: 543407621
       nfiles: 1
     - path: data/06_models/visual_bert_with_od
-      md5: ce4bcd0c1675fba7ecf20b346e998de7.dir
-      size: 613967373
+      md5: f35788fd3d08cbdff108dcb67e3ee0d3.dir
+      size: 613964813
       nfiles: 1
     - path: data/06_models/vit
-      md5: b15813d23214ae7131e32d8fbe826364.dir
-      size: 347744905
+      md5: 6a567e0371dfd637aaa405e5da9c5da0.dir
+      size: 347742345
       nfiles: 1
     - path: hateful_memes/data/hateful_memes.py
-      md5: baff3a0dc62bee2106012dec5d4d32a5
-      size: 6616
+      md5: bc25c3be82ac9be1b764e29485657875
+      size: 8405
     - path: hateful_memes/models/base.py
-      md5: d6f06c51b53ea7d100ac7d35d573182b
-      size: 6983
+      md5: 22080bb08b4c0662e1d83cb50348ea2b
+      size: 7377
     - path: hateful_memes/models/super_model.py
-      md5: 7625d873bd06896b7d09fa78030c5d77
-      size: 6899
+      md5: 189eb9c520d313bcb62e005d7da75d6e
+      size: 7220
     - path: logs/test_super_model.log
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
     outs:
     - path: data/06_models/super_model
-      md5: f501a8a4f8bc63b159e9552f9e4b1d04.dir
-      size: 2820814636
+      md5: be6f79d4807b692f9c8e22865139ebc5.dir
+      size: 2548186664
       nfiles: 1
   test_vit:
     cmd: "python -m hateful_memes.models.baseIT --model_name vit --batch_size 4  --fast_dev_run\
@@ -308,37 +308,37 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/data/hateful_memes.py
-      md5: baff3a0dc62bee2106012dec5d4d32a5
-      size: 6616
+      md5: bc25c3be82ac9be1b764e29485657875
+      size: 8405
     - path: hateful_memes/models/baseIT.py
-      md5: 5dbe30d065b6a6b63eec35e36f44fb90
-      size: 5760
+      md5: 896a1b277ba233b60edb32cf8c07feb8
+      size: 5548
     outs:
     - path: logs/test_vit.log
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
   vit:
-    cmd: "python -m hateful_memes.models.baseIT --model_name vit --batch_size 0 --lr\
-      \ 1e-05 --epochs 100 --max_length 64 --dense_dim 128 --dropout_rate 0.1 --grad_clip\
-      \ 1.0 --model_dir data/06_models/vit --project iso_vit\n"
+    cmd: "python -m hateful_memes.models.baseIT --model_name vit --batch_size 128\
+      \ --lr 1e-05 --epochs 100 --max_length 64 --dense_dim 128 --dropout_rate 0.1\
+      \ --grad_clip 1.0 --model_dir data/06_models/vit --project iso_vit\n"
     deps:
     - path: data/01_raw/hateful_memes
       md5: 8844b5201ff55743fcd36c40d7352a88.dir
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/data/hateful_memes.py
-      md5: baff3a0dc62bee2106012dec5d4d32a5
-      size: 6616
+      md5: bc25c3be82ac9be1b764e29485657875
+      size: 8405
     - path: hateful_memes/models/baseIT.py
-      md5: 5dbe30d065b6a6b63eec35e36f44fb90
-      size: 5760
+      md5: 896a1b277ba233b60edb32cf8c07feb8
+      size: 5548
     - path: logs/test_vit.log
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
     outs:
     - path: data/06_models/vit
-      md5: b15813d23214ae7131e32d8fbe826364.dir
-      size: 347744905
+      md5: 6a567e0371dfd637aaa405e5da9c5da0.dir
+      size: 347742345
       nfiles: 1
   test_beit:
     cmd: "python -m hateful_memes.models.baseIT --model_name vit --batch_size 4  --fast_dev_run\
@@ -349,37 +349,37 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/data/hateful_memes.py
-      md5: baff3a0dc62bee2106012dec5d4d32a5
-      size: 6616
+      md5: bc25c3be82ac9be1b764e29485657875
+      size: 8405
     - path: hateful_memes/models/baseIT.py
-      md5: 5dbe30d065b6a6b63eec35e36f44fb90
-      size: 5760
+      md5: 896a1b277ba233b60edb32cf8c07feb8
+      size: 5548
     outs:
     - path: logs/test_beit.log
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
   beit:
-    cmd: "python -m hateful_memes.models.baseIT --model_name beit --batch_size 0 --lr\
-      \ 1e-05 --epochs 100 --max_length 64 --dense_dim 128 --dropout_rate 0.1 --grad_clip\
-      \ 1.0 --model_dir data/06_models/beit --project iso_beit\n"
+    cmd: "python -m hateful_memes.models.baseIT --model_name beit --batch_size 128\
+      \ --lr 1e-05 --epochs 100 --max_length 64 --dense_dim 128 --dropout_rate 0.1\
+      \ --grad_clip 1.0 --model_dir data/06_models/beit --project iso_beit\n"
     deps:
     - path: data/01_raw/hateful_memes
       md5: 8844b5201ff55743fcd36c40d7352a88.dir
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/data/hateful_memes.py
-      md5: baff3a0dc62bee2106012dec5d4d32a5
-      size: 6616
+      md5: bc25c3be82ac9be1b764e29485657875
+      size: 8405
     - path: hateful_memes/models/baseIT.py
-      md5: 5dbe30d065b6a6b63eec35e36f44fb90
-      size: 5760
+      md5: 896a1b277ba233b60edb32cf8c07feb8
+      size: 5548
     - path: logs/test_beit.log
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
     outs:
     - path: data/06_models/beit
-      md5: 12f34475ff7e93b450a3486af36f8938.dir
-      size: 415445763
+      md5: ea2d488e014a883ac5f12c0e044f94c7.dir
+      size: 415443203
       nfiles: 1
   test_electra:
     cmd: "python -m hateful_memes.models.auto_text_model --batch_size 4  --fast_dev_run\
@@ -391,18 +391,18 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/data/hateful_memes.py
-      md5: baff3a0dc62bee2106012dec5d4d32a5
-      size: 6616
+      md5: bc25c3be82ac9be1b764e29485657875
+      size: 8405
     - path: hateful_memes/models/auto_text_model.py
-      md5: 6a061e9a9141f2d987620b19e8995ac9
-      size: 3452
+      md5: 0de51b7edb69d68025b5069a2a6e0f40
+      size: 3761
     outs:
     - path: logs/test_electra.log
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
   electra:
-    cmd: "python -m hateful_memes.models.auto_text_model --batch_size 0 --lr 1e-05\
-      \ --epochs 100 --max_length 64 --dense_dim 256 --dropout_rate 0.1 --grad_clip\
+    cmd: "python -m hateful_memes.models.auto_text_model --batch_size 128 --lr 1e-05\
+      \ --epochs 3 --max_length 64 --dense_dim 256 --dropout_rate 0.1 --grad_clip\
       \ 1.0 --model_name google/electra-small-discriminator --model_dir data/06_models/electra\
       \ --project iso_electra\n"
     deps:
@@ -411,18 +411,18 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/data/hateful_memes.py
-      md5: baff3a0dc62bee2106012dec5d4d32a5
-      size: 6616
+      md5: bc25c3be82ac9be1b764e29485657875
+      size: 8405
     - path: hateful_memes/models/auto_text_model.py
-      md5: 6a061e9a9141f2d987620b19e8995ac9
-      size: 3452
+      md5: 0de51b7edb69d68025b5069a2a6e0f40
+      size: 3761
     - path: logs/test_electra.log
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
     outs:
     - path: data/06_models/electra
-      md5: 4e44ccb2ba8edb683184c6761d818fa8.dir
-      size: 104363669
+      md5: 886a1da10cc097fb97da302dd354867e.dir
+      size: 105152713
       nfiles: 1
   test_distilbert:
     cmd: "python -m hateful_memes.models.auto_text_model --batch_size 4  --fast_dev_run\
@@ -434,18 +434,18 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/data/hateful_memes.py
-      md5: baff3a0dc62bee2106012dec5d4d32a5
-      size: 6616
+      md5: bc25c3be82ac9be1b764e29485657875
+      size: 8405
     - path: hateful_memes/models/auto_text_model.py
-      md5: 6a061e9a9141f2d987620b19e8995ac9
-      size: 3452
+      md5: 0de51b7edb69d68025b5069a2a6e0f40
+      size: 3761
     outs:
     - path: logs/test_distilbert.log
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
   distilbert:
-    cmd: "python -m hateful_memes.models.auto_text_model --batch_size 0 --lr 1e-05\
-      \ --epochs 100 --max_length 64 --dense_dim 256 --dropout_rate 0.1 --grad_clip\
+    cmd: "python -m hateful_memes.models.auto_text_model --batch_size 128 --lr 1e-05\
+      \ --epochs 1000 --max_length 64 --dense_dim 256 --dropout_rate 0.1 --grad_clip\
       \ 1.0 --model_name distilbert-base-uncased-finetuned-sst-2-english --model_dir\
       \ data/06_models/distilbert --project iso_distilbert\n"
     deps:
@@ -454,18 +454,18 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/data/hateful_memes.py
-      md5: baff3a0dc62bee2106012dec5d4d32a5
-      size: 6616
+      md5: bc25c3be82ac9be1b764e29485657875
+      size: 8405
     - path: hateful_memes/models/auto_text_model.py
-      md5: 6a061e9a9141f2d987620b19e8995ac9
-      size: 3452
+      md5: 0de51b7edb69d68025b5069a2a6e0f40
+      size: 3761
     - path: logs/test_distilbert.log
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
     outs:
     - path: data/06_models/distilbert
-      md5: 4be3b0e8ad862d180c0af8bee226de3c.dir
-      size: 416499741
+      md5: 59828a2067fad14e022cb6093144c43e.dir
+      size: 417288785
       nfiles: 1
   test_visual_bert_with_od:
     cmd: "python -m hateful_memes.models.visual_bert_with_od --batch_size 4  --fast_dev_run\
@@ -476,8 +476,8 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/models/visual_bert_with_od.py
-      md5: bacc5ca9f396daae323f357ad86b1ab6
-      size: 6091
+      md5: 1b3f8ebfc025758bd86d4eb6c591c9f3
+      size: 6391
     outs:
     - path: logs/test_visual_bert_with_od.log
       md5: 15de982d1dc99ce52d089868a579de34
@@ -493,21 +493,21 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/data/hateful_memes.py
-      md5: baff3a0dc62bee2106012dec5d4d32a5
-      size: 6616
+      md5: bc25c3be82ac9be1b764e29485657875
+      size: 8405
     - path: hateful_memes/models/base.py
-      md5: d6f06c51b53ea7d100ac7d35d573182b
-      size: 6983
+      md5: 22080bb08b4c0662e1d83cb50348ea2b
+      size: 7377
     - path: hateful_memes/models/visual_bert_with_od.py
-      md5: bacc5ca9f396daae323f357ad86b1ab6
-      size: 6091
+      md5: 1b3f8ebfc025758bd86d4eb6c591c9f3
+      size: 6391
     - path: logs/test_visual_bert_with_od.log
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
     outs:
     - path: data/06_models/visual_bert_with_od
-      md5: ce4bcd0c1675fba7ecf20b346e998de7.dir
-      size: 613967373
+      md5: f35788fd3d08cbdff108dcb67e3ee0d3.dir
+      size: 613964813
       nfiles: 1
   hateful_memes_to_snli_ve:
     cmd: python hateful_memes/data/hateful_memes_snli_ve.py

@@ -8,3 +8,4 @@ mmf/
 .vscode/settings.json
 **.DS_Store
 *.ckpt
+dist/

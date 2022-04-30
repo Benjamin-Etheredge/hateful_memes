@@ -116,11 +116,16 @@ def base_train(
         accumulate_grad_batches = max(1, 64//batch_size)
     else:
         accumulate_grad_batches = None
+    if accumulate_grad_batches == 1:
+        accumulate_grad_batches = None
+    ic(accumulate_grad_batches)
     
     trainer = Trainer(
-        devices=1, 
+        devices=-1 if not fast_dev_run else 1,
+        strategy="ddp",
+        # gpus=[1],
         accelerator='auto',
-        auto_select_gpus=True,
+        # auto_select_gpus=True,
         logger=logger,
         max_epochs=epochs,
         gradient_clip_val=grad_clip,
@@ -128,7 +133,7 @@ def base_train(
         fast_dev_run=fast_dev_run, 
         # auto_lr_find=True,
         auto_scale_batch_size='power' if batch_size <= 0 else False,
-        precision=16 if mixed_precision else 32,
+        # precision=16 if mixed_precision else 32,
         # amp_backend='native',
         # detect_anomaly=True,
         enable_progress_bar=os.environ.get('ENABLE_PROGRESS_BAR', 1) == 1,
