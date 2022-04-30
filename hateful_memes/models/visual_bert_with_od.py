@@ -4,13 +4,12 @@ from icecream import ic
 import torch
 from torch.nn import functional as F
 from torch import nn
-import torchvision.models as models
 import torchvision.transforms 
+import torchvision.transforms.functional as TF
 
 from transformers import BertTokenizer, VisualBertModel
 from transformers import DetrFeatureExtractor, DetrForObjectDetection, AutoConfig
 
-import cv2
 import numpy as np
 
 import pytorch_lightning as pl
@@ -43,18 +42,33 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         ############################################
         # Obj Detection Start
         ############################################
-        self.od_config = AutoConfig.from_pretrained('facebook/detr-resnet-50')
+        self.od_config = AutoConfig.from_pretrained('facebook/detr-resnet-50', num_queries=num_queries)
         self.od_feature_extractor = DetrFeatureExtractor.from_pretrained('facebook/detr-resnet-50')
         self.od_model = DetrForObjectDetection(self.od_config).to(self.device)
         self.num_queries = num_queries
         # self.od_poolsize = (self.num_queries//5) + 1
+
+        # Original
+        # self.od_fc = nn.Sequential(
+        #     nn.Linear(256, 256),
+        #     nn.ReLU(),
+        #     nn.Linear(256, 1024),
+        #     # nn.Dropout(dropout_rate),
+        # )
+
+        # For use w/o pooling
         self.od_fc = nn.Sequential(
             nn.Linear(256, 256),
             nn.ReLU(),
-            nn.Linear(256, 1024),
+            nn.Linear(256, 32),
+            nn.ReLU(),
             # nn.Dropout(dropout_rate),
         )
 
+        self.od_fc2 = nn.Sequential(
+            nn.Linear(32 * self.num_queries, 1024),
+            nn.ReLU()
+        )
         if freeze:
             for param in self.od_model.parameters():
                 param.requires_grad = False
@@ -78,7 +92,6 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         self.to_freeze = freeze
         self.visual_bert_config = self.visual_bert.config
         self.last_hidden_size = dense_dim
-        self.image_transformer = torchvision.transforms.ToPILImage()
 
         self.save_hyperparameters()
     
@@ -90,7 +103,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         ############################################
         # Obj Detection Start
         ############################################
-        images_list = [self.image_transformer(batch_img) for batch_img in image]
+        images_list = [batch_img for batch_img in image.cpu()]
 
         od_inputs = self.od_feature_extractor(images=images_list, return_tensors="pt")
         od_inputs = od_inputs.to(self.device)
@@ -100,12 +113,13 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         #     ic(key, od_outputs[key].shape)
 
         image_x = od_outputs.last_hidden_state
-        # ic(image_x.shape)
 
         image_x = self.od_fc(image_x)
-        image_x = image_x.permute(0, 2, 1)
-        image_x = F.adaptive_avg_pool1d(image_x, 1)
-        image_x = image_x.permute(0, 2, 1)
+        image_x = image_x.view(image_x.shape[0], 1, -1)
+        image_x = self.od_fc2(image_x)
+        # image_x = image_x.permute(0, 2, 1)
+        # image_x = F.adaptive_avg_pool1d(image_x, 1)
+        # image_x = image_x.permute(0, 2, 1)
         image_x = torch.squeeze(image_x, dim=-1)
         ############################################
         # Obj Detection End
@@ -121,9 +135,9 @@ class VisualBertWithODModule(BaseMaeMaeModel):
 
         inputs.update(
             {
-                "visual_embeds": image_x.to(self.device),
-                "visual_token_type_ids": torch.ones(image_x.shape[:-1], dtype=torch.long).to(self.device),
-                "visual_attention_mask": torch.ones(image_x.shape[:-1], dtype=torch.float).to(self.device),
+                "visual_embeds": image_x,
+                "visual_token_type_ids": torch.ones(image_x.shape[:-1], dtype=torch.long, device=self.device),
+                "visual_attention_mask": torch.ones(image_x.shape[:-1], dtype=torch.float, device=self.device),
             }
         )
 
@@ -177,7 +191,7 @@ def main(freeze, lr, max_length, dense_dim, dropout_rate, num_queries, **train_k
         dense_dim=dense_dim, 
         dropout_rate=dropout_rate,
         num_queries=num_queries)
-    base_train(model=model, accumulate_grad_batches=4, **train_kwargs)
+    base_train(model=model, **train_kwargs)
 
 
 if __name__ == "__main__":

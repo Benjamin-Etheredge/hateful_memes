@@ -21,21 +21,32 @@ def create_vocab_tokenizer(root_dir):
 class MaeMaeDataset(torch.utils.data.Dataset):
     def __init__(
         self, root_dir: str, 
-        train: bool = True, 
         img_transforms=None,
         txt_transforms=None,
         include_text_features: bool = False,
+        set="train",
     ):
         self.root_dir = Path(root_dir)
         self.img_transforms = img_transforms
         self.txt_transforms = txt_transforms
 
-        if train: 
+        if set == "train": 
             self.info = pd.read_json(self.root_dir/"train.jsonl", lines=True)
-            # self.info += pd.read_json(self.root_dir/"dev_seen.jsonl", lines=True)
-        else:
-            # self.info = pd.read_json(self.root_dir/"dev_unseen.jsonl", lines=True),
+        elif set == "dev_seen":
+            self.info = pd.read_json(self.root_dir/"dev_seen.jsonl", lines=True)
+        elif set == "dev_unseen":
+            self.info = pd.read_json(self.root_dir/"dev_unseen.jsonl", lines=True)
+        elif set == "dev":
+            info1 = pd.read_json(self.root_dir/"dev_seen.jsonl", lines=True)
+            info2 = pd.read_json(self.root_dir/"dev_unseen.jsonl", lines=True)
+            self.info = pd.concat([info1, info2])
+        elif set == "test_seen":
             self.info = pd.read_json(self.root_dir/"test_seen.jsonl", lines=True)
+        elif set == "test_unseen":
+            self.info = pd.read_json(self.root_dir/"test_unseen.jsonl", lines=True)
+        else:
+            raise ValueError(f"Unknown set: {set}")
+
 
         # if self.txt_transforms is None:
         #     self.txt_transforms = self.create_text_transform()
@@ -67,14 +78,6 @@ class MaeMaeDataset(torch.utils.data.Dataset):
         # TODO maybe make label transformer
 
         extra_text_info = {}
-        if self.include_text_features:
-            text_features = torch.tensor(self.text_pipeline(text), dtype=torch.int64)
-            # ic(text_features.shape)
-            offset = text_features.size(0)
-            extra_text_info = dict(
-                text_features=text_features,
-                offset=offset
-            )
 
         sample = dict(
             image=image,
@@ -119,15 +122,10 @@ class MaeMaeDataModule(pl.LightningDataModule):
     def __init__(
         self, 
         data_dir: str = './data/01_raw/hateful_memes',
-        vocab_save_path: str = './data/05_model_input/hateful_memes/vocab.pkl',
         batch_size: int = 128,
         img_transforms=None, 
         txt_transforms=None,
-        val_split: float = 0.2,
         num_workers=None,
-        train_num_workers=8,
-        val_num_workers=8,
-        test_num_workers=8,
         pin_memory=False,
         collate_fn=None,
         # tokenizer=None,
@@ -138,14 +136,11 @@ class MaeMaeDataModule(pl.LightningDataModule):
         # self.img_transforms = img_transforms
         self.img_transforms = img_transforms
         self.txt_transforms = txt_transforms
-        self.val_split = val_split
 
         if num_workers is None:
             num_workers = max(1, min(os.cpu_count()//2, 8))
+        self.num_workers = num_workers
 
-        self.train_num_workers = num_workers
-        self.val_num_workers = num_workers
-        self.test_num_workers = num_workers
         self.pin_memory = pin_memory
 
         self.tokenizer = None
@@ -158,25 +153,25 @@ class MaeMaeDataModule(pl.LightningDataModule):
     
     def setup(self, stage: str):
         # self.log(batch_size=self.batch_size)
-        self.dataset = MaeMaeDataset(
+        self.train_dataset = MaeMaeDataset(
             self.data_dir,
             img_transforms=self.img_transforms, 
             txt_transforms=self.txt_transforms,
-            train=True,
+            set="train",
+        )
+        self.val_dataset = MaeMaeDataset(
+            self.data_dir,
+            img_transforms=self.img_transforms, 
+            txt_transforms=self.txt_transforms,
+            set='dev_seen',
         )
         self.test_dataset = MaeMaeDataset(
             self.data_dir,
             img_transforms=self.img_transforms, 
             txt_transforms=self.txt_transforms,
-            train=False,
+            set="test_seen",
         )
 
-        self.dataset_len = len(self.dataset)
-        self.train_len = int(self.dataset_len * (1 - self.val_split))
-        self.val_len = self.dataset_len - self.train_len
-
-        torch.manual_seed(4)
-        self.train_dataset, self.val_dataset = random_split(self.dataset, [self.train_len, self.val_len])
     
     # def create_collate_fn(self):
         # if self.collate_fn is None:
@@ -189,7 +184,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
             self.train_dataset,
             batch_size=self.batch_size,
             shuffle=shuffle,
-            num_workers=self.train_num_workers,
+            num_workers=self.num_workers,
             pin_memory=self.pin_memory,
             drop_last=drop_last,
             persistent_workers=False,
@@ -201,7 +196,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
             self.val_dataset,
             batch_size=self.batch_size,
             shuffle=False,
-            num_workers=self.val_num_workers,
+            num_workers=self.num_workers,
             pin_memory=self.pin_memory,
             persistent_workers=False,
             # collate_fn=MaeMaeDataset.collate_batch,
