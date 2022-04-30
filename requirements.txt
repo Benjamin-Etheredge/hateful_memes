@@ -211,7 +211,6 @@ importlib-metadata==4.11.3
 importlib-resources==5.2.3
     # via
     #   dvc
-    #   hydra-core
     #   jsonschema
 ipykernel==6.11.0
     # via
@@ -246,7 +245,6 @@ joblib==1.1.0
     # via
     #   nltk
     #   sacremoses
-    #   scikit-learn
 jsonargparse[signatures]==4.5.0
     # via -r requirements.in
 jsonschema==4.4.0
@@ -348,7 +346,6 @@ numpy==1.22.3
     #   rouge-score
     #   sacrebleu
     #   scikit-image
-    #   scikit-learn
     #   scipy
     #   seaborn
     #   tensorboard
@@ -515,7 +512,6 @@ pyyaml==6.0
     # via
     #   huggingface-hub
     #   jsonargparse
-    #   omegaconf
     #   python-benedict
     #   pytorch-lightning
     #   transformers
@@ -574,12 +570,9 @@ sacremoses==0.0.49
     # via transformers
 scikit-image==0.19.2
     # via -r requirements.in
-scikit-learn==1.0.2
-    # via -r requirements.in
 scipy==1.8.0
     # via
     #   scikit-image
-    #   scikit-learn
     #   seaborn
 scmrepo==0.0.16
     # via dvc
@@ -644,8 +637,6 @@ testpath==0.6.0
     # via nbconvert
 text-unidecode==1.3
     # via python-slugify
-threadpoolctl==3.1.0
-    # via scikit-learn
 tifffile==2022.3.25
     # via scikit-image
 timm==0.5.4
