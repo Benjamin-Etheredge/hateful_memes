@@ -8,7 +8,12 @@ from torch import nn
 
 from icecream import ic
 
-from hateful_memes.models import *
+from hateful_memes.models.baseIT import *
+from hateful_memes.models.visual_bert import *
+from hateful_memes.models.visual_bert_with_od import *
+from hateful_memes.models.simple_image import *
+from hateful_memes.models.simple_text import *
+from hateful_memes.models.auto_text_model import *
 from hateful_memes.models.base import BaseMaeMaeModel, base_train
 from hateful_memes.utils import get_project_logger
 from hateful_memes.utils import get_checkpoint_path
