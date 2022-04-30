@@ -3,6 +3,7 @@ import pytorch_lightning as pl
 import torch
 import click
 from transformers import AutoTokenizer, AutoModel, AutoConfig
+from transformers import ElectraTokenizer, ElectraModel, ElectraConfig
 from torch.nn import functional as F
 from torch import nn
 from icecream import ic
@@ -20,7 +21,6 @@ class AutoTextModule(BaseMaeMaeModel):
         dropout_rate=0.0,
         dense_dim=256,
         freeze=True,
-        # model_name='google/electra-small-discriminator',
     ):
         super().__init__()
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -38,13 +38,20 @@ class AutoTextModule(BaseMaeMaeModel):
         self.dense_dim = dense_dim
 
         # self.fc1 = nn.Linear(self.config.hidden_size * self.max_length, dense_dim)
-        self.fc1 = nn.Linear(self.config.hidden_size, dense_dim)
-        self.last_hidden_size = dense_dim
+        self.dense_layers = nn.Sequential(
+            nn.Linear(self.config.hidden_size, dense_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout_rate),
+            nn.Linear(dense_dim, dense_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout_rate),
+        )
+
         self.fc2 = nn.Linear(dense_dim, 1)
+        self.last_hidden_size = dense_dim
         self.to_freeze = freeze
 
         self.save_hyperparameters()
-
     
     def forward(self, batch):
         text = batch['text']
@@ -66,9 +73,8 @@ class AutoTextModule(BaseMaeMaeModel):
         # x = x.view(x.shape[0], -1)
         x = x.mean(dim=1)
 
-        x = self.fc1(x)
-        x = F.relu(x)
-        x = F.dropout(input=x, p=self.dropout_rate)
+        x = self.dense_layers(x)
+
         if self.include_top:
             x = self.fc2(x)
             x = x.squeeze(dim=-1)
