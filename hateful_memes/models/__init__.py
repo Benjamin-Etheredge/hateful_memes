@@ -5,4 +5,3 @@ from .visual_bert import VisualBertModule
 from .baseIT import BaseITModule
 from .auto_text_model import AutoTextModule
 from .visual_bert_with_od import VisualBertWithODModule
-from .super_model import SuperModel

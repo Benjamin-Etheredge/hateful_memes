@@ -19,19 +19,23 @@ from captum.attr import (
     )
 from PIL import Image, ImageDraw, ImageFont
 import matplotlib.pyplot as plt
+from matplotlib import cm
+from matplotlib.colors import ListedColormap
 import numpy as np
+import sys
+import torch.nn.functional as F
+from math import ceil, floor
 
+import hateful_memes
 from hateful_memes.data.hateful_memes import MaeMaeDataModule
-from hateful_memes.models import(
-    VisualBertWithODModule,
-    AutoTextModule,
-    SimpleImageMaeMaeModel, 
-    SimpleMLPImageMaeMaeModel,
-    BaseTextMaeMaeModel,
-    VisualBertModule,
-    BaseITModule,
-    SuperModel
-)
+from hateful_memes.models.visual_bert_with_od import VisualBertWithODModule
+from hateful_memes.models.auto_text_model import AutoTextModule
+from hateful_memes.models.simple_image import SimpleImageMaeMaeModel
+from hateful_memes.models.simple_mlp_image import SimpleMLPImageMaeMaeModel
+from hateful_memes.models.simple_text import BaseTextMaeMaeModel
+from hateful_memes.models.visual_bert import VisualBertModel
+from hateful_memes.models.baseIT import BaseITModule
+from hateful_memes.models.super_model import SuperModel
 from hateful_memes.utils import get_checkpoint_filename
 
 
@@ -41,10 +45,13 @@ class InterpModel():
         ckpt_search = os.path.join(ckpt_dir, "*.ckpt")
         ckpt_path = glob.glob(ckpt_search)[0]  # Grab the most recent checkpoint?
         self.inner_model = None
+        # Input feature attribution parameters
         self.image_embed_layer = None
         self.text_embed_layer = None
         self.tokenizer = None
+        # Ensemble layer attribution parameters
         self.ensemble_layer = None
+        self.sub_models = None
         if model_name == '':
             raise ValueError("Expected non-empty model name.")
         elif model_name == 'visual-bert':
@@ -82,7 +89,8 @@ class InterpModel():
                 visual_bert_with_od_ckpt=os.path.join(ckpt_storage, "visual_bert_with_od")
                 )
             self.ensemble_layer = self.inner_model.dense_model
-            
+            self.sub_models = self.inner_model.models
+
     # Used as wrapper for model forward()
     def __call__(self, image, input_ids, tokenizer):
         # reassemble dict
@@ -164,7 +172,6 @@ def get_model_attributions(interp_model:InterpModel, data_sample):
         additional_forward_args=tokenizer,
         attribute_to_layer_input=True)
     attrs['models'] = mod_attr
-    ic(mod_attr.shape)
     
     return attrs
 
@@ -273,15 +280,72 @@ def visualize_input_attributions(attrs, inputs, y_hat, y, tokenizer, model_name,
     fig.savefig(os.path.join(save_dir, save_name))
        
 
-def visualize_model_attributrions(attrs, inputs, y_hat, y, tokenizer, model_name, 
-        save_dir, save_name):
-        raise NotImplementedError
+def visualize_model_attributions(attrs, inputs, y_hat, y, sub_models, model_name, 
+    save_dir="data/08_reporting", save_name="tmp.png"):
+        
+    ensem_attr = attrs['models'].squeeze(0)
+    ensem_attr_normed = ensem_attr/ensem_attr.norm()
+    # Get sub-model output sizes
+    hidden_size = [sub.last_hidden_size for sub in sub_models]
+    # Populate sub-model attributions
+    sub_attr = {}
+    sub_attr_normed = {}
+    attr_start = 0
+    max_hidden = -sys.maxsize
+    min_hidden = sys.maxsize
+    max_attr = -sys.maxsize
+    min_attr = sys.maxsize
+    for i, sub in enumerate(sub_models):
+        sub_mod_name = sub.__class__.__name__ + ("(%i)"%(i,))
+        attr_stop = attr_start + hidden_size[i]
+        this_ensem_attr = ensem_attr[attr_start:attr_stop]
+        sub_attr[sub_mod_name] = this_ensem_attr        
+        this_ensem_attr_normed = ensem_attr_normed[attr_start:attr_stop]
+        sub_attr_normed[sub_mod_name] = this_ensem_attr_normed        
+        attr_start = attr_stop
+        max_hidden = max(max_hidden, hidden_size[i])
+        min_hidden = min(min_hidden, hidden_size[i])
+        max_attr = max(max_attr, this_ensem_attr_normed.max())
+        min_attr = min(min_attr, this_ensem_attr_normed.min())
+    # Pad and stack for plotting
+    sub_attr_stack = []
+    sub_names = []
+    pad_value = min_attr - ((max_attr - min_attr) * 0.1) 
+    for name in sub_attr_normed.keys():
+        deficit = max_hidden - sub_attr_normed[name].numel()
+        pads = (ceil(deficit/2), floor(deficit/2))
+        padded = F.pad(sub_attr_normed[name], pads, mode='constant', value=pad_value).unsqueeze(0)
+        sub_attr_stack.append(padded.numpy())
+        sub_names.append(name)
+    sub_attrs_plot = np.concatenate(sub_attr_stack)
+    # Visualize
+    fig = plt.figure(figsize=(12,6))
+    # gs = fig.add_gridspec(1, len(sub_models), left=0.025, right=1.0, bottom=0.1, top=0.75, wspace=0.1, width_ratios=width_ratios)
+    ax = fig.add_subplot()
+    color_res = 256
+    viridis = cm.get_cmap('viridis', color_res)
+    custom_colors = viridis(np.linspace(0,1,color_res))
+    invalid_color = np.array([150/color_res, 75/color_res, 150/color_res, 1])
+    invalid_bound = floor(0.05 * color_res)
+    custom_colors[:invalid_bound] = invalid_color
+    custom_cm = ListedColormap(custom_colors)
+    pc = ax.pcolor(sub_attrs_plot, cmap=custom_cm, rasterized=True)
+    #img = ax.imshow(sub_attrs_plot, cmap=custom_cm)
+    ax.set_aspect(50.0)
+    ax.xaxis.set_ticks_position("none")
+    ax.set_xticklabels([])
+    ax.set_yticks(np.arange(len(sub_names)), labels=sub_names)
+    ax.set_title("Ensemble Layer Attribution by Sub-Model")
+    fig.colorbar(pc, ax=ax)
+    #plt.grid(axis='y')
+    fig.tight_layout()
+    fig.savefig(os.path.join(save_dir, save_name))
 
 
-def visualize_attributions(attrs, inputs, y_hat, y, tokenizer, model_name,
+def visualize_attributions(attrs, inputs, y_hat, y, tokenizer, sub_models, model_name,
     save_dir="data/08_reporting", save_name="tmp.png", ensemble=False):
     if ensemble:
-        visualize_model_attributions(attrs, inputs, y_hat, y, tokenizer, model_name, 
+        visualize_model_attributions(attrs, inputs, y_hat, y, sub_models, model_name, 
             save_dir, save_name)
     else:
         visualize_input_attributions(attrs, inputs, y_hat, y, tokenizer, model_name, 
@@ -324,7 +388,7 @@ def interp(model_name:str, ckpt_dir:str, no_save:bool, save_dir:str, save_name:s
         y_hat = interp_model.inner_model(data_sample).item()
         y = data_sample["label"] 
         visualize_attributions(attrs, inputs, y_hat, y, interp_model.tokenizer,
-            model_name, save_dir, save_name, ensemble)
+            interp_model.sub_models, model_name, save_dir, save_name, ensemble)
 
 
 if __name__ == '__main__':
