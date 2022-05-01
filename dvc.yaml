@@ -49,6 +49,7 @@ stages:
     deps:
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes.py
+      - hateful_memes/models/base.py
       - hateful_memes/models/baseIT.py
     outs:
       - logs/test_beit.log
@@ -72,6 +73,7 @@ stages:
       - logs/test_beit.log
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes.py
+      - hateful_memes/models/base.py
       - hateful_memes/models/baseIT.py
     outs:
       - data/06_models/beit
@@ -88,6 +90,7 @@ stages:
     deps:
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes.py
+      - hateful_memes/models/base.py
       - hateful_memes/models/baseIT.py
     outs:
       - logs/test_vit.log
@@ -110,6 +113,7 @@ stages:
       - logs/test_vit.log
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes.py
+      - hateful_memes/models/base.py
       - hateful_memes/models/baseIT.py
     outs:
       - data/06_models/vit
@@ -165,6 +169,7 @@ stages:
     deps:
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes.py
+      - hateful_memes/models/base.py
       - hateful_memes/models/auto_text_model.py
     outs:
       - logs/test_electra.log
@@ -188,6 +193,7 @@ stages:
       - logs/test_electra.log
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes.py
+      - hateful_memes/models/base.py
       - hateful_memes/models/auto_text_model.py
     outs:
       - data/06_models/electra
@@ -204,6 +210,7 @@ stages:
     deps:
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes.py
+      - hateful_memes/models/base.py
       - hateful_memes/models/auto_text_model.py
     outs:
       - logs/test_distilbert.log
@@ -227,6 +234,7 @@ stages:
       - logs/test_distilbert.log
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes.py
+      - hateful_memes/models/base.py
       - hateful_memes/models/auto_text_model.py
     outs:
       - data/06_models/distilbert
@@ -301,8 +309,8 @@ stages:
       - logs/test_simple_image.log
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes.py
-      - hateful_memes/models/simple_image.py
       - hateful_memes/models/base.py
+      - hateful_memes/models/simple_image.py
     outs:
       - data/06_models/simple_image
 
@@ -337,6 +345,7 @@ stages:
       - logs/resnet_hate_bert.log
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes.py
+      - hateful_memes/models/base.py
       - hateful_memes/models/resnet_hate_bert.py
     outs:
       - data/06_models/resnet_hate_bert
