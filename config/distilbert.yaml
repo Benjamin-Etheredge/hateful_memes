@@ -1,9 +1,9 @@
 freeze: true
 batch_size: 128
-lr: 1e-5
+lr: 1e-4
 epochs: 1000
 max_length: 96
 dense_dim: 1024
-dropout_rate: 0.1
+dropout_rate: 0.2
 gradient_clip_value: 1.0
 model_name: 'distilbert-base-uncased-finetuned-sst-2-english' 

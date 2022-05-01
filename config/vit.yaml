@@ -1,8 +1,8 @@
 freeze: true
 model_name: 'vit'
 batch_size: 128
-lr: 1e-5
+lr: 1e-4
 epochs: 1000
 dense_dim: 128
-dropout_rate: 0.1
+dropout_rate: 0.2
 grad_clip: 1.0

@@ -109,18 +109,13 @@ class SuperModel(BaseMaeMaeModel):
 
         # TODO linear vs embedding for dim changing
         # TODO auto size
-        dense_layers = [
+        self.fc = nn.Sequential(
             nn.Linear(self.latent_dim, dense_dim),
-            nn.ReLU()
-        ]
-        for _ in range(num_dense_layers):
-            dense_layers.append(nn.Linear(dense_dim, dense_dim))
-            dense_layers.append(nn.GELU())
-            dense_layers.append(nn.Dropout(dropout_rate))
-        
-        self.dense_model = nn.Sequential(*dense_layers)
+            nn.GELU(),
+            nn.Dropout(dropout_rate),
+            nn.Linear(dense_dim, 1),
+        )
 
-        self.final_layer = nn.Linear(dense_dim, 1)
         # TODO config modification
 
         self.lr = lr
@@ -131,16 +126,15 @@ class SuperModel(BaseMaeMaeModel):
         self.last_hidden_size = dense_dim
 
         self.hparams['latent_dim'] = self.latent_dim
+        self.backbone = self.models
         self.save_hyperparameters()
     
     def forward(self, batch):
         """ Shut up """
-        with torch.no_grad():
-            x = torch.cat([model(batch) for model in self.models], dim=1)
+        x = torch.cat([model(batch) for model in self.models], dim=1)
 
-        x = self.dense_model(x)
         if self.include_top:
-            x = self.final_layer(x)
+            x = self.fc(x)
 
         x = torch.squeeze(x, dim=1)
         return x
