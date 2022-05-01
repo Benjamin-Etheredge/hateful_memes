@@ -109,8 +109,10 @@ class BaseITModule(BaseMaeMaeModel):
         # ic(x.shape)
         # x = x.view(x.shape[0], -1)
         # x = x[:, 0, :]
-        x = x.mean(dim=1)
         # ic(x.shape)
+        # https://github.com/huggingface/transformers/blob/v4.18.0/src/transformers/models/vit/modeling_vit.py#L726
+        # x = x[:, 0]
+        x = x.mean(dim=1)
 
         x = self.fc1(x)
         x = F.relu(x)
@@ -148,7 +150,6 @@ def main(model_name, lr, dense_dim, dropout_rate, freeze,
     model = BaseITModule(
         model_name=model_name,
         lr=lr, 
-        max_length=max_length, 
         dense_dim=dense_dim, 
         freeze=freeze,
         dropout_rate=dropout_rate)

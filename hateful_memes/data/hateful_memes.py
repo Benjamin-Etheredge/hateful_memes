@@ -228,7 +228,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
             batch_size=self.batch_size,
             sampler=torch.utils.data.sampler.WeightedRandomSampler(
                 self.train_dataset.weights, 
-                len(self.train_dataset),
+                len(self.train_dataset)//2,
                 replacement=True),
                 # (self.train_dataset.num_items//5)*4,
                 # replacement=False),

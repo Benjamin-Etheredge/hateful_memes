@@ -92,7 +92,7 @@ def base_train(
         monitor_metric="val/loss",
         monitor_metric_mode="min",
         stopping_patience=10,
-        mixed_precision=True,
+        mixed_precision=False,
     ):
     logger = get_project_logger(project=project, save_dir=log_dir, offline=fast_dev_run)
     # TODO pull out lr and maybe arg optimizer
@@ -109,6 +109,7 @@ def base_train(
             monitor=monitor_metric,
             patience=stopping_patience, 
             mode=monitor_metric_mode,
+            min_delta=0.0001,
             verbose=True)
 
     stw = StochasticWeightAveraging()
@@ -135,7 +136,7 @@ def base_train(
         fast_dev_run=fast_dev_run, 
         # auto_lr_find=True,
         auto_scale_batch_size='power' if batch_size <= 0 else False,
-        # precision=16 if mixed_precision else 32,
+        precision=16 if mixed_precision else 32,
         # amp_backend='native',
         # detect_anomaly=True,
         enable_progress_bar=os.environ.get('ENABLE_PROGRESS_BAR', 1) == 1,
