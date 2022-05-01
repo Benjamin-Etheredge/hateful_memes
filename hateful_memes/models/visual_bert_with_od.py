@@ -99,9 +99,10 @@ class VisualBertWithODModule(BaseMaeMaeModel):
             batch_pred_boxes = od_outputs['pred_boxes']
 
             batch_keep_boxes = []
+            batch_keep_classes = []
             for i in range(batch_keep_idxs.shape[0]):
-                img_pred_boxes = batch_pred_boxes[i]
                 img_keep_idxs = batch_keep_idxs[i]
+                img_pred_boxes = batch_pred_boxes[i]
                 img_keep_boxes = img_pred_boxes[img_keep_idxs]
                 batch_keep_boxes.append(img_keep_boxes)
             batch_keep_boxes = torch.stack(batch_keep_boxes)
