@@ -42,60 +42,24 @@ class VisualBertWithODModule(BaseMaeMaeModel):
 
         resnet = models.resnet50(pretrained=True)
         resnet.fc = nn.Flatten()
-        for param in resnet.parameters():
-            param.requires_grad = False
-        resnet.eval()
+        if freeze:
+            for param in resnet.parameters():
+                param.requires_grad = False
+            resnet.eval()
         resnet.to(self.device)
         self.resnet = resnet
         
-        # self.fc_bridge = nn.Linear(2048, 1024)
-
-        ############################################
-        # Obj Detection Start
-        ############################################
-        # self.od_config = AutoConfig.from_pretrained('facebook/detr-resnet-50')
-        # self.od_feature_extractor = DetrFeatureExtractor.from_pretrained('facebook/detr-resnet-50')
-        # self.od_model = DetrForObjectDetection(self.od_config).to(self.device).eval()
         self.num_queries = num_queries
 
         od_model = torch.hub.load('facebookresearch/detr', 'detr_resnet101', pretrained=True)
-        for param in od_model.parameters():
-            param.requires_grad = False
-        od_model.eval()
+        if freeze:
+            for param in od_model.parameters():
+                param.requires_grad = False
+            od_model.eval()
         od_model.to(self.device)
         self.od_model = od_model
 
         self.pad = nn.ZeroPad2d(3)
-        # self.od_poolsize = (self.num_queries//5) + 1
-
-        # Original
-        # self.od_fc = nn.Sequential(
-        #     nn.Linear(256, 256),
-        #     nn.ReLU(),
-        #     nn.Linear(256, 1024),
-        #     # nn.Dropout(dropout_rate),
-        # )
-
-        # For use w/o pooling
-        # self.od_fc = nn.Sequential(
-        #     nn.Linear(256, 256),
-        #     nn.ReLU(),
-        #     nn.Linear(256, 32),
-        #     nn.ReLU(),
-        #     # nn.Dropout(dropout_rate),
-        # )
-
-        # self.od_fc2 = nn.Sequential(
-        #     nn.Linear(32 * self.num_queries, 1024),
-        #     nn.ReLU()
-        # )
-        # if freeze:
-        #     for param in self.od_model.parameters():
-        #         param.requires_grad = False
-        #     self.od_model.eval()
-        ############################################
-        # Obj Detection End
-        ############################################
 
         # TODO linear vs embedding for dim changing
         # TODO auto size
@@ -114,7 +78,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         self.last_hidden_size = dense_dim
 
         self.save_hyperparameters()
-    
+
     def forward(self, batch):
         """ Shut up """
         text = batch['text']
@@ -129,33 +93,45 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         with torch.no_grad():
             images_list = [batch_img.half() for batch_img in image]
             od_outputs = self.od_model(images_list)
+            logits = od_outputs['pred_logits']
+            probas = logits.softmax(-1)
+            batch_keep_idxs = np.argsort(probas.max(-1).values.cpu().numpy())[::-1][:, :self.num_queries]
             batch_pred_boxes = od_outputs['pred_boxes']
+
+            batch_keep_boxes = []
+            for i in range(batch_keep_idxs.shape[0]):
+                img_pred_boxes = batch_pred_boxes[i]
+                img_keep_idxs = batch_keep_idxs[i]
+                img_keep_boxes = img_pred_boxes[img_keep_idxs]
+                batch_keep_boxes.append(img_keep_boxes)
+            batch_keep_boxes = torch.stack(batch_keep_boxes)
 
             # crop images
             batch_outputs = []
             for idx, batch_img in enumerate(images_list):
-                pred_boxes = batch_pred_boxes[idx]
                 w, h = batch_img.shape[2], batch_img.shape[1]
-                img_outputs = []
+                pred_boxes = batch_keep_boxes[idx]
+                obj_imgs = []
                 for i in range(self.num_queries):
                     box = pred_boxes[i]
                     center_x, center_y, norm_w, norm_h = box
-                    left = int((center_x - norm_w / 2) * w)
-                    upper = int((center_y - norm_h / 2) * h)
-                    right = int((center_x + norm_w / 2) * w)
-                    lower = int((center_y + norm_h / 2) * h)
-                    obj_img = batch_img[:, upper:lower, left:right]
-                    obj_img = torch.unsqueeze(obj_img, 0)
-                    obj_img = self.pad(obj_img)
-                    obj_x = self.resnet(obj_img)
-                    img_outputs.append(obj_x)
-                img_outputs = torch.stack(img_outputs)
+                    left = int(max((center_x - norm_w / 2), 0) * w)
+                    upper = int(max((center_y - norm_h / 2), 0) * h)
+                    right = int(min((center_x + norm_w / 2), 1) * w)
+                    lower = int(min((center_y + norm_h / 2), 1) * h)
+                    try:
+                        obj_img = batch_img[:, upper:lower, left:right]
+                        obj_img = T.Resize((180, 180))(obj_img)
+                    except:
+                        obj_img = torch.zeros(3, 180, 180).to(self.device)
+                    obj_imgs.append(obj_img)
+
+                obj_imgs = torch.stack(obj_imgs)
+                img_outputs = self.resnet(obj_imgs)
                 img_outputs = torch.squeeze(img_outputs)
                 batch_outputs.append(img_outputs)
             image_x = torch.stack(batch_outputs)
 
-        # image_x = self.fc_bridge(image_x)
-        # image_x = F.relu(image_x)
         ############################################
         # Obj Detection End
         ############################################
