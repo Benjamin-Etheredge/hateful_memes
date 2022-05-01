@@ -59,6 +59,7 @@ class BaseMaeMaeModel(LightningModule):
         # y_hat = torch.squeeze(y_hat)
         loss = F.binary_cross_entropy_with_logits(y_hat, y.to(y_hat.dtype))
 
+        # ic(torch.sigmoid(y_hat))
         self.val_acc.update(y_hat, y)
         self.val_f1.update(y_hat, y)
         self.val_auroc.update(y_hat, y)
@@ -125,6 +126,7 @@ def base_train(
         strategy="ddp",
         # gpus=[1],
         accelerator='auto',
+        replace_sampler_ddp=False,
         # auto_select_gpus=True,
         logger=logger,
         max_epochs=epochs,
@@ -139,8 +141,8 @@ def base_train(
         enable_progress_bar=os.environ.get('ENABLE_PROGRESS_BAR', 1) == 1,
         accumulate_grad_batches=accumulate_grad_batches,
         # profiler="simple",
-        callbacks=[checkpoint_callback, early_stopping])
-        # callbacks=[checkpoint_callback, early_stopping, stw])
+        # callbacks=[checkpoint_callback, early_stopping])
+        callbacks=[checkpoint_callback, early_stopping, stw])
 
     data = MaeMaeDataModule(batch_size=batch_size if batch_size > 0 else 32)
     ic(model.lr)

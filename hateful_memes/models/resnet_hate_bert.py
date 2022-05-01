@@ -15,6 +15,7 @@ from hateful_memes.models.base import BaseMaeMaeModel, base_train
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, AutoModel
 
 
+#### TODO will leak as was trained on dev and some of test set
 class ResnetHateBert(BaseMaeMaeModel):
     def __init__(
         self, 
@@ -37,6 +38,8 @@ class ResnetHateBert(BaseMaeMaeModel):
             "am4nsolanki/autonlp-text-hateful-memes-36789092", 
             output_hidden_states=True,
             return_dict=True,)
+        for param in self.bert.parameters():
+            param.requires_grad = False
         ic(self.bert)
         self.tokenizer = AutoTokenizer.from_pretrained("am4nsolanki/autonlp-text-hateful-memes-36789092")
         ic(self.bert.config)
@@ -122,7 +125,7 @@ class ResnetHateBert(BaseMaeMaeModel):
 @click.option('--fast_dev_run', type=bool, default=False, help='Fast dev run')
 @click.option('--log_dir', default="data/08_reporting/simple_image_text", help='Fast dev run')
 @click.option('--project', default="resnet-bert", help='Project name')
-def main(lr, num_layers, dense_dim, max_length, dropout_rate,
+def main(lr, dense_dim, max_length, dropout_rate,
          **train_kwargs):
 
     """ Train Text model """
@@ -130,7 +133,6 @@ def main(lr, num_layers, dense_dim, max_length, dropout_rate,
         lr=lr,
         dense_dim=dense_dim,
         max_length=max_length,
-        num_layers=num_layers,
         dropout_rate=dropout_rate)
     
     base_train(model=model, **train_kwargs)

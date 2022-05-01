@@ -25,55 +25,55 @@ class SimpleImageMaeMaeModel(BaseMaeMaeModel):
         self.conv1 = nn.Sequential(
             nn.Conv2d(3, 16, 3, padding=1, bias=False),
             nn.BatchNorm2d(16),
-            nn.ReLU(),
+            nn.GELU(),
             nn.Conv2d(16, 16, 3, padding=1, bias=False),
             nn.BatchNorm2d(16),
-            nn.ReLU(),
+            nn.GELU(),
             nn.MaxPool2d(2)
         )
         self.conv2 = nn.Sequential(
             nn.Conv2d(16, 32, 3, padding=1, bias=False),
             nn.BatchNorm2d(32),
-            nn.ReLU(),
+            nn.GELU(),
             nn.Conv2d(32, 32, 3, padding=1, bias=False),
             nn.BatchNorm2d(32),
-            nn.ReLU(),
+            nn.GELU(),
             nn.MaxPool2d(2)
         )
         self.conv3 = nn.Sequential(
             nn.Conv2d(32, 64, 3, padding=1, bias=False),
             nn.BatchNorm2d(64),
-            nn.ReLU(),
+            nn.GELU(),
             nn.Conv2d(64, 64, 3, padding=1, bias=False),
             nn.BatchNorm2d(64),
-            nn.ReLU(),
+            nn.GELU(),
             nn.MaxPool2d(2)
         )
         self.conv4 = nn.Sequential(
             nn.Conv2d(64, 128, 3, padding=1, bias=False),
             nn.BatchNorm2d(128),
-            nn.ReLU(),
+            nn.GELU(),
             nn.Conv2d(128, 128, 3, padding=1, bias=False),
             nn.BatchNorm2d(128),
-            nn.ReLU(),
+            nn.GELU(),
             nn.MaxPool2d(2)
         )
         self.conv5 = nn.Sequential(
             nn.Conv2d(128, 256, 3, padding=1, bias=False),
             nn.BatchNorm2d(256),
-            nn.ReLU(),
+            nn.GELU(),
             nn.Conv2d(256, 256, 3, padding=1, bias=False),
             nn.BatchNorm2d(256),
-            nn.ReLU(),
+            nn.GELU(),
             nn.MaxPool2d(2)
         )
         self.conv6 = nn.Sequential(
             nn.Conv2d(256, 512, 3, padding=1, bias=False),
             nn.BatchNorm2d(512),
-            nn.ReLU(),
+            nn.GELU(),
             nn.Conv2d(512, 512, 3, padding=1, bias=False),
             nn.BatchNorm2d(512),
-            nn.ReLU(),
+            nn.GELU(),
             nn.MaxPool2d(2)
         )
 
@@ -82,10 +82,10 @@ class SimpleImageMaeMaeModel(BaseMaeMaeModel):
         # self.l1 = nn.Linear(25088, dense_dim)
         self.dense_layers = nn.Sequential(
             nn.Linear(4608, dense_dim),
-            nn.ReLU(),
+            nn.GELU(),
             nn.Dropout(dropout_rate),
             nn.Linear(dense_dim, dense_dim),
-            nn.ReLU(),
+            nn.GELU(),
             nn.Dropout(dropout_rate),
         )
         self.fc = nn.Linear(dense_dim, 1)
@@ -111,6 +111,7 @@ class SimpleImageMaeMaeModel(BaseMaeMaeModel):
         x = self.conv6(x)
 
         x = x.view(x.shape[0], -1)
+        # x = x.mean(dim=(2, 3))
 
         x = self.dense_layers(x)
 

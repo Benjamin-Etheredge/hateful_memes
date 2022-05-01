@@ -67,15 +67,19 @@ class MaeMaeDataset(torch.utils.data.Dataset):
                 self.img_transforms = self.base_test_img_transforms()
 
         self.include_text_features = include_text_features
+        self.class_weights = self.info['label'].value_counts().to_numpy()
+        ic(self.class_weights)
+        self.class_weights = self.class_weights / self.class_weights.sum()
+        self.class_weights = 1 / self.class_weights
+        self.weights = [self.class_weights[0] if label==0 else self.class_weights[1] for label in self.info['label']]
+        # self.weights = np.where(self.info['label'].to_numpy(), self.class_weights)
+        # ic(self.weights)
+        self.weights = torch.tensor(self.weights)
+
         self.vocab = None
-        self.vit_T = None
 
     def __len__(self):
         return len(self.info)
-
-    @staticmethod
-    def vit(x):
-        return self.vit_T(x)
 
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
@@ -115,16 +119,18 @@ class MaeMaeDataset(torch.utils.data.Dataset):
     # TODO vocab is broken between train and test
     def base_train_img_transforms(self):
         return T.Compose([
-            T.RandomHorizontalFlip(),
+            T.RandomHorizontalFlip(p=0.1),
             # T.RandomVerticalFlip(),
             # transforms.ToPILImage(mode='RGB'),
-            # T.RandomResizedCrop(size=(224,224)),
             # T.RandomRotation(degrees=15),
+            T.AutoAugment(T.AutoAugmentPolicy.IMAGENET),
+            T.RandomResizedCrop(scale=(0.5, 1), size=(224,224)), # this does good for slowing overfitting
             T.Resize(size=(224,224)),
             T.ToTensor(), # this already seems to scale okay
             T.Normalize(mean=[0.485, 0.456, 0.406],
-                                  std=[0.229, 0.224, 0.225]),
-            T.RandomErasing(p=0.5, scale=(0.02, 0.33), ratio=(0.3, 3.3), value=0, inplace=True),
+                        std=[0.229, 0.224, 0.225]),
+            # T.RandomErasing(p=0.5, scale=(0.02, 0.33), ratio=(0.3, 3.3), value=0, inplace=True),
+            T.RandomErasing(),
         ])
 
     def base_test_img_transforms(self):
@@ -134,7 +140,7 @@ class MaeMaeDataset(torch.utils.data.Dataset):
             T.Resize(size=(224,224)),
             T.ToTensor(), # this already seems to scale okay
             T.Normalize(mean=[0.485, 0.456, 0.406],
-                                  std=[0.229, 0.224, 0.225]),
+                        std=[0.229, 0.224, 0.225]),
         ])
 
 def collate_fn(batch):
@@ -220,7 +226,13 @@ class MaeMaeDataModule(pl.LightningDataModule):
         return torch.utils.data.DataLoader(
             self.train_dataset,
             batch_size=self.batch_size,
-            shuffle=shuffle,
+            sampler=torch.utils.data.sampler.WeightedRandomSampler(
+                self.train_dataset.weights, 
+                len(self.train_dataset),
+                replacement=True),
+                # (self.train_dataset.num_items//5)*4,
+                # replacement=False),
+            # shuffle=shuffle,
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
             persistent_workers=self.persitent_workers,
