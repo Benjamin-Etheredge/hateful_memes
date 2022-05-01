@@ -33,7 +33,8 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         """ Visual Bert Model """
         super().__init__()
         # self.hparams = hparams
-        self.visual_bert = VisualBertModel.from_pretrained("uclanlp/visualbert-nlvr2-coco-pre").to(self.device)
+        pretrained_type = "nlvr2" # nlvr2 or vqa
+        self.visual_bert = VisualBertModel.from_pretrained(f"uclanlp/visualbert-{pretrained_type}-coco-pre").to(self.device)
         if freeze:
             for param in self.visual_bert.parameters():
                 param.requires_grad = False
@@ -59,7 +60,11 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         od_model.to(self.device)
         self.od_model = od_model
 
-        self.fc_bridge = nn.Linear(2048, 1024)
+        if pretrained_type == "nlvr2":
+            visualbert_input_dim = 1024
+        elif pretrained_type == "vqa":
+            visualbert_input_dim = 2048
+        self.fc_bridge = nn.Linear(2048, visualbert_input_dim)
 
         # TODO linear vs embedding for dim changing
         # TODO auto size
