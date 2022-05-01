@@ -115,7 +115,7 @@ class SuperModel(BaseMaeMaeModel):
         ]
         for _ in range(num_dense_layers):
             dense_layers.append(nn.Linear(dense_dim, dense_dim))
-            dense_layers.append(nn.ReLU())
+            dense_layers.append(nn.GELU())
             dense_layers.append(nn.Dropout(dropout_rate))
         
         self.dense_model = nn.Sequential(*dense_layers)
