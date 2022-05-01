@@ -101,7 +101,6 @@ stages:
         --batch_size ${batch_size}
         --lr ${lr}
         --epochs ${epochs}
-        --max_length ${max_length}
         --dense_dim ${dense_dim}
         --dropout_rate ${dropout_rate}
         --grad_clip ${grad_clip}
@@ -139,7 +138,6 @@ stages:
         --batch_size ${batch_size}
         --lr ${lr}
         --epochs ${epochs}
-        --max_length ${max_length}
         --dense_dim ${dense_dim}
         --dropout_rate ${dropout_rate}
         --grad_clip ${gradient_clip_value}
