@@ -42,7 +42,7 @@ stages:
   test_beit:
     cmd: >
         python -m hateful_memes.models.baseIT
-        --model_name vit
+        --model_name beit
         --batch_size 4 
         --fast_dev_run True
         && echo "PASSED" > logs/test_beit.log
