@@ -47,7 +47,7 @@ jobs:
 
       - name: Pull everything else
         continue-on-error: true
-        run: dvc pull -a --run-cache
+        run: dvc pull
 
       - name: Train Electra
         continue-on-error: true
