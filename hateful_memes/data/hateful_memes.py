@@ -33,6 +33,11 @@ class MaeMaeDataset(torch.utils.data.Dataset):
 
         if set == "train": 
             self.info = pd.read_json(self.root_dir/"train.jsonl", lines=True)
+        elif set == "super_train": 
+            info0 = pd.read_json(self.root_dir/"train.jsonl", lines=True)
+            info1 = pd.read_json(self.root_dir/"dev_seen.jsonl", lines=True)
+            info2 = pd.read_json(self.root_dir/"dev_unseen.jsonl", lines=True)
+            self.info = pd.concat([info0, info1, info2])
         elif set == "dev_seen":
             self.info = pd.read_json(self.root_dir/"dev_seen.jsonl", lines=True)
         elif set == "dev_unseen":
@@ -59,7 +64,7 @@ class MaeMaeDataset(torch.utils.data.Dataset):
         # if self.txt_transforms is None:
         #     self.txt_transforms = self.create_text_transform()
         if self.img_transforms is None:
-            if set == "train":
+            if "train" in set:
                 ic("train set")
                 self.img_transforms = self.base_train_img_transforms()
             else:
@@ -71,9 +76,9 @@ class MaeMaeDataset(torch.utils.data.Dataset):
         ic(self.class_weights)
         self.class_weights = self.class_weights / self.class_weights.sum()
         self.class_weights = 1 / self.class_weights
+        ic(self.class_weights)
         self.weights = [self.class_weights[0] if label==0 else self.class_weights[1] for label in self.info['label']]
         # self.weights = np.where(self.info['label'].to_numpy(), self.class_weights)
-        # ic(self.weights)
         self.weights = torch.tensor(self.weights)
 
         self.vocab = None
@@ -207,19 +212,19 @@ class MaeMaeDataModule(pl.LightningDataModule):
             self.data_dir,
             img_transforms=self.img_transforms, 
             txt_transforms=self.txt_transforms,
-            set="train",
+            set="super_train",
         )
         self.val_dataset = MaeMaeDataset(
             self.data_dir,
             img_transforms=self.img_transforms, 
             txt_transforms=self.txt_transforms,
-            set='dev_seen',
+            set='test_seen',
         )
         self.test_dataset = MaeMaeDataset(
             self.data_dir,
             img_transforms=self.img_transforms, 
             txt_transforms=self.txt_transforms,
-            set="test_seen",
+            set="test_unseen",
         )
 
     def train_dataloader(self, shuffle=True, drop_last=True):
@@ -228,7 +233,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
             batch_size=self.batch_size,
             sampler=torch.utils.data.sampler.WeightedRandomSampler(
                 self.train_dataset.weights, 
-                len(self.train_dataset)//2,
+                len(self.train_dataset), # TODO basically 2 gpus does 2 epochs at once without //2
                 replacement=True),
                 # (self.train_dataset.num_items//5)*4,
                 # replacement=False),
