@@ -33,7 +33,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         """ Visual Bert Model """
         super().__init__()
         # self.hparams = hparams
-        self.visual_bert = VisualBertModel.from_pretrained("uclanlp/visualbert-vqa-coco-pre").to(self.device)
+        self.visual_bert = VisualBertModel.from_pretrained("uclanlp/visualbert-nlvr2-coco-pre").to(self.device)
         if freeze:
             for param in self.visual_bert.parameters():
                 param.requires_grad = False
@@ -59,7 +59,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         od_model.to(self.device)
         self.od_model = od_model
 
-        self.pad = nn.ZeroPad2d(3)
+        self.fc_bridge = nn.Linear(2048, 1024)
 
         # TODO linear vs embedding for dim changing
         # TODO auto size
@@ -79,63 +79,64 @@ class VisualBertWithODModule(BaseMaeMaeModel):
 
         self.save_hyperparameters()
 
+    def detect_objects(self, image):
+
+        images_list = [batch_img.half() for batch_img in image]
+        od_outputs = self.od_model(images_list)
+        logits = od_outputs['pred_logits']
+        probas = logits.softmax(-1)
+        batch_keep_idxs = np.argsort(probas.max(-1).values.detach().cpu().numpy())[::-1][:, :self.num_queries]
+        batch_pred_boxes = od_outputs['pred_boxes']
+
+        batch_keep_boxes = []
+        for i in range(batch_keep_idxs.shape[0]):
+            img_keep_idxs = batch_keep_idxs[i]
+            img_pred_boxes = batch_pred_boxes[i]
+            img_keep_boxes = img_pred_boxes[img_keep_idxs]
+            batch_keep_boxes.append(img_keep_boxes)
+        batch_keep_boxes = torch.stack(batch_keep_boxes)
+
+        # crop images
+        batch_outputs = []
+        for idx, batch_img in enumerate(images_list):
+            w, h = batch_img.shape[2], batch_img.shape[1]
+            img_pred_boxes = batch_keep_boxes[idx]
+            obj_imgs = []
+            for i in range(self.num_queries):
+                box = img_pred_boxes[i]
+                center_x, center_y, norm_w, norm_h = box
+                left = int(max((center_x - norm_w / 2), 0) * w)
+                upper = int(max((center_y - norm_h / 2), 0) * h)
+                right = int(min((center_x + norm_w / 2), 1) * w)
+                lower = int(min((center_y + norm_h / 2), 1) * h)
+                try:
+                    obj_img = batch_img[:, upper:lower, left:right]
+                    obj_img = T.Resize((180, 180))(obj_img)
+                except:
+                    obj_img = torch.zeros(3, 180, 180).to(self.device)
+                obj_imgs.append(obj_img)
+
+            obj_imgs = torch.stack(obj_imgs)
+            img_outputs = self.resnet(obj_imgs)
+            img_outputs = torch.squeeze(img_outputs)
+            batch_outputs.append(img_outputs)
+        image_x = torch.stack(batch_outputs)
+        
+        image_x = self.fc_bridge(image_x)
+        image_x = F.relu(image_x)
+
+        return image_x
+
     def forward(self, batch):
         """ Shut up """
         text = batch['text']
         image = batch['image']
 
-        ############################################
-        # Obj Detection Start
-        ############################################
-        self.od_model.eval()
-        self.resnet.eval()
-
-        with torch.no_grad():
-            images_list = [batch_img.half() for batch_img in image]
-            od_outputs = self.od_model(images_list)
-            logits = od_outputs['pred_logits']
-            probas = logits.softmax(-1)
-            batch_keep_idxs = np.argsort(probas.max(-1).values.cpu().numpy())[::-1][:, :self.num_queries]
-            batch_pred_boxes = od_outputs['pred_boxes']
-
-            batch_keep_boxes = []
-            batch_keep_classes = []
-            for i in range(batch_keep_idxs.shape[0]):
-                img_keep_idxs = batch_keep_idxs[i]
-                img_pred_boxes = batch_pred_boxes[i]
-                img_keep_boxes = img_pred_boxes[img_keep_idxs]
-                batch_keep_boxes.append(img_keep_boxes)
-            batch_keep_boxes = torch.stack(batch_keep_boxes)
-
-            # crop images
-            batch_outputs = []
-            for idx, batch_img in enumerate(images_list):
-                w, h = batch_img.shape[2], batch_img.shape[1]
-                pred_boxes = batch_keep_boxes[idx]
-                obj_imgs = []
-                for i in range(self.num_queries):
-                    box = pred_boxes[i]
-                    center_x, center_y, norm_w, norm_h = box
-                    left = int(max((center_x - norm_w / 2), 0) * w)
-                    upper = int(max((center_y - norm_h / 2), 0) * h)
-                    right = int(min((center_x + norm_w / 2), 1) * w)
-                    lower = int(min((center_y + norm_h / 2), 1) * h)
-                    try:
-                        obj_img = batch_img[:, upper:lower, left:right]
-                        obj_img = T.Resize((180, 180))(obj_img)
-                    except:
-                        obj_img = torch.zeros(3, 180, 180).to(self.device)
-                    obj_imgs.append(obj_img)
-
-                obj_imgs = torch.stack(obj_imgs)
-                img_outputs = self.resnet(obj_imgs)
-                img_outputs = torch.squeeze(img_outputs)
-                batch_outputs.append(img_outputs)
-            image_x = torch.stack(batch_outputs)
-
-        ############################################
-        # Obj Detection End
-        ############################################
+        if self.to_freeze:
+            with torch.no_grad():
+                image_x = self.detect_objects(image)
+        else:
+            image_x = self.detect_objects(image)
 
         inputs = self.tokenizer(
             text, 
