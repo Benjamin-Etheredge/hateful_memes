@@ -33,10 +33,16 @@ from hateful_memes.models.auto_text_model import AutoTextModule
 from hateful_memes.models.simple_image import SimpleImageMaeMaeModel
 from hateful_memes.models.simple_mlp_image import SimpleMLPImageMaeMaeModel
 from hateful_memes.models.simple_text import BaseTextMaeMaeModel
-from hateful_memes.models.visual_bert import VisualBertModel
+from hateful_memes.models.visual_bert import VisualBertModule
 from hateful_memes.models.baseIT import BaseITModule
 from hateful_memes.models.super_model import SuperModel
 from hateful_memes.utils import get_checkpoint_filename
+
+
+def rgb_to_grey(rgb):
+    grey_coeffs = np.array([[[0.2989, 0.5870, 0.1140]]])
+    grey = (rgb * grey_coeffs).sum(axis=2)
+    return grey
 
 
 class InterpModel():
@@ -56,14 +62,14 @@ class InterpModel():
         self.attr_ensem_input = None  # default True
         self.sub_models = None
         if model_name == 'visual-bert':
-            self.inner_model = VisualBertModel.load_from_checkpoint(checkpoint_path=ckpt_path)
+            self.inner_model = VisualBertModule.load_from_checkpoint(checkpoint_path=ckpt_path)
             self.image_embed_layer = self.inner_model.resnet
             self.attr_image_input = True
             self.text_embed_layer = self.inner_model.visual_bert.embeddings.word_embeddings
             self.attr_text_input = False
             self.tokenizer = self.inner_model.tokenizer
         elif model_name == 'beit':
-            self.inner_model = BaseITModule.load_from_checkpoint(checkpoint_path=ckpt_path, freeze=False)
+            self.inner_model = BaseITModule.load_from_checkpoint(checkpoint_path=ckpt_path, freeze=False, include_top=True)
             # in_wrap = ModelInputWrapper(self.inner_model.model.beit)
             # self.inner_model.model.beit = in_wrap
             self.image_embed_layer = self.inner_model.model.beit.embeddings.patch_embeddings
@@ -201,7 +207,7 @@ def visualize_input_attributions(attrs, inputs, y_hat, y, tokenizer, model_name,
         tf_str = "true"
     if pred==0:
         pn_str = "negative"
-    pred_str = "Model predicted: \"%s\", probability %.3g\n(%s %s)" % (y_hat_label, y_hat, tf_str, pn_str)
+    pred_str = "Model predicted: \"%s\", w/ logit %.3g\n(%s %s)" % (y_hat_label, y_hat, tf_str, pn_str)
 
     # Both visualizations use the original image
     img_in = inputs['img']
@@ -222,8 +228,9 @@ def visualize_input_attributions(attrs, inputs, y_hat, y, tokenizer, model_name,
         num_subs += 3
         width_ratios.append(1.5)
         width_ratios.append(2)
-        width_ratios.append(1.5)        
-    fig = plt.figure(figsize=(12, 5), constrained_layout=False)
+        width_ratios.append(1.5)
+    width_required = ceil(np.sum(width_ratios) * (12./20.)) + 2      
+    fig = plt.figure(figsize=(width_required, 5), constrained_layout=False)
     gs = fig.add_gridspec(1, num_subs, left=0.025, right=1.0, bottom=0.1, top=0.75, wspace=0.1, width_ratios=width_ratios)
     ax_orig = fig.add_subplot(gs[0, 0])
     ax_orig.imshow(img_in_vis)
@@ -234,17 +241,37 @@ def visualize_input_attributions(attrs, inputs, y_hat, y, tokenizer, model_name,
     ax_orig.set_title("Original")
     current_sub = 1
 
-    img_attr = None
+    img_attr = None 
+    img_attr_comb = None
     txt_attr = None
-    # Visualize image feature attributions
+    all_attrs = None
+    
     if 'img' in attrs.keys():
         img_attr = attrs['img']
         img_attr_vis = img_attr.squeeze(dim=0).permute(1, 2, 0).numpy()
+        img_attr_comb = np.sum(img_attr_vis, axis=-1)
+        all_attrs = img_attr_comb.copy().flatten()
+
+    if 'txt' in attrs.keys():
+        txt_attr = attrs['txt'].squeeze(0)  # Should now be (max_length x embed_dim)
+        txt_attr = txt_attr.sum(-1)
+        if all_attrs is not None:
+            all_attrs = np.concatenate([all_attrs, txt_attr.numpy().copy().flatten()])
+        else:
+            all_attrs = np.concatenate(txt_attr.numpy().copy().flatten())
+
+    attrs_norm = np.linalg.norm(all_attrs)
+
+    # Visualize image feature attributions
+    if 'img' in attrs.keys():
         axi = fig.add_subplot(gs[0, current_sub])
         current_sub += 1
         img_attr_comb = np.sum(img_attr_vis, axis=-1)
-        img_attr_normed = img_attr_comb/np.linalg.norm(img_attr_comb)
-        imi = axi.imshow(img_attr_normed)
+        #img_attr_normed = img_attr_comb/np.linalg.norm(img_attr_comb)
+        img_attr_normed = img_attr_comb/attrs_norm
+        grey_img = rgb_to_grey(img_in_vis)
+        imi0 = axi.imshow(grey_img, cmap=plt.get_cmap('gray'))
+        imi = axi.imshow(img_attr_normed, alpha=0.7, cmap='bwr')
         axi.xaxis.set_ticks_position("none")
         axi.yaxis.set_ticks_position("none")
         axi.set_xticklabels([])
@@ -254,7 +281,7 @@ def visualize_input_attributions(attrs, inputs, y_hat, y, tokenizer, model_name,
     
     # Visualize text feature attributions
     if 'txt' in attrs.keys():
-        txt_attr = attrs['txt'].squeeze(0)  # Should now be (max_length x embed_dim)
+        #txt_attr = attrs['txt'].squeeze(0)  # Should now be (max_length x embed_dim)
         txt_in = inputs['txt']
         token_dict = tokenizer(
             txt_in, 
@@ -265,17 +292,21 @@ def visualize_input_attributions(attrs, inputs, y_hat, y, tokenizer, model_name,
             add_special_tokens=True, return_special_tokens_mask=True)
         
         token_mask = token_dict['special_tokens_mask'] < 1
-        txt_attr = txt_attr.sum(-1)
+        #txt_attr = txt_attr.sum(-1)
         txt_attr = torch.masked_select(txt_attr, token_mask.squeeze(0))
         txt_attr_norm = txt_attr.norm()
-        txt_attr_normed = txt_attr/txt_attr_norm
+        #txt_attr_normed = txt_attr/txt_attr_norm
+        txt_attr_normed = txt_attr/attrs_norm
         
         axt = fig.add_subplot(gs[0, current_sub+1])
         current_sub += 3
-        imt = axt.imshow(txt_attr_normed.unsqueeze(-1).numpy())
-        axt.set_yticks(np.arange(txt_attr_normed.numel()), labels=txt_in[0].split())
-        for idx, attr_i in enumerate(txt_attr_normed.tolist()):
-            axt.text(0, idx, '%.2g' % (attr_i,), ha="center", va="center", color="w")
+        imt = axt.imshow(txt_attr_normed.unsqueeze(-1).numpy(), cmap='bwr')
+        txt_ids_masked = torch.masked_select(torch.tensor(token_dict['input_ids']), 
+            token_mask.squeeze(0)).tolist()
+        txt_labels = [tokenizer.decode(id) for id in txt_ids_masked]
+        axt.set_yticks(np.arange(txt_attr_normed.numel()), labels=txt_labels)
+        #for idx, attr_i in enumerate(txt_attr_normed.tolist()):
+        #    axt.text(0, idx, '%.2g' % (attr_i,), ha="center", va="center", color="w")
         fig.colorbar(imt, ax=axt)
         axt.xaxis.set_ticks_position("none")
         axt.set_xticklabels([])
