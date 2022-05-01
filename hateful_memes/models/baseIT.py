@@ -39,7 +39,6 @@ class BaseITModule(BaseMaeMaeModel):
         # TODO pool avg
         self.last_hidden_size = 768
         self.fc = nn.Sequential(
-            # These models have simpler heads
             # nn.Linear(self.last_hidden_size, dense_dim),
             # nn.GELU(),
             # nn.Dropout(dropout_rate),

@@ -42,6 +42,7 @@ class SuperModel(BaseMaeMaeModel):
     ):
         """ Super Model """
         super().__init__(*base_args, **base_kwargs)
+        ic.disable()
 
         self.models = []
         if resnet_ckpt:
@@ -88,6 +89,7 @@ class SuperModel(BaseMaeMaeModel):
             visual_bert_with_od_ckpt = get_checkpoint_path(visual_bert_with_od_ckpt)
             self.models.append(VisualBertWithODModule.load_from_checkpoint(visual_bert_with_od_ckpt))
 
+        ic.enable()
         assert len(self.models) > 1, "Not enough models loaded"
         
         for model in self.models:
@@ -175,7 +177,7 @@ def main(lr, dense_dim, dropout_rate,
         beit_ckpt=beit_ckpt,
         electra_ckpt=electra_ckpt,
         distilbert_ckpt=distilbert_ckpt,
-        )
+        weight_decay=0.01)
     base_train(model=model, finetune_epochs=100, **train_kwargs)
     
 

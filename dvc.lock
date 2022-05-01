@@ -236,62 +236,62 @@ stages:
       \ --simple_mlp_image_ckpt data/06_models/simple_mlp_image --simple_text_ckpt\
       \ data/06_models/simple_text --visual_bert_ckpt data/06_models/visual_bert --vit_ckpt\
       \ data/06_models/vit --beit_ckpt data/06_models/beit --electra_ckpt data/06_models/electra\
-      \ --distilbert_ckpt data/06_models/distilbert --batch_size 64 --lr 1e-05 --num_dense_layers\
-      \ 2 --dense_dim 512 --dropout_rate 0.5 --grad_clip 1.0 --epochs 1000 --model_dir\
-      \ data/06_models/super_model --project iso_super_model\n"
+      \ --distilbert_ckpt data/06_models/distilbert --batch_size 16 --lr 1e-05 --dense_dim\
+      \ 1024 --dropout_rate 0.5 --grad_clip 1.0 --epochs 1000 --model_dir data/06_models/super_model\
+      \ --project iso_super_model\n"
     deps:
     - path: data/01_raw/hateful_memes
       md5: 8844b5201ff55743fcd36c40d7352a88.dir
       size: 4232567214
       nfiles: 12148
     - path: data/06_models/beit
-      md5: cb8c7da19c018c5fde6562270e55d260.dir
-      size: 415443203
+      md5: 024bfb3c132d2f888d1f11471f9cbfbd.dir
+      size: 1033171499
       nfiles: 1
     - path: data/06_models/distilbert
-      md5: a187f0401af1e8283ad85d61ef0c976d.dir
-      size: 268653137
+      md5: 46683ffa732f3217a7e2bf276d0b9a23.dir
+      size: 274977501
       nfiles: 1
     - path: data/06_models/electra
-      md5: 651b2818dc9d9b2c12787e2e420c96d1.dir
-      size: 55607497
+      md5: 1a8bce58883f2680540c3c1ed274d2a6.dir
+      size: 165229753
       nfiles: 1
     - path: data/06_models/simple_image
-      md5: 12d1851746cbcfdf6b78f76e0ff338ed.dir
-      size: 88193017
+      md5: 686c15eac252ae33d6b12d1b82d770fc.dir
+      size: 88192697
       nfiles: 1
     - path: data/06_models/simple_mlp_image
-      md5: 578b453424b0de2bdb54ea13881cda50.dir
-      size: 231628339
+      md5: 0ac21d16ca2d6ffe51d0bb4ff26b21b0.dir
+      size: 231627955
       nfiles: 1
     - path: data/06_models/simple_text
-      md5: 52e3097139ae1d0d96f7da511ea8dad4.dir
-      size: 392434031
+      md5: b0ec4433296545b33eab8b77f6e4c984.dir
+      size: 392433711
       nfiles: 1
     - path: data/06_models/visual_bert
-      md5: c5ec9e1db0b96c8be591b733208041ae.dir
-      size: 543407621
+      md5: 258210a31d2370c479a33da323a5a6dc.dir
+      size: 550202473
       nfiles: 1
     - path: data/06_models/vit
-      md5: 8f45ec11b951a6e6e42e6aa7a8f699e5.dir
-      size: 347742345
+      md5: 2095177566fbc7465bc5071159eae54b.dir
+      size: 1036938753
       nfiles: 1
     - path: hateful_memes/data/hateful_memes.py
-      md5: 18b537e68da0f99fcb77283a4da24aaa
-      size: 9284
+      md5: 330bdff840b14cb945de20b3ea0c21d0
+      size: 9680
     - path: hateful_memes/models/base.py
-      md5: f321d176e34eabb39a28ddb7938e162f
-      size: 7478
+      md5: f2a2db47f167d9a0ba0099c98e3f44d6
+      size: 8292
     - path: hateful_memes/models/super_model.py
-      md5: 496111fd9b69009e9376017029631653
-      size: 7220
+      md5: f8ec4cfcb1bf9ffe8cccb3de165248ec
+      size: 6716
     - path: logs/test_super_model.log
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
     outs:
     - path: data/06_models/super_model
-      md5: 72098b393719278beaae315d85d1e4d4.dir
-      size: 1880884820
+      md5: 98b1817aad8318dd6c805fb539204f22.dir
+      size: 1853364772
       nfiles: 1
   test_vit:
     cmd: "python -m hateful_memes.models.baseIT --model_name vit --batch_size 4  --fast_dev_run\
@@ -378,14 +378,14 @@ stages:
       md5: f2a2db47f167d9a0ba0099c98e3f44d6
       size: 8292
     - path: hateful_memes/models/baseIT.py
-      md5: e48e5005374cc187bbae231c50c484d7
-      size: 3446
+      md5: 1461f40e5f0c72ae2556cb554e40c27c
+      size: 3399
     - path: logs/test_beit.log
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
     outs:
     - path: data/06_models/beit
-      md5: 274721f542b856a94e81d3c255766ae2.dir
+      md5: 024bfb3c132d2f888d1f11471f9cbfbd.dir
       size: 1033171499
       nfiles: 1
   test_electra:
