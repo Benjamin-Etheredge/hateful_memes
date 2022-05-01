@@ -40,7 +40,7 @@ class AutoTextModule(BaseMaeMaeModel):
 
         # self.fc1 = nn.Linear(self.config.hidden_size * self.max_length, dense_dim)
         self.dense_layers = nn.Sequential(
-            nn.Linear(self.config.hidden_size*self.max_length, dense_dim),
+            nn.Linear(self.config.hidden_size, dense_dim),
             nn.ReLU(),
             nn.Dropout(dropout_rate),
             nn.Linear(dense_dim, dense_dim),
@@ -71,8 +71,10 @@ class AutoTextModule(BaseMaeMaeModel):
         else:
             x = self.model(**inputs)
         x = x.last_hidden_state
-        x = x.view(x.shape[0], -1)
-        # x = x.mean(dim=1)
+        
+        #https://github.com/huggingface/transformers/blob/v4.18.0/src/transformers/models/distilbert/modeling_distilbert.py#L691
+        # Made adjustments based on the above link
+        x = x[:, 0]
 
         x = self.dense_layers(x)
 
