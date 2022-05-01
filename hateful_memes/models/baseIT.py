@@ -3,7 +3,7 @@ from pyrsistent import freeze
 import pytorch_lightning as pl
 import torch
 import click
-from transformers import AutoFeatureExtractor, AutoModelForImageClassification
+from transformers import AutoFeatureExtractor, AutoModelForImageClassification, AutoModel
 import torchvision.models as models
 from hateful_memes.models.base import BaseMaeMaeModel, base_train
 from torch.nn import functional as F
@@ -30,49 +30,22 @@ class BaseITModule(BaseMaeMaeModel):
         
         if model_name == 'vit':
             model_fullname = 'google/vit-base-patch16-224'
-            self.feature_getter = lambda x: x[:, 0]
         elif model_name == 'beit':
             model_fullname = 'microsoft/beit-base-patch16-224-pt22k-ft22k'
-            self.feature_getter = lambda x: x.pooler_output
 
         self.feature_extractor = AutoFeatureExtractor.from_pretrained(model_fullname)
-        self.model = AutoModelForImageClassification.from_pretrained(model_fullname, output_hidden_states=True)
-
-        # self.conv1 = nn.Sequential(
-        #     nn.Conv2d(1, 16, kernel_size=(3, 5), stride=(1, 1), padding=(1, 1), bias=False),
-        #     nn.BatchNorm2d(16),
-        #     nn.ReLU(),
-        #     nn.MaxPool2d(kernel_size=(2, 3), stride=(2, 3))
-        # )
-        # self.conv2 = nn.Sequential(
-        #     nn.Conv2d(16, 32, kernel_size=(3, 5), stride=(1, 1), padding=(1, 1), bias=False),
-        #     nn.BatchNorm2d(32),
-        #     nn.ReLU(),
-        #     nn.MaxPool2d(kernel_size=(2, 3), stride=(2, 3))
-        # )
-        # self.conv3 = nn.Sequential(
-        #     nn.Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False),
-        #     nn.BatchNorm2d(64),
-        #     nn.ReLU(),
-        #     nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2))
-        # )
-        # self.conv4 = nn.Sequential(
-        #     nn.Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False),
-        #     nn.BatchNorm2d(64),
-        #     nn.ReLU(),
-        #     nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2))
-        # )
-        # self.fc1 = nn.Linear(16128, dense_dim)
-        # self.fc2 = nn.Linear(dense_dim, dense_dim)
-        # self.fc3 = nn.Linear(dense_dim, 1)
+        # self.model = AutoModelForImageClassification.from_pretrained(model_fullname, output_hidden_states=True)
+        self.model = AutoModel.from_pretrained(model_fullname, output_hidden_states=True)
+        ic(self.model)
 
         # TODO pool avg
         self.last_hidden_size = 768
         self.fc = nn.Sequential(
-            nn.Linear(self.last_hidden_size, dense_dim),
-            nn.GELU(),
-            nn.Dropout(dropout_rate),
-            nn.Linear(dense_dim, 1)
+            # These models have simpler heads
+            # nn.Linear(self.last_hidden_size, dense_dim),
+            # nn.GELU(),
+            # nn.Dropout(dropout_rate),
+            nn.Linear(768, 1)
         )
 
         self.lr = lr
@@ -95,23 +68,7 @@ class BaseITModule(BaseMaeMaeModel):
         # TODO pooled output?
         x = self.model(**inputs)
 
-        x = x.hidden_states[-1]
-
-        # x = x.view(x.shape[0], 1, x.shape[1], x.shape[2])
-
-        # x = self.conv1(x)
-        # x = self.conv2(x)
-        # x = self.conv3(x)
-        # x = self.conv4(x)
-
-        # ic(x.shape)
-        # x = x.view(x.shape[0], -1)
-        # x = x[:, 0, :]
-        # ic(x.shape)
-        # https://github.com/huggingface/transformers/blob/v4.18.0/src/transformers/models/vit/modeling_vit.py#L726
-        # x = x[:, 0]
-        x = self.feature_getter(x)
-        # x = x.mean(dim=1)
+        x = x['pooler_output']
 
         if self.include_top:
             x = self.fc(x)
