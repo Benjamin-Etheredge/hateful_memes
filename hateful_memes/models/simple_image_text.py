@@ -86,23 +86,24 @@ class BaseImageTextMaeMaeModel(BaseMaeMaeModel):
             nn.BatchNorm2d(256),
             nn.ReLU(),
             nn.MaxPool2d(2),
-            #
-            nn.Conv2d(256, 512, 3, padding=1, bias=False),
-            nn.BatchNorm2d(512),
-            nn.ReLU(),
-            nn.Conv2d(512, 512, 3, padding=1, bias=False),
-            nn.BatchNorm2d(512),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
+            # #
+            # nn.Conv2d(256, 512, 3, padding=1, bias=False),
+            # nn.BatchNorm2d(512),
+            # nn.ReLU(),
+            # nn.Conv2d(512, 512, 3, padding=1, bias=False),
+            # nn.BatchNorm2d(512),
+            # nn.ReLU(),
+            # nn.MaxPool2d(2),
         )
 
         # conv_out_size = 4608
-        conv_out_size = 4864
+        conv_out_size = 12544
+        # conv_out_size = 5120
 
             # nn.Linear(dense_dim + conv_out_size, dense_dim),
             # nn.LazyLinear(dense_dim),
         self.dense_layers = nn.Sequential(
-            nn.Linear(conv_out_size, dense_dim),
+            nn.Linear(conv_out_size + dense_dim, dense_dim),
             nn.ReLU(),
             nn.Dropout(dropout_rate),
             nn.Linear(dense_dim, dense_dim),
@@ -141,6 +142,7 @@ class BaseImageTextMaeMaeModel(BaseMaeMaeModel):
         images = batch['image']
 
         x = self.conv(images)
+        ic(x.shape)
 
         final_image_x = x.view(x.size(0), -1)
 
