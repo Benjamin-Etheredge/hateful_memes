@@ -47,32 +47,39 @@ class InterpModel():
         self.inner_model = None
         # Input feature attribution parameters
         self.image_embed_layer = None
+        self.attr_image_input = None  # defaulted True
         self.text_embed_layer = None
+        self.attr_text_input = None  # defaulted False
         self.tokenizer = None
         # Ensemble layer attribution parameters
         self.ensemble_layer = None
+        self.attr_ensem_input = None  # default True
         self.sub_models = None
-        if model_name == '':
-            raise ValueError("Expected non-empty model name.")
-        elif model_name == 'visual-bert':
-            self.inner_model = VisualBertModule.load_from_checkpoint(checkpoint_path=ckpt_path)
+        if model_name == 'visual-bert':
+            self.inner_model = VisualBertModel.load_from_checkpoint(checkpoint_path=ckpt_path)
             self.image_embed_layer = self.inner_model.resnet
+            self.attr_image_input = True
             self.text_embed_layer = self.inner_model.visual_bert.embeddings.word_embeddings
+            self.attr_text_input = False
             self.tokenizer = self.inner_model.tokenizer
         elif model_name == 'beit':
-            self.inner_model = BaseITModule.load_from_checkpoint(checkpoint_path=ckpt_path)
-            in_wrap = ModelInputWrapper(self.inner_model.model.beit)
-            self.inner_model.model.beit = in_wrap
-            #self.image_embed_layer = self.inner_model.model.beit.embeddings.patch_embeddings
-            self.image_embed_layer = in_wrap.input_maps["pixel_values"]
+            self.inner_model = BaseITModule.load_from_checkpoint(checkpoint_path=ckpt_path, freeze=False)
+            # in_wrap = ModelInputWrapper(self.inner_model.model.beit)
+            # self.inner_model.model.beit = in_wrap
+            self.image_embed_layer = self.inner_model.model.beit.embeddings.patch_embeddings
+            self.attr_image_input = True
+            #self.image_embed_layer = in_wrap.input_maps["pixel_values"]
         elif model_name == 'electra':
             self.inner_model = AutoTextModule.load_from_checkpoint(checkpoint_path=ckpt_path)
             self.text_embed_layer = self.inner_model.model.embeddings.word_embeddings
+            self.attr_text_input = False
             self.tokenizer = self.inner_model.tokenizer
         elif model_name == 'visual-bert-with-od':
             self.inner_model = VisualBertWithODModule.load_from_checkpoint(checkpoint_path=ckpt_path)
             self.image_embed_layer = self.inner_model.resnet
+            self.attr_image_input = True
             self.text_embed_layer = self.inner_model.visual_bert.embeddings.word_embeddings
+            self.attr_text_input = False
             self.tokenizer = self.inner_model.tokenizer 
         elif model_name == 'super-model':
             ckpt_storage = os.path.dirname(ckpt_dir)
@@ -90,6 +97,10 @@ class InterpModel():
                 )
             self.ensemble_layer = self.inner_model.dense_model
             self.sub_models = self.inner_model.models
+            self.attr_ensem_input = True
+        else:
+            raise ValueError("Model named \"%s\" is unsupported." % (model_name))
+        self.inner_model.to('cpu')
 
     # Used as wrapper for model forward()
     def __call__(self, image, input_ids, tokenizer):
@@ -132,13 +143,14 @@ def get_input_attributions(interp_model:InterpModel, data_sample):
         img_attr = lig_image.attribute(inputs=image_text,
             baselines=(image_baselines, text_baselines),
             additional_forward_args=tokenizer,
-            attribute_to_layer_input=True)
+            attribute_to_layer_input=interp_model.attr_image_input)
         attrs['img'] = img_attr
     if interp_model.text_embed_layer is not None:
         lig_txt = LayerIntegratedGradients(interp_model, interp_model.text_embed_layer)
         txt_attr = lig_txt.attribute(inputs=image_text,
             baselines=(image_baselines, text_baselines),
-            additional_forward_args=tokenizer)
+            additional_forward_args=tokenizer,
+            attribute_to_layer_input=interp_model.attr_text_input)
         attrs['txt'] = txt_attr
     
     return attrs
@@ -170,7 +182,7 @@ def get_model_attributions(interp_model:InterpModel, data_sample):
     mod_attr = lig_mod.attribute(inputs=image_text,
         baselines=(image_baselines, text_baselines),
         additional_forward_args=tokenizer,
-        attribute_to_layer_input=True)
+        attribute_to_layer_input=interp_model.attr_ensem_input)
     attrs['models'] = mod_attr
     
     return attrs
