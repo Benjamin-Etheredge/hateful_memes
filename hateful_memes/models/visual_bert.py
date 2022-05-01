@@ -18,15 +18,14 @@ class VisualBertModule(BaseMaeMaeModel):
 
     def __init__(
         self,
-        lr=0.003,
         max_length=512,
         include_top=True,
         dropout_rate=0.0,
         dense_dim=256,
-        freeze=False,
+        *base_args, **base_kwargs
     ):
         """ Visual Bert Model """
-        super().__init__()
+        super().__init__(*base_args, **base_kwargs)
         self.visual_bert = VisualBertModel.from_pretrained("uclanlp/visualbert-vqa-coco-pre")
         # ic(self.visual_bert)
         # ic(self.visual_bert.config)
@@ -47,12 +46,10 @@ class VisualBertModule(BaseMaeMaeModel):
         )
         # TODO config modification
 
-        self.lr = lr
         self.max_length = max_length
         self.include_top = include_top
         self.dropout_rate = dropout_rate
         self.dense_dim = dense_dim
-        self.to_freeze = freeze
         self.visual_bert_config = self.visual_bert.config
         self.last_hidden_size = 768
 
@@ -95,7 +92,6 @@ class VisualBertModule(BaseMaeMaeModel):
 
 
 @click.command()
-@click.option('--freeze', default=True, help='Freeze models')
 @click.option('--lr', default=1e-4, help='Learning rate')
 @click.option('--max_length', default=128, help='Max length')
 @click.option('--dense_dim', default=256, help='Dense dim')
@@ -108,12 +104,11 @@ class VisualBertModule(BaseMaeMaeModel):
 @click.option('--fast_dev_run', default=False, help='Fast dev run')
 @click.option('--log_dir', default="data/08_reporting/visual_bert", help='Log dir')
 @click.option('--project', default="visual-bert", help='Project')
-def main(freeze, lr, max_length, dense_dim, dropout_rate, 
+def main(lr, max_length, dense_dim, dropout_rate, 
          **train_kwargs):
     """ train model """
 
     model = VisualBertModule(
-        freeze=freeze,
         lr=lr, 
         max_length=max_length, 
         dense_dim=dense_dim, 

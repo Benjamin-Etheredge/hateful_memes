@@ -29,7 +29,6 @@ stages:
         --grad_clip ${gradient_clip_value}
         --model_dir data/06_models/visual_bert_with_od
         --project ${project_prefix}visual_bert_with_od
-        --freeze ${freeze}
     deps:
       - logs/test_visual_bert_with_od.log
       - data/01_raw/hateful_memes
@@ -145,7 +144,6 @@ stages:
         --dropout_rate ${dropout_rate}
         --grad_clip ${gradient_clip_value}
         --model_dir data/06_models/visual_bert
-        --freeze ${freeze}
         --project ${project_prefix}visual_bert
     deps:
       - logs/test_visual_bert.log
@@ -155,6 +153,48 @@ stages:
       - hateful_memes/models/visual_bert.py
     outs:
       - data/06_models/visual_bert
+
+  test_hate_bert:
+    vars:
+      - config/hate_bert.yaml
+    cmd: >
+        python -m hateful_memes.models.auto_text_model
+        --batch_size 4 
+        --fast_dev_run True
+        --model_name ${model_name}
+        && echo "PASSED" > logs/test_hate_bert.log 
+    deps:
+      - data/01_raw/hateful_memes
+      - hateful_memes/data/hateful_memes.py
+      - hateful_memes/models/base.py
+      - hateful_memes/models/auto_text_model.py
+    outs:
+      - logs/test_hate_bert.log
+
+  hate_bert:
+    vars:
+      - config/hate_bert.yaml
+    cmd: >
+        python -m hateful_memes.models.auto_text_model
+        --batch_size ${batch_size}
+        --lr ${lr}
+        --epochs ${epochs}
+        --max_length ${max_length}
+        --dense_dim ${dense_dim}
+        --dropout_rate ${dropout_rate}
+        --grad_clip ${gradient_clip_value}
+        --model_name ${model_name}
+        --model_dir data/06_models/hate_bert
+        --project ${project_prefix}hate_bert
+    deps:
+      - logs/test_hate_bert.log
+      - data/01_raw/hateful_memes
+      - hateful_memes/data/hateful_memes.py
+      - hateful_memes/models/base.py
+      - hateful_memes/models/auto_text_model.py
+    outs:
+      - data/06_models/hate_bert
+
 
   test_electra:
     vars:
@@ -339,7 +379,7 @@ stages:
         --model_dir data/06_models/resnet_hate_bert
         --project ${project_prefix}resnet_hate_bert
     deps:
-      - logs/resnet_hate_bert.log
+      - logs/test_resnet_hate_bert.log
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes.py
       - hateful_memes/models/base.py

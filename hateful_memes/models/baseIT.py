@@ -1,5 +1,4 @@
 from matplotlib.pyplot import autoscale
-from pyrsistent import freeze
 import pytorch_lightning as pl
 import torch
 import click
@@ -19,14 +18,13 @@ class BaseITModule(BaseMaeMaeModel):
     def __init__(
         self, 
         model_name='vit',
-        lr=0.003, 
         include_top=True,
         dropout_rate=0.0,
         dense_dim=256,
-        freeze=True,
+        *base_args, **base_kwargs
     ):
 
-        super().__init__()
+        super().__init__(*base_args, **base_kwargs)
         
         if model_name == 'vit':
             model_fullname = 'google/vit-base-patch16-224'
@@ -48,11 +46,9 @@ class BaseITModule(BaseMaeMaeModel):
             nn.Linear(768, 1)
         )
 
-        self.lr = lr
         self.include_top = include_top
         self.dropout_rate = dropout_rate
         self.dense_dim = dense_dim
-        self.to_freeze = freeze
         self.backbone = self.model
 
         self.save_hyperparameters()
@@ -78,10 +74,9 @@ class BaseITModule(BaseMaeMaeModel):
 
 @click.command()
 @click.option('--model_name', default='vit', help='Model name')
-@click.option('--lr', default=1e-4, help='Learning rate')
 @click.option('--dense_dim', default=256, help='Dense dim')
 @click.option('--dropout_rate', default=0.1, help='Dropout rate')
-@click.option('--freeze', default=True, help='Freeze')
+@click.option('--lr', default=1e-4, help='Learning rate')
 # Train kwargs
 @click.option('--batch_size', default=0, help='Batch size')
 @click.option('--epochs', default=10, help='Epochs')
@@ -90,7 +85,7 @@ class BaseITModule(BaseMaeMaeModel):
 @click.option('--fast_dev_run', default=False, help='Fast dev run')
 @click.option('--log_dir', default="data/08_reporting/vit", help='Log dir')
 @click.option('--project', default="vit", help='Project')
-def main(model_name, lr, dense_dim, dropout_rate, freeze,
+def main(model_name, lr, dense_dim, dropout_rate,
          **train_kwargs):
     """ train model """
 
@@ -98,7 +93,6 @@ def main(model_name, lr, dense_dim, dropout_rate, freeze,
         model_name=model_name,
         lr=lr, 
         dense_dim=dense_dim, 
-        freeze=freeze,
         dropout_rate=dropout_rate)
     
     base_train(model=model, **train_kwargs)

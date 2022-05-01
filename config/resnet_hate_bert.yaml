@@ -1,7 +1,7 @@
 freeze: true
-batch_size: 128
+batch_size: 64
 max_length: 96
 lr: 1e-4
 dense_dim: 1024
-dropout_rate: 0.2
+dropout_rate: 0.5
 grad_clip: 1.0

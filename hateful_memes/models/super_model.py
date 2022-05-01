@@ -25,12 +25,9 @@ class SuperModel(BaseMaeMaeModel):
 
     def __init__(
         self,
-        lr=0.003,
         include_top=True,
         dropout_rate=0.0,
         dense_dim=256,
-        num_dense_layers=2,
-        freeze=True,
         visual_bert_ckpt=None,
         resnet_ckpt=None,
         simple_image_ckpt=False,
@@ -41,10 +38,11 @@ class SuperModel(BaseMaeMaeModel):
         electra_ckpt=None,
         distilbert_ckpt=None,
         visual_bert_with_od_ckpt=None,
+        *base_args, **base_kwargs
     ):
         """ Super Model """
-        super().__init__()
-        # self.hparams = hparams
+        super().__init__(*base_args, **base_kwargs)
+
         self.models = []
         if resnet_ckpt:
             # self.models.append(ResNetModule.load_from_checkpoint(resnet_ckpt))
@@ -93,13 +91,13 @@ class SuperModel(BaseMaeMaeModel):
         assert len(self.models) > 1, "Not enough models loaded"
         
         for model in self.models:
-            model.eval()
+            # model.eval()
             model.include_top = False
 
 
-        if freeze:
-            for model in self.models:
-                model.freeze()
+        # if freeze:
+        #     for model in self.models:
+        #         model.freeze()
         
         self.models = nn.ModuleList(self.models)
 
@@ -118,11 +116,9 @@ class SuperModel(BaseMaeMaeModel):
 
         # TODO config modification
 
-        self.lr = lr
         self.include_top = include_top
         self.dropout_rate = dropout_rate
         self.dense_dim = dense_dim
-        self.to_freeze = freeze
         self.last_hidden_size = dense_dim
 
         self.hparams['latent_dim'] = self.latent_dim
@@ -141,9 +137,7 @@ class SuperModel(BaseMaeMaeModel):
 
 
 @click.command()
-@click.option('--freeze', default=True, help='Freeze models')
 @click.option('--lr', default=1e-4, help='Learning rate')
-@click.option('--num_dense_layers', default=2, help='Dense dim')
 @click.option('--dense_dim', default=256, help='Dense dim')
 @click.option('--dropout_rate', default=0.1, help='Dropout rate')
 @click.option('--visual_bert_ckpt')
@@ -161,7 +155,7 @@ class SuperModel(BaseMaeMaeModel):
 @click.option('--model_dir', default='/tmp', help='Save dir')
 @click.option('--fast_dev_run', default=False, help='Fast dev run')
 @click.option('--project', default="super-model", help='Project')
-def main(freeze, lr, num_dense_layers, dense_dim, dropout_rate,
+def main(lr, dense_dim, dropout_rate,
          visual_bert_ckpt, visual_bert_with_od_ckpt, 
          simple_image_ckpt, simple_mlp_image_ckpt, simple_text_ckpt,
          vit_ckpt, beit_ckpt, electra_ckpt, distilbert_ckpt,
@@ -169,9 +163,7 @@ def main(freeze, lr, num_dense_layers, dense_dim, dropout_rate,
     """ train model """
 
     model = SuperModel(
-        freeze=freeze,
         lr=lr, 
-        num_dense_layers=num_dense_layers,
         dense_dim=dense_dim, 
         dropout_rate=dropout_rate,
         visual_bert_ckpt=visual_bert_ckpt,
@@ -184,7 +176,7 @@ def main(freeze, lr, num_dense_layers, dense_dim, dropout_rate,
         electra_ckpt=electra_ckpt,
         distilbert_ckpt=distilbert_ckpt,
         )
-    base_train(model=model, **train_kwargs)
+    base_train(model=model, finetune_epochs=100, **train_kwargs)
     
 
 if __name__ == "__main__":

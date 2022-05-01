@@ -11,14 +11,13 @@ class SimpleMLPImageMaeMaeModel(BaseMaeMaeModel):
     """Simple MLP model """
     def __init__(
         self, 
-        lr=0.003, 
         dense_dim=128, 
         num_dense_layers=2,
         dropout_rate=0.1,
         include_top=True,
-
+        *base_args, **base_kwargs
     ):
-        super().__init__()
+        super().__init__(*base_args, **base_kwargs)
         # TODO better batch norm usage and remove bias
 
         self.l1 = nn.Linear(1*224*224*3, dense_dim)
@@ -33,7 +32,6 @@ class SimpleMLPImageMaeMaeModel(BaseMaeMaeModel):
         self.dense_layers = nn.Sequential(*dense_layers)
         self.final_fc = nn.Linear(dense_dim, 1)
 
-        self.lr = lr
         self.dense_dim = dense_dim
         self.dropout_rate = dropout_rate
         self.include_top = include_top
@@ -46,15 +44,15 @@ class SimpleMLPImageMaeMaeModel(BaseMaeMaeModel):
         x = x.view(x.shape[0], -1)
 
         x = self.l1(x)
-        x = F.relu(x)
+        x = F.gelu(x)
         x = F.dropout(input=x, p=self.dropout_rate)
 
         x = self.dense_layers(x)
 
         if self.include_top:
             x = self.final_fc(x)
+            x = torch.squeeze(x)
 
-        x = torch.squeeze(x)
         return x
 
 

@@ -28,8 +28,14 @@ from hateful_memes.data.hateful_memes import MaeMaeDataModule
 
 class BaseMaeMaeModel(LightningModule):
 
-    def __init__(self) -> None:
+    def __init__(
+        self, 
+        lr=0.0003, 
+        weight_decay=0.00,
+    ) -> None:
         super().__init__()
+        self.lr = lr
+        self.wd = weight_decay
 
         # TODO log for each metric through macro
         metrics_kwargs = dict(compute_on_cpu=True)
@@ -79,12 +85,13 @@ class BaseMaeMaeModel(LightningModule):
 
     def configure_optimizers(self):
         # filter for thawing
-        optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, self.parameters()), lr=self.lr) 
+        return torch.optim.Adam(filter(lambda p: p.requires_grad, self.parameters()), lr=self.lr, weight_decay=self.wd) 
+        # optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, self.parameters()), lr=self.lr) 
 
         return {
             "optimizer": optimizer,
-            "lr_scheduler": ReduceLROnPlateau(optimizer, patience=5, verbose=True),
-            "monitor": "train/loss",
+            # "lr_scheduler": ReduceLROnPlateau(optimizer, patience=5, verbose=True),
+            # "monitor": "train/loss",
         }
 
 
@@ -130,7 +137,9 @@ def base_train(
     try:
         model.backbone
         callbacks.append(BackBoneOverrider(finetune_epochs, verbose=True, backbone_initial_ratio_lr=0.0001, lambda_func=lambda epoch: 1.2))
+        ic("Adding finetuning")
     except AttributeError:
+        ic("no backbone")
         pass
 
 

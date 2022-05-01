@@ -4,7 +4,6 @@ from torch import nn
 from torch.nn import functional as F
 import torchvision
 
-
 import transformers
 import click
 from icecream import ic
@@ -13,19 +12,20 @@ from hateful_memes.utils import get_project_logger
 from hateful_memes.models.base import BaseMaeMaeModel, base_train
 
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, AutoModel
+import pytorch_lightning as pl
 
 
 #### TODO will leak as was trained on dev and some of test set
 class ResnetHateBert(BaseMaeMaeModel):
     def __init__(
         self, 
-        lr=0.003, 
         dropout_rate=0.1,
         dense_dim=128, 
         max_length=96,
         include_top=True,
+        *base_args, **base_kwargs
     ):
-        super().__init__()
+        super().__init__(*base_args, **base_kwargs)
         
         # https://huggingface.co/docs/transformers/v4.18.0/en/model_doc/auto#transformers.AutoTokenizer
         # self.tokenizer = transformers.AutoTokenizer.from_pretrained(tokenizer_name)
@@ -44,12 +44,11 @@ class ResnetHateBert(BaseMaeMaeModel):
 
         self.vocab_size = self.tokenizer.vocab_size
 
-        self.lr = lr
-        resnet = torchvision.models.resnet50(pretrained=True)
-        self.num_ftrs_resnet = resnet.fc.in_features
-        resnet.fc = nn.Flatten()
-        # ic(resnet)
-        self.resnet = resnet
+        self.resnet = torchvision.models.resnet50(pretrained=True)
+        ic(self.resnet)
+        self.num_ftrs_resnet = self.resnet.fc.in_features
+        self.resnet.fc = nn.Flatten()
+        ic(self.resnet)
 
         resenet_size = 2048
         bert_size = 768
@@ -61,13 +60,12 @@ class ResnetHateBert(BaseMaeMaeModel):
             nn.Linear(dense_dim, 1),
         )
 
-
         # TODO consider 3 classes for offensive detection
 
         self.max_length = max_length
         self.dropout_rate = dropout_rate
         self.include_top = include_top
-        self.backbones = [self.resnet, self.bert]
+        self.backbone = [self.resnet, self.bert]
 
         self.save_hyperparameters()
     
@@ -82,7 +80,6 @@ class ResnetHateBert(BaseMaeMaeModel):
             return_tensors='pt',)
 
         input = {k: v.to(device=self.device, non_blocking=True) for k, v in input.items()}
-
 
         # Image
         images = batch['image']
@@ -128,4 +125,5 @@ def main(lr, dense_dim, max_length, dropout_rate,
 
 
 if __name__ == "__main__":
+    pl.seed_everything(42)
     main()

@@ -1,8 +1,8 @@
-batch_size: 128
+batch_size: 64
 lr: 1e-4
 epochs: 1000
 max_length: 96
 dense_dim: 1024
 dropout_rate: 0.2
 gradient_clip_value: 1.0
-model_name: 'google/electra-small-discriminator'
+model_name: 'am4nsolanki/autonlp-text-hateful-memes-36789092'

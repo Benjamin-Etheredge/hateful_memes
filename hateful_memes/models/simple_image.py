@@ -14,14 +14,14 @@ class SimpleImageMaeMaeModel(BaseMaeMaeModel):
     """ Simple Image Model """
     def __init__(
         self, 
-        lr=0.003, 
         dense_dim=128, 
         dropout_rate=0.1,
         batch_norm=False,
         include_top=True,
-
+        *base_args, **base_kwargs
     ):
-        super().__init__()
+        super().__init__(*base_args, **base_kwargs)
+
         self.conv1 = nn.Sequential(
             nn.Conv2d(3, 16, 3, padding=1, bias=False),
             nn.BatchNorm2d(16),
@@ -90,7 +90,6 @@ class SimpleImageMaeMaeModel(BaseMaeMaeModel):
         )
         self.fc = nn.Linear(dense_dim, 1)
 
-        self.lr = lr
         self.dense_dim = dense_dim
         self.dropout_rate = dropout_rate
         self.batch_norm = batch_norm

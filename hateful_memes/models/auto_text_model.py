@@ -15,20 +15,18 @@ class AutoTextModule(BaseMaeMaeModel):
     def __init__(
         self, 
         model_name,
-        lr=0.003, 
         max_length=512, 
         include_top=True,
         dropout_rate=0.0,
         dense_dim=256,
-        freeze=True,
+        *base_args, **base_kwargs
     ):
-        super().__init__()
+        super().__init__(*base_args, **base_kwargs)
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.config = AutoConfig.from_pretrained(model_name)
         ic(self.config)
         self.model = AutoModel.from_pretrained(model_name, config=self.config)
 
-        self.lr = lr
         self.max_length = max_length
         self.include_top = include_top
         self.dropout_rate = dropout_rate
@@ -41,7 +39,6 @@ class AutoTextModule(BaseMaeMaeModel):
             nn.Dropout(dropout_rate),
             nn.Linear(dense_dim, 1)
         )
-        self.to_freeze = freeze
         self.backbone = self.model
 
         self.save_hyperparameters()
@@ -76,7 +73,6 @@ class AutoTextModule(BaseMaeMaeModel):
 @click.option('--dense_dim', default=256, help='Dense dim')
 @click.option('--dropout_rate', default=0.1, help='Dropout rate')
 @click.option('--model_name', default='google/electra-small-discriminator', help='Model name')
-@click.option('--freeze', default=True, help='Freeze')
 # Train kwargs
 @click.option('--batch_size', default=0, help='Batch size')
 @click.option('--epochs', default=10, help='Epochs')
@@ -84,7 +80,7 @@ class AutoTextModule(BaseMaeMaeModel):
 @click.option('--grad_clip', default=1.0, help='Gradient clip')
 @click.option('--fast_dev_run', default=False, help='Fast dev run')
 @click.option('--project', default='', help='Simple model name for wandb')
-def main(lr, max_length, dense_dim, dropout_rate, model_name, freeze,
+def main(lr, max_length, dense_dim, dropout_rate, model_name,
          **train_kwargs):
     
     model = AutoTextModule(
@@ -93,7 +89,6 @@ def main(lr, max_length, dense_dim, dropout_rate, model_name, freeze,
         dense_dim=dense_dim, 
         dropout_rate=dropout_rate,
         model_name=model_name,
-        freeze=freeze,
     )
 
     base_train(model=model, **train_kwargs)

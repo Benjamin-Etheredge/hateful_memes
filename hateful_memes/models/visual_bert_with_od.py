@@ -21,17 +21,16 @@ class VisualBertWithODModule(BaseMaeMaeModel):
 
     def __init__(
         self,
-        lr=0.003,
         max_length=512,
         include_top=True,
         dropout_rate=0.0,
         dense_dim=256,
         num_queries=50,
-        freeze=False,
+        *base_args, **base_kwargs
     ):
         """ Visual Bert Model """
-        super().__init__()
-        # self.hparams = hparams
+        super().__init__(*base_args, **base_kwargs)
+
         self.visual_bert = VisualBertModel.from_pretrained("uclanlp/visualbert-nlvr2-coco-pre").to(self.device)
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 
@@ -68,12 +67,10 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         )
         # TODO config modification
 
-        self.lr = lr
         self.max_length = max_length
         self.include_top = include_top
         self.dropout_rate = dropout_rate
         self.dense_dim = dense_dim
-        self.to_freeze = freeze
         self.visual_bert_config = self.visual_bert.config
         self.backbone = [self.visual_bert, self.od_model]
 
@@ -133,7 +130,6 @@ class VisualBertWithODModule(BaseMaeMaeModel):
 
 
 @click.command()
-@click.option('--freeze', default=True, help='Freeze models')
 @click.option('--lr', default=1e-4, help='Learning rate')
 @click.option('--max_length', default=128, help='Max length')
 @click.option('--dense_dim', default=256, help='Dense dim')
@@ -146,11 +142,10 @@ class VisualBertWithODModule(BaseMaeMaeModel):
 @click.option('--grad_clip', default=1.0, help='Gradient clip')
 @click.option('--fast_dev_run', default=False, help='Fast dev run')
 @click.option('--project', default="visual-bert-with-od", help='Project')
-def main(freeze, lr, max_length, dense_dim, dropout_rate, num_queries, **train_kwargs):
+def main(lr, max_length, dense_dim, dropout_rate, num_queries, **train_kwargs):
     """ train model """
 
     model = VisualBertWithODModule(
-        freeze=freeze,
         lr=lr, 
         max_length=max_length, 
         dense_dim=dense_dim, 
