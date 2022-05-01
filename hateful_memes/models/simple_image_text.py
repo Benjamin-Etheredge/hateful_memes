@@ -142,7 +142,6 @@ class BaseImageTextMaeMaeModel(BaseMaeMaeModel):
         images = batch['image']
 
         x = self.conv(images)
-        ic(x.shape)
 
         final_image_x = x.view(x.size(0), -1)
 
