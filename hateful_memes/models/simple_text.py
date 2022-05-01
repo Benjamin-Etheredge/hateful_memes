@@ -78,8 +78,8 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
 
         if self.include_top:
             x = self.l2(x)
+            x = torch.squeeze(x, dim=-1)
 
-        x = torch.squeeze(x)
         return x
 
 

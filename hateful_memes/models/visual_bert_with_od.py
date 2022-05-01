@@ -33,10 +33,6 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         super().__init__()
         # self.hparams = hparams
         self.visual_bert = VisualBertModel.from_pretrained("uclanlp/visualbert-nlvr2-coco-pre").to(self.device)
-        if freeze:
-            for param in self.visual_bert.parameters():
-                param.requires_grad = False
-            self.visual_bert.eval()
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 
         ############################################
@@ -51,25 +47,25 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         # Original
         self.od_fc = nn.Sequential(
             nn.Linear(256, 256),
-            nn.ReLU(),
+            nn.GELU(),
+            nn.Dropout(dropout_rate),
             nn.Linear(256, 1024),
             nn.Tanh(),
             # nn.Dropout(dropout_rate),
         )
-
-        if freeze:
-            for param in self.od_model.parameters():
-                param.requires_grad = False
-            self.od_model.eval()
         ############################################
         # Obj Detection End
         ############################################
 
         # TODO linear vs embedding for dim changing
         # TODO auto size
-        self.fc1 = nn.Linear(768, dense_dim)
-        self.fc2 = nn.Linear(dense_dim, dense_dim)
-        self.fc3 = nn.Linear(dense_dim, 1)
+        self.last_hidden_size = 768
+        self.fc = nn.Sequential(
+            nn.Linear(self.last_hidden_size, dense_dim),
+            nn.GELU(),
+            nn.Dropout(dropout_rate),
+            nn.Linear(dense_dim, 1)
+        )
         # TODO config modification
 
         self.lr = lr
@@ -79,7 +75,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         self.dense_dim = dense_dim
         self.to_freeze = freeze
         self.visual_bert_config = self.visual_bert.config
-        self.last_hidden_size = dense_dim
+        self.backbone = [self.visual_bert, self.od_model]
 
         self.save_hyperparameters()
     
@@ -124,27 +120,15 @@ class VisualBertWithODModule(BaseMaeMaeModel):
             "visual_attention_mask": torch.ones(image_x.shape[:-1], dtype=torch.float, device=self.device),
         })
 
-        if self.to_freeze:
-            with torch.no_grad():
-                x = self.visual_bert(**inputs)
-        else:
-            x = self.visual_bert(**inputs)
+        x = self.visual_bert(**inputs)
 
         x = x.pooler_output
         x = x.view(x.shape[0], -1)
 
-        x = self.fc1(x)
-        x = F.relu(x)
-        x = F.dropout(x, p=self.dropout_rate)
-
-        x = self.fc2(x)
-        x = F.relu(x)
-        x = F.dropout(x, p=self.dropout_rate)
-
         if self.include_top:
-            x = self.fc3(x)
+            x = self.fc(x)
+            x = torch.squeeze(x, dim=1)
 
-        x = torch.squeeze(x, dim=1)
         return x
 
 

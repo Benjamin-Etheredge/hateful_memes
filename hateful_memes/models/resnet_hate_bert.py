@@ -38,8 +38,6 @@ class ResnetHateBert(BaseMaeMaeModel):
             "am4nsolanki/autonlp-text-hateful-memes-36789092", 
             output_hidden_states=True,
             return_dict=True,)
-        for param in self.bert.parameters():
-            param.requires_grad = False
         ic(self.bert)
         self.tokenizer = AutoTokenizer.from_pretrained("am4nsolanki/autonlp-text-hateful-memes-36789092")
         ic(self.bert.config)
@@ -53,29 +51,23 @@ class ResnetHateBert(BaseMaeMaeModel):
         # ic(resnet)
         self.resnet = resnet
 
-        for param in self.resnet.parameters():
-            param.requires_grad = False
-        self.resnet.eval()
-
         resenet_size = 2048
         bert_size = 768
-        self.dense_layers = nn.Sequential(
-            nn.Linear(resenet_size + bert_size, dense_dim),
-            nn.ReLU(),
+        self.last_hidden_size = resenet_size + bert_size
+        self.final_fc = nn.Sequential(
+            nn.Linear(self.last_hidden_size, dense_dim),
+            nn.GELU(),
             nn.Dropout(dropout_rate),
-            nn.Linear(dense_dim, dense_dim),
-            nn.ReLU(),
-            nn.Dropout(dropout_rate),
+            nn.Linear(dense_dim, 1),
         )
 
-        self.final_fc = nn.Linear(dense_dim, 1)
 
         # TODO consider 3 classes for offensive detection
 
         self.max_length = max_length
         self.dropout_rate = dropout_rate
         self.include_top = include_top
-        self.last_hidden_size = dense_dim
+        self.backbones = [self.resnet, self.bert]
 
         self.save_hyperparameters()
     
@@ -94,21 +86,18 @@ class ResnetHateBert(BaseMaeMaeModel):
 
         # Image
         images = batch['image']
-        with torch.no_grad():
-            image_x = self.resnet(images)
+        image_x = self.resnet(images)
 
-        with torch.no_grad():
-            text_x = self.bert(**input)
+        text_x = self.bert(**input)
 
         text_x = text_x.last_hidden_state[:, 0]
 
         x = torch.cat((text_x, image_x), dim=1)
-        x = self.dense_layers(x)
 
         if self.include_top:
             x = self.final_fc(x)
+            x = torch.squeeze(x, dim=-1)
 
-        x = torch.squeeze(x, dim=-1)
         return x
 
 

@@ -30,15 +30,13 @@ class BaseITModule(BaseMaeMaeModel):
         
         if model_name == 'vit':
             model_fullname = 'google/vit-base-patch16-224'
+            self.feature_getter = lambda x: x[:, 0]
         elif model_name == 'beit':
             model_fullname = 'microsoft/beit-base-patch16-224-pt22k-ft22k'
+            self.feature_getter = lambda x: x.pooler_output
 
         self.feature_extractor = AutoFeatureExtractor.from_pretrained(model_fullname)
         self.model = AutoModelForImageClassification.from_pretrained(model_fullname, output_hidden_states=True)
-        if freeze:
-            for param in self.model.parameters():
-                param.requires_grad = False
-            self.model.eval()
 
         # self.conv1 = nn.Sequential(
         #     nn.Conv2d(1, 16, kernel_size=(3, 5), stride=(1, 1), padding=(1, 1), bias=False),
@@ -69,16 +67,20 @@ class BaseITModule(BaseMaeMaeModel):
         # self.fc3 = nn.Linear(dense_dim, 1)
 
         # TODO pool avg
-        self.fc1 = nn.Linear(768, dense_dim)
-        self.fc2 = nn.Linear(dense_dim, dense_dim)
-        self.fc3 = nn.Linear(dense_dim, 1)
+        self.last_hidden_size = 768
+        self.fc = nn.Sequential(
+            nn.Linear(self.last_hidden_size, dense_dim),
+            nn.GELU(),
+            nn.Dropout(dropout_rate),
+            nn.Linear(dense_dim, 1)
+        )
 
         self.lr = lr
         self.include_top = include_top
         self.dropout_rate = dropout_rate
         self.dense_dim = dense_dim
-        self.last_hidden_size = dense_dim
         self.to_freeze = freeze
+        self.backbone = self.model
 
         self.save_hyperparameters()
     
@@ -91,11 +93,7 @@ class BaseITModule(BaseMaeMaeModel):
         inputs = inputs.to(self.device)        
 
         # TODO pooled output?
-        if self.to_freeze:
-            with torch.no_grad():
-                x = self.model(**inputs)
-        else:
-            x = self.model(**inputs)
+        x = self.model(**inputs)
 
         x = x.hidden_states[-1]
 
@@ -112,20 +110,12 @@ class BaseITModule(BaseMaeMaeModel):
         # ic(x.shape)
         # https://github.com/huggingface/transformers/blob/v4.18.0/src/transformers/models/vit/modeling_vit.py#L726
         # x = x[:, 0]
-        x = x.mean(dim=1)
-
-        x = self.fc1(x)
-        x = F.relu(x)
-        x = F.dropout(input=x, p=self.dropout_rate)
-
-        x = self.fc2(x)
-        x = F.relu(x)
-        x = F.dropout(input=x, p=self.dropout_rate)
+        x = self.feature_getter(x)
+        # x = x.mean(dim=1)
 
         if self.include_top:
-            x = self.fc3(x)
-
-        x = torch.squeeze(x, dim=1)
+            x = self.fc(x)
+            x = torch.squeeze(x, dim=1)
         return x
 
 

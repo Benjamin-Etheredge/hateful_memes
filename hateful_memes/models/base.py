@@ -11,11 +11,18 @@ from torchvision import transforms as T
 import torchmetrics
 
 from pytorch_lightning import LightningModule
-from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint, StochasticWeightAveraging
+from pytorch_lightning.callbacks import (
+    EarlyStopping, 
+    ModelCheckpoint, 
+    StochasticWeightAveraging,
+    Timer,
+    LearningRateMonitor,
+    BackboneFinetuning
+)
 from pytorch_lightning import Trainer
 import wandb
 
-from hateful_memes.utils import get_project_logger
+from hateful_memes.utils import get_project_logger, BackBoneOverrider
 from hateful_memes.data.hateful_memes import MaeMaeDataModule
 
 
@@ -71,7 +78,9 @@ class BaseMaeMaeModel(LightningModule):
         return loss
 
     def configure_optimizers(self):
-        optimizer= torch.optim.Adam(self.parameters(), lr=self.lr)
+        # filter for thawing
+        optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, self.parameters()), lr=self.lr) 
+
         return {
             "optimizer": optimizer,
             "lr_scheduler": ReduceLROnPlateau(optimizer, patience=5, verbose=True),
@@ -91,28 +100,39 @@ def base_train(
         fast_dev_run=False,
         monitor_metric="val/loss",
         monitor_metric_mode="min",
-        stopping_patience=10,
+        stopping_patience=16,
         mixed_precision=False,
+        finetune_epochs=10,
     ):
     logger = get_project_logger(project=project, save_dir=log_dir, offline=fast_dev_run)
     # TODO pull out lr and maybe arg optimizer
 
-    checkpoint_callback = ModelCheckpoint(
-        monitor=monitor_metric,
-        mode=monitor_metric_mode,
-        dirpath=model_dir, 
-        # filename="{epoch}-{step}-{loss:.4f}",
-        verbose=True,
-        save_top_k=1)
 
-    early_stopping = EarlyStopping(
+    callbacks = [
+        ModelCheckpoint(
+            monitor=monitor_metric,
+            mode=monitor_metric_mode,
+            dirpath=model_dir, 
+            # filename="{epoch}-{step}-{loss:.4f}",
+            verbose=True,
+            save_top_k=1),
+        EarlyStopping(
             monitor=monitor_metric,
             patience=stopping_patience, 
             mode=monitor_metric_mode,
             min_delta=0.0001,
-            verbose=True)
+            verbose=True),
+        StochasticWeightAveraging(),
+        LearningRateMonitor(),
+        # Finetuner(model.backbones, finetune_epochs),
+    ]
 
-    stw = StochasticWeightAveraging()
+    try:
+        model.backbone
+        callbacks.append(BackBoneOverrider(finetune_epochs, verbose=True, backbone_initial_ratio_lr=0.001))
+    except AttributeError:
+        pass
+
 
     if batch_size > 0:
         accumulate_grad_batches = max(1, 64//batch_size)
@@ -143,7 +163,8 @@ def base_train(
         accumulate_grad_batches=accumulate_grad_batches,
         # profiler="simple",
         # callbacks=[checkpoint_callback, early_stopping])
-        callbacks=[checkpoint_callback, early_stopping, stw])
+        callbacks=[*callbacks],
+    )
 
     data = MaeMaeDataModule(batch_size=batch_size if batch_size > 0 else 32)
     ic(model.lr)

@@ -27,10 +27,6 @@ class AutoTextModule(BaseMaeMaeModel):
         self.config = AutoConfig.from_pretrained(model_name)
         ic(self.config)
         self.model = AutoModel.from_pretrained(model_name, config=self.config)
-        if freeze:
-            for param in self.model.parameters():
-                param.requires_grad = False
-            # model.eval()
 
         self.lr = lr
         self.max_length = max_length
@@ -38,19 +34,15 @@ class AutoTextModule(BaseMaeMaeModel):
         self.dropout_rate = dropout_rate
         self.dense_dim = dense_dim
 
-        # self.fc1 = nn.Linear(self.config.hidden_size * self.max_length, dense_dim)
-        self.dense_layers = nn.Sequential(
-            nn.Linear(self.config.hidden_size, dense_dim),
-            nn.ReLU(),
+        self.last_hidden_size = self.config.hidden_size
+        self.fc = nn.Sequential(
+            nn.Linear(self.last_hidden_size, dense_dim),
+            nn.GELU(),
             nn.Dropout(dropout_rate),
-            nn.Linear(dense_dim, dense_dim),
-            nn.ReLU(),
-            nn.Dropout(dropout_rate),
+            nn.Linear(dense_dim, 1)
         )
-
-        self.fc2 = nn.Linear(dense_dim, 1)
-        self.last_hidden_size = dense_dim
         self.to_freeze = freeze
+        self.backbone = self.model
 
         self.save_hyperparameters()
     
@@ -65,22 +57,16 @@ class AutoTextModule(BaseMaeMaeModel):
         )
         inputs = inputs.to(self.device)
         
-        if self.to_freeze:
-            with torch.no_grad():
-                x = self.model(**inputs)
-        else:
-            x = self.model(**inputs)
+        x = self.model(**inputs)
         x = x.last_hidden_state
         
         #https://github.com/huggingface/transformers/blob/v4.18.0/src/transformers/models/distilbert/modeling_distilbert.py#L691
         # Made adjustments based on the above link
         x = x[:, 0]
 
-        x = self.dense_layers(x)
-
         if self.include_top:
-            x = self.fc2(x)
-            x = x.squeeze(dim=-1)
+            x = self.fc(x)
+            x = x.squeeze(1)
 
         return x
     
