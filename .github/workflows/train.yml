@@ -97,6 +97,12 @@ jobs:
           dvc repro --pull beit
           dvc push -d beit
 
+      - name: Train Resnet Hate Bert
+        continue-on-error: true
+        run: |
+          dvc repro resnet_hate_bert
+          dvc push --run-cache -d resnet_hate_bert
+
       - name: Train VisualBERT
         continue-on-error: true
         run: |
