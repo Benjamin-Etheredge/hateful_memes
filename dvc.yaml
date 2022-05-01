@@ -63,7 +63,6 @@ stages:
         --batch_size ${batch_size}
         --lr ${lr}
         --epochs ${epochs}
-        --max_length ${max_length}
         --dense_dim ${dense_dim}
         --dropout_rate ${dropout_rate}
         --grad_clip ${gradient_clip_value}
@@ -334,11 +333,9 @@ stages:
         python -m hateful_memes.models.resnet_hate_bert
         --batch_size ${batch_size}
         --lr ${lr}
-        --epochs ${epochs}
         --max_length ${max_length}
         --dense_dim ${dense_dim}
         --dropout_rate ${dropout_rate}
-        --grad_clip ${gradient_clip_value}
         --model_dir data/06_models/resnet_hate_bert
         --project ${project_prefix}resnet_hate_bert
     deps:
