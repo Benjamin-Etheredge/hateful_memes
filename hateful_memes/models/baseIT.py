@@ -2,7 +2,7 @@ from matplotlib.pyplot import autoscale
 import pytorch_lightning as pl
 import torch
 import click
-from transformers import AutoFeatureExtractor, AutoModelForImageClassification, AutoModel
+from transformers import AutoFeatureExtractor, AutoModelForImageClassification, AutoModel, AutoConfig
 import torchvision.models as models
 from hateful_memes.models.base import BaseMaeMaeModel, base_train
 from torch.nn import functional as F
@@ -31,18 +31,24 @@ class BaseITModule(BaseMaeMaeModel):
         elif model_name == 'beit':
             model_fullname = 'microsoft/beit-base-patch16-224-pt22k-ft22k'
 
+        # self.config = AutoConfig.from_pretrained(model_fullname)
+        # ic(self.config)
         self.feature_extractor = AutoFeatureExtractor.from_pretrained(model_fullname)
         # self.model = AutoModelForImageClassification.from_pretrained(model_fullname, output_hidden_states=True)
-        self.model = AutoModel.from_pretrained(model_fullname, output_hidden_states=True)
+        self.model = AutoModel.from_pretrained(
+            model_fullname, 
+            output_hidden_states=True, 
+            hidden_dropout_prob=dropout_rate,
+            attention_probs_dropout_prob=dropout_rate)
         ic(self.model)
 
         # TODO pool avg
         self.last_hidden_size = 768
         self.fc = nn.Sequential(
-            # nn.Linear(self.last_hidden_size, dense_dim),
-            # nn.GELU(),
-            # nn.Dropout(dropout_rate),
-            nn.Linear(768, 1)
+            nn.Linear(self.last_hidden_size, dense_dim),
+            nn.GELU(),
+            nn.Dropout(dropout_rate),
+            nn.Linear(dense_dim, 1)
         )
 
         self.include_top = include_top
