@@ -25,6 +25,7 @@ import numpy as np
 import sys
 import torch.nn.functional as F
 from math import ceil, floor
+import json
 
 import hateful_memes
 from hateful_memes.data.hateful_memes import MaeMaeDataModule
@@ -98,10 +99,10 @@ class InterpModel():
                 vit_ckpt=os.path.join(ckpt_storage, "vit"),
                 beit_ckpt=os.path.join(ckpt_storage, "beit"),
                 electra_ckpt=os.path.join(ckpt_storage, "electra"),
-                distilbert_ckpt=os.path.join(ckpt_storage, "distilbert"),
-                visual_bert_with_od_ckpt=os.path.join(ckpt_storage, "visual_bert_with_od")
+                distilbert_ckpt=os.path.join(ckpt_storage, "distilbert")
+                #visual_bert_with_od_ckpt=os.path.join(ckpt_storage, "visual_bert_with_od")
                 )
-            self.ensemble_layer = self.inner_model.dense_model
+            self.ensemble_layer = self.inner_model.fc
             self.sub_models = self.inner_model.models
             self.attr_ensem_input = True
         else:
@@ -109,12 +110,19 @@ class InterpModel():
         self.inner_model.to('cpu')
 
     # Used as wrapper for model forward()
-    def __call__(self, image, input_ids, tokenizer):
+    def __call__(self, image, input_ids, pil_img_as_tensor, tokenizer):
+        t2p = ToPILImage()
+        ic(pil_img_as_tensor.shape)
+        ic(image.shape)
+        ic(input_ids.shape)
         text_orig = [tokenizer.decode(input_id, skip_special_tokens=True)
             for input_id in input_ids.tolist()]
+        ic(text_orig)
+        pil_img = [t2p(tensor) for tensor in pil_img_as_tensor]
         batch = {
             'image': image,
-            'text': text_orig
+            'text': text_orig,
+            'raw_pil_image': pil_img
         }
         return self.inner_model(batch)
     
@@ -122,6 +130,7 @@ class InterpModel():
 def get_input_attributions(interp_model:InterpModel, data_sample):
     ## Calculate feature attribution
     # Features
+    p2t = PILToTensor()
     image = data_sample['image']
     text = data_sample['text']
     tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
@@ -164,7 +173,7 @@ def get_input_attributions(interp_model:InterpModel, data_sample):
         ks = KernelShap(interp_model)
         ks_attr = ks.attribute(image_text, 
             additional_forward_args=tokenizer,
-            #feature_masks=,
+            feature_masks=(image_mask, text_mask),
             show_progress=True)   
         attrs['img'] = ks_attr[0]
         attrs['txt'] = ks_attr[1] 
@@ -175,29 +184,33 @@ def get_input_attributions(interp_model:InterpModel, data_sample):
 def get_model_attributions(interp_model:InterpModel, data_sample):
     ## Calculate feature attribution
     # Features
-    images = data_sample['image']
-    texts = data_sample['text']
+    p2t = PILToTensor()
+    images = data_sample['image']  # tensor with shape (N, C, H, W)
+    texts = data_sample['text']  # tuple of N strings
+    raw_pils = data_sample['raw_pil_image']  # tuple of N PIL Image objects
     tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
     attrs = {}
     interp_model.inner_model.eval()
     mod_attr = None
     for i in range(images.shape[0]):
         print("Attribution %i of %i..." % (i+1, images.shape[0]))
-        image = images[i].unsqueeze(0)
-        text = [texts[i]]    
+        image = images[i].unsqueeze(0)  # tensor with shape (1, C, H, W)
+        text = [texts[i]]  # list with one string
+        pil_image = p2t(raw_pils[i]).unsqueeze(0)  # tensor with shape (1, C, H, W)
         token_dict = tokenizer(text, padding=True, return_tensors="pt")
         token_ids = token_dict['input_ids']
-        image_text = (image, token_ids)
+        image_text = (image, token_ids, pil_image)
         # Feature baselines
         image_baselines = torch.zeros_like(image)
         token_ref= TokenReferenceBase(reference_token_idx=tokenizer.convert_tokens_to_ids("[PAD]"))
         text_baselines = token_ref.generate_reference(token_ids.numel(), device='cpu').unsqueeze(0)
+        pil_baselines = torch.zeros_like(pil_image)
         # Layer Integrated Gradients
         if interp_model.ensemble_layer is None:
             raise RuntimeError("Interpretable Model is missing an Ensemble Layer")
         lig_mod = LayerIntegratedGradients(interp_model, interp_model.ensemble_layer)
         mod_attr_i = lig_mod.attribute(inputs=image_text,
-            baselines=(image_baselines, text_baselines),
+            baselines=(image_baselines, text_baselines, pil_baselines),
             additional_forward_args=tokenizer,
             attribute_to_layer_input=interp_model.attr_ensem_input)
         if mod_attr is None:
@@ -435,12 +448,13 @@ def interp(model_name:str, ckpt_dir:str, no_save:bool, save_dir:str, save_name:s
     ensemble:bool):
     
     ## DataLoader
-    B = 50 if ensemble else 1
+    B = 2 if ensemble else 1
     datamodule = MaeMaeDataModule(batch_size=B) # Attributors want one sample at a time?
     datamodule.prepare_data()
     datamodule.setup("fit")
     dataloader = datamodule.train_dataloader()    
     data_sample = next(iter(dataloader))
+    ic(data_sample)
 
     ## Model to interpret
     interp_model = InterpModel(model_name, ckpt_dir)

@@ -137,7 +137,7 @@ class SuperModel(BaseMaeMaeModel):
                 if out_i.dim() == 1:
                     out_i = torch.unsqueeze(out_i, 0)  # For single-sample batches in interpretability runs
                 mod_out.append(out_i)
-
+                ic(model.__class__.__name__, out_i.shape)
             x = torch.cat(mod_out, dim=1) 
             #x = torch.cat([model(batch) for model in self.models], dim=1)
 

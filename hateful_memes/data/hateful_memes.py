@@ -122,16 +122,7 @@ class MaeMaeDataset(torch.utils.data.Dataset):
         extra_text_info = {}
 
         return (image, text, raw_pil_image, label)
-        sample = dict(
-            image=image,
-            # raw_np_image=raw_np_image,
-            # raw_pil_image=raw_pil_image,
-            text=text,
-            label=label,
-            **extra_text_info
-        )
 
-        return sample
 
     # TODO vocab is broken between train and test
     def base_train_img_transforms(self):
