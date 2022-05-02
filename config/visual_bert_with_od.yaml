@@ -3,7 +3,7 @@ lr: 1e-3
 epochs: 1000
 max_length: 96
 dense_dim: 1024
-num_queries: 5
+num_queries: 10
 dropout_rate: 0.2
 gradient_clip_value: 1.0
-weight_decay: 1e-2
+weight_decay: 1e-3

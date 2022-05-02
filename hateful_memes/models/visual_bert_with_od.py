@@ -52,9 +52,9 @@ class VisualBertWithODModule(BaseMaeMaeModel):
             nn.Flatten(),
             nn.Linear(self.num_ftrs_resnet, self.num_ftrs_resnet),
         )
-        for param in resnet.parameters():
-            param.requires_grad = False
-        resnet.eval()
+        # for param in resnet.parameters():
+            # param.requires_grad = False
+        # resnet.eval()
         resnet.to(self.device)
         self.resnet = resnet
 
@@ -85,11 +85,11 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         self.visual_bert_config = self.visual_bert.config
         self.num_queries = num_queries
 
-        self.backbone = [
-            # self.od_model,
-            # self.resnet,
-            self.visual_bert
-        ]
+        # self.backbone = [
+        #     # self.od_model,
+        #     # self.resnet,
+        #     self.visual_bert
+        # ]
 
         self.save_hyperparameters()
 
