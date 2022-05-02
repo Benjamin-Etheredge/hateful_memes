@@ -5,3 +5,4 @@ mmf/
 .env*
 # .git*
 .github/
+data/

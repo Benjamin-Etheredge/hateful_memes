@@ -1,6 +1,6 @@
-batch_size: 0 
-lr: 1e-5
-epochs: 100
+batch_size: 128 
+lr: 1e-3
+epochs: 1000
 dense_dim: 512
 dropout_rate: 0.5
 gradient_clip_value: 1.0

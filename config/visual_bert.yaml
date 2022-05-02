@@ -1,8 +1,7 @@
-freeze: false
-batch_size: 0
-lr: 1e-5
+batch_size: 64
+lr: 1e-3
 epochs: 1000
-max_length: 64
-dense_dim: 256
-dropout_rate: 0.0
+max_length: 96
+dense_dim: 1024
+dropout_rate: 0.1
 gradient_clip_value: 1.0

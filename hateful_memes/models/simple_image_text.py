@@ -14,18 +14,16 @@ from hateful_memes.models.base import BaseMaeMaeModel, base_train
 class BaseImageTextMaeMaeModel(BaseMaeMaeModel):
     def __init__(
         self, 
-        lr=0.003, 
         dropout_rate=0.1,
-        # vocab_size=256, 
         embed_dim=512, 
         dense_dim=128, 
         max_length=128,
         num_layers=2,
-        # feature_extractor='bert-base-uncased',
         tokenizer_name='bert-base-uncased',
         include_top=True,
+        *base_args, **base_kwargs
     ):
-        super().__init__()
+        super().__init__(*base_args, **base_kwargs)
         
         # https://huggingface.co/docs/transformers/v4.18.0/en/model_doc/auto#transformers.AutoTokenizer
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(tokenizer_name)
@@ -33,8 +31,6 @@ class BaseImageTextMaeMaeModel(BaseMaeMaeModel):
 
         self.vocab_size = self.tokenizer.vocab_size
         self.embedder = nn.Embedding(self.vocab_size, embed_dim)
-
-        self.lr = lr
 
         # Text
         self.lstm = nn.LSTM(
@@ -86,20 +82,24 @@ class BaseImageTextMaeMaeModel(BaseMaeMaeModel):
             nn.BatchNorm2d(256),
             nn.ReLU(),
             nn.MaxPool2d(2),
-            #
-            nn.Conv2d(256, 512, 3, padding=1, bias=False),
-            nn.BatchNorm2d(512),
-            nn.ReLU(),
-            nn.Conv2d(512, 512, 3, padding=1, bias=False),
-            nn.BatchNorm2d(512),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
+            # #
+            # nn.Conv2d(256, 512, 3, padding=1, bias=False),
+            # nn.BatchNorm2d(512),
+            # nn.ReLU(),
+            # nn.Conv2d(512, 512, 3, padding=1, bias=False),
+            # nn.BatchNorm2d(512),
+            # nn.ReLU(),
+            # nn.MaxPool2d(2),
         )
 
-        conv_out_size = 4608
+        # conv_out_size = 4608
+        conv_out_size = 12544
+        # conv_out_size = 5120
 
+            # nn.Linear(dense_dim + conv_out_size, dense_dim),
+            # nn.LazyLinear(dense_dim),
         self.dense_layers = nn.Sequential(
-            nn.Linear(dense_dim + conv_out_size, dense_dim),
+            nn.Linear(conv_out_size + dense_dim, dense_dim),
             nn.ReLU(),
             nn.Dropout(dropout_rate),
             nn.Linear(dense_dim, dense_dim),
@@ -147,8 +147,7 @@ class BaseImageTextMaeMaeModel(BaseMaeMaeModel):
 
         if self.include_top:
             x = self.final_fc(x)
-
-        x = torch.squeeze(x)
+            x = torch.squeeze(x, dim=-1)
         return x
 
 
@@ -179,7 +178,9 @@ def main(lr, num_layers, embed_dim, dense_dim, max_length, tokenizer_name, dropo
         dense_dim=dense_dim,
         max_length=max_length,
         num_layers=num_layers,
-        dropout_rate=dropout_rate)
+        dropout_rate=dropout_rate,
+        weight_decay=1e-4,)
+
     
     base_train(model=model, **train_kwargs)
 
