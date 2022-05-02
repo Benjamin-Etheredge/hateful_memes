@@ -1,4 +1,4 @@
-batch_size: 4
+batch_size: 8
 lr: 1e-4
 epochs: 1000
 max_length: 96
