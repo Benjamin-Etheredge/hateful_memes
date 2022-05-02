@@ -27,7 +27,6 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         dropout_rate=0.0,
         dense_dim=256,
         num_queries=50,
-        freeze=False,
     ):
         """ Visual Bert Model """
         super().__init__()
@@ -74,7 +73,6 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         self.include_top = include_top
         self.dropout_rate = dropout_rate
         self.dense_dim = dense_dim
-        self.to_freeze = freeze
         self.visual_bert_config = self.visual_bert.config
         self.num_queries = num_queries
 
@@ -163,11 +161,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
             }
         )
 
-        if self.to_freeze:
-            with torch.no_grad():
-                x = self.visual_bert(**inputs)
-        else:
-            x = self.visual_bert(**inputs)
+        x = self.visual_bert(**inputs)
 
         x = x.pooler_output
         x = x.view(x.shape[0], -1)
@@ -192,11 +186,10 @@ class VisualBertWithODModule(BaseMaeMaeModel):
 @click.option('--grad_clip', default=1.0, help='Gradient clip')
 @click.option('--fast_dev_run', default=False, help='Fast dev run')
 @click.option('--project', default="visual-bert-with-od", help='Project')
-def main(freeze, lr, max_length, dense_dim, dropout_rate, num_queries, **train_kwargs):
+def main(lr, max_length, dense_dim, dropout_rate, num_queries, **train_kwargs):
     """ train model """
 
     model = VisualBertWithODModule(
-        freeze=freeze,
         lr=lr, 
         max_length=max_length, 
         dense_dim=dense_dim, 
