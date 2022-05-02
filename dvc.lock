@@ -504,7 +504,7 @@ stages:
   visual_bert_with_od:
     cmd: "python -m hateful_memes.models.visual_bert_with_od --lr 0.001 --epochs 1000\
       \ --max_length 96 --dense_dim 1024 --dropout_rate 0.2 --num_queries 5 --batch_size\
-      \ 8 --grad_clip 1.0 --weight_decay 1e-05 --model_dir data/06_models/visual_bert_with_od\
+      \ 8 --grad_clip 1.0 --weight_decay 0.001 --model_dir data/06_models/visual_bert_with_od\
       \ --project iso_visual_bert_with_od\n"
     deps:
     - path: data/01_raw/hateful_memes
@@ -525,7 +525,7 @@ stages:
       size: 7
     outs:
     - path: data/06_models/visual_bert_with_od
-      md5: bf80bd2d4ad74b55ccf67ef2119236ab.dir
+      md5: 5b801b06ade655902bf0193bc1cdc6d5.dir
       size: 826256820
       nfiles: 1
   hateful_memes_to_snli_ve:
