@@ -38,6 +38,9 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         # DETR object detector
         od_model = torch.hub.load('facebookresearch/detr', 'detr_resnet101', pretrained=True)
         od_model.to(self.device)
+        for param in od_model.parameters():
+            param.requires_grad = False
+        od_model.eval()
         self.od_model = od_model
 
         # Resnet
@@ -47,9 +50,9 @@ class VisualBertWithODModule(BaseMaeMaeModel):
             nn.Flatten(),
             nn.Linear(self.num_ftrs_resnet, self.num_ftrs_resnet),
         )
-        # for param in resnet.parameters():
-        #     param.requires_grad = False
-        # resnet.eval()
+        for param in resnet.parameters():
+            param.requires_grad = False
+        resnet.eval()
         resnet.to(self.device)
         self.resnet = resnet
 
@@ -80,7 +83,11 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         self.visual_bert_config = self.visual_bert.config
         self.num_queries = num_queries
 
-        self.backbone = [self.od_model, self.resnet, self.visual_bert]
+        self.backbone = [
+            # self.od_model,
+            # self.resnet,
+            self.visual_bert
+        ]
 
         self.save_hyperparameters()
 
@@ -146,7 +153,8 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         text = batch['text']
         image = batch['image']
 
-        image_x = self.detect_objects(image)
+        with torch.no_grad():
+            image_x = self.detect_objects(image)
 
         inputs = self.tokenizer(
             text, 
