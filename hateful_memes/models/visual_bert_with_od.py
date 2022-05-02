@@ -32,46 +32,43 @@ class VisualBertWithODModule(BaseMaeMaeModel):
     ):
         """ Visual Bert Model """
         super().__init__()
-        # self.hparams = hparams
+        # Visual Bert
         pretrained_type = "nlvr2" # nlvr2 or vqa
         self.visual_bert = VisualBertModel.from_pretrained(f"uclanlp/visualbert-{pretrained_type}-coco-pre").to(self.device)
-        if freeze:
-            for param in self.visual_bert.parameters():
-                param.requires_grad = False
-            self.visual_bert.eval()
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 
-        resnet = models.resnet50(pretrained=True)
-        resnet.fc = nn.Flatten()
-        if freeze:
-            for param in resnet.parameters():
-                param.requires_grad = False
-            resnet.eval()
-        resnet.to(self.device)
-        self.resnet = resnet
-        
-        self.num_queries = num_queries
-
+        # DETR object detector
         od_model = torch.hub.load('facebookresearch/detr', 'detr_resnet101', pretrained=True)
-        if freeze:
-            for param in od_model.parameters():
-                param.requires_grad = False
-            od_model.eval()
         od_model.to(self.device)
         self.od_model = od_model
 
+        # Resnet
+        resnet = models.resnet50(pretrained=True)
+        self.num_ftrs_resnet = resnet.fc.in_features
+        resnet.fc = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(self.num_ftrs_resnet, self.num_ftrs_resnet),
+        )
+        for param in resnet.parameters():
+            param.requires_grad = False
+        resnet.eval()
+        resnet.to(self.device)
+        self.resnet = resnet
+
+        # FC layer bridging resnet and visualbert
         if pretrained_type == "nlvr2":
             visualbert_input_dim = 1024
         elif pretrained_type == "vqa":
             visualbert_input_dim = 2048
         self.fc_bridge = nn.Linear(2048, visualbert_input_dim)
 
-        # TODO linear vs embedding for dim changing
-        # TODO auto size
-        self.fc1 = nn.Linear(768, dense_dim)
-        self.fc2 = nn.Linear(dense_dim, dense_dim)
-        self.fc3 = nn.Linear(dense_dim, 1)
-        # # TODO config modification
+        # FC layers for classification
+        self.fc = nn.Sequential(
+            nn.Linear(768, dense_dim),
+            nn.GELU(),
+            nn.Dropout(dropout_rate),
+            nn.Linear(dense_dim, 1)
+        )
 
         self.lr = lr
         self.max_length = max_length
@@ -80,13 +77,15 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         self.dense_dim = dense_dim
         self.to_freeze = freeze
         self.visual_bert_config = self.visual_bert.config
-        self.last_hidden_size = dense_dim
+        self.num_queries = num_queries
+
+        self.backbone = [self.od_model, self.visual_bert]
 
         self.save_hyperparameters()
 
     def detect_objects(self, image):
 
-        images_list = [batch_img.half() for batch_img in image]
+        images_list = [batch_img for batch_img in image]
         od_outputs = self.od_model(images_list)
         logits = od_outputs['pred_logits']
         probas = logits.softmax(-1)
@@ -122,7 +121,10 @@ class VisualBertWithODModule(BaseMaeMaeModel):
                 obj_imgs.append(obj_img)
 
             obj_imgs = torch.stack(obj_imgs)
-            img_outputs = self.resnet(obj_imgs)
+
+            with torch.no_grad():
+                img_outputs = self.resnet(obj_imgs)
+
             img_outputs = torch.squeeze(img_outputs)
             batch_outputs.append(img_outputs)
         image_x = torch.stack(batch_outputs)
@@ -137,11 +139,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         text = batch['text']
         image = batch['image']
 
-        if self.to_freeze:
-            with torch.no_grad():
-                image_x = self.detect_objects(image)
-        else:
-            image_x = self.detect_objects(image)
+        image_x = self.detect_objects(image)
 
         inputs = self.tokenizer(
             text, 
@@ -168,20 +166,10 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         x = x.pooler_output
         x = x.view(x.shape[0], -1)
 
-        x = torch.squeeze(x)
-
-        x = self.fc1(x)
-        x = F.relu(x)
-        x = F.dropout(x, p=self.dropout_rate)
-
-        x = self.fc2(x)
-        x = F.relu(x)
-        x = F.dropout(x, p=self.dropout_rate)
-
         if self.include_top:
-            x = self.fc3(x)
+            x = self.fc(x)
+            x = torch.squeeze(x, dim=1)
 
-        x = torch.squeeze(x, dim=1)
         return x
 
 
