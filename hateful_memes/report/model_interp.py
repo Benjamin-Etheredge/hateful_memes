@@ -110,15 +110,12 @@ class InterpModel():
 
     # Used as wrapper for model forward()
     def __call__(self, image, input_ids, tokenizer):
-        # reassemble dict
         text_orig = [tokenizer.decode(input_id, skip_special_tokens=True)
             for input_id in input_ids.tolist()]
-        #ic(text_orig)
         batch = {
             'image': image,
             'text': text_orig
         }
-        #ic(batch)
         return self.inner_model(batch)
     
 
@@ -131,33 +128,44 @@ def get_input_attributions(interp_model:InterpModel, data_sample):
     token_dict = tokenizer(text, add_special_tokens=False, return_tensors="pt")
     token_ids = token_dict['input_ids']
     image_text = (image, token_ids)
-    # Feature masks (?)
-    image_mask = torch.tensor(felzenszwalb(image.squeeze(dim=0).numpy(), channel_axis=0,
-        scale=0.25, min_size=5))
-    text_mask = torch.arange(token_ids.numel()) + image_mask.max()
     # Feature baselines
     image_baselines = torch.zeros_like(image)
     token_ref= TokenReferenceBase(reference_token_idx=tokenizer.convert_tokens_to_ids("[PAD]"))
     text_baselines = token_ref.generate_reference(token_ids.numel(), device='cpu').unsqueeze(0)
-    # Layer Integrated Gradients
+    # Prep for attribution
     attrs = {}
     interp_model.inner_model.eval()
-    if interp_model.image_embed_layer is None and interp_model.text_embed_layer is None:
-        raise RuntimeError("Interpretable Model is missing an input feature layer.")
-    if interp_model.image_embed_layer is not None:
-        lig_image = LayerIntegratedGradients(interp_model, interp_model.image_embed_layer)
-        img_attr = lig_image.attribute(inputs=image_text,
-            baselines=(image_baselines, text_baselines),
+    attr_mode = 'IG' 
+    if attr_mode == 'IG':
+        # Layer Integrated Gradients
+        if interp_model.image_embed_layer is None and interp_model.text_embed_layer is None:
+            raise RuntimeError("Interpretable Model is missing an input feature layer.")
+        if interp_model.image_embed_layer is not None:
+            lig_image = LayerIntegratedGradients(interp_model, interp_model.image_embed_layer)
+            img_attr = lig_image.attribute(inputs=image_text,
+                baselines=(image_baselines, text_baselines),
+                additional_forward_args=tokenizer,
+                attribute_to_layer_input=interp_model.attr_image_input)
+            attrs['img'] = img_attr
+        if interp_model.text_embed_layer is not None:
+            lig_txt = LayerIntegratedGradients(interp_model, interp_model.text_embed_layer)
+            txt_attr = lig_txt.attribute(inputs=image_text,
+                baselines=(image_baselines, text_baselines),
+                additional_forward_args=tokenizer,
+                attribute_to_layer_input=interp_model.attr_text_input)
+            attrs['txt'] = txt_attr
+    elif attr_mode == 'KS': 
+        # KernelSHAP
+        # Superpixel feature mask for image
+        # Convert text to embedding space
+
+        ks = KernelShap(interp_model)
+        ks_attr = ks.attribute(image_text, 
             additional_forward_args=tokenizer,
-            attribute_to_layer_input=interp_model.attr_image_input)
-        attrs['img'] = img_attr
-    if interp_model.text_embed_layer is not None:
-        lig_txt = LayerIntegratedGradients(interp_model, interp_model.text_embed_layer)
-        txt_attr = lig_txt.attribute(inputs=image_text,
-            baselines=(image_baselines, text_baselines),
-            additional_forward_args=tokenizer,
-            attribute_to_layer_input=interp_model.attr_text_input)
-        attrs['txt'] = txt_attr
+            #feature_masks=,
+            show_progress=True)   
+        attrs['img'] = ks_attr[0]
+        attrs['txt'] = ks_attr[1] 
     
     return attrs
 
@@ -165,32 +173,37 @@ def get_input_attributions(interp_model:InterpModel, data_sample):
 def get_model_attributions(interp_model:InterpModel, data_sample):
     ## Calculate feature attribution
     # Features
-    image = data_sample['image']
-    text = data_sample['text']
+    images = data_sample['image']
+    texts = data_sample['text']
     tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
-    token_dict = tokenizer(text, add_special_tokens=False, return_tensors="pt")
-    token_ids = token_dict['input_ids']
-    image_text = (image, token_ids)
-    # Feature masks (?)
-    image_mask = torch.tensor(felzenszwalb(image.squeeze(dim=0).numpy(), channel_axis=0,
-        scale=0.25, min_size=5))
-    text_mask = torch.arange(token_ids.numel()) + image_mask.max()
-    # Feature baselines
-    image_baselines = torch.zeros_like(image)
-    token_ref= TokenReferenceBase(reference_token_idx=tokenizer.convert_tokens_to_ids("[PAD]"))
-    text_baselines = token_ref.generate_reference(token_ids.numel(), device='cpu').unsqueeze(0)
-    # Layer Integrated Gradients
     attrs = {}
     interp_model.inner_model.eval()
-    if interp_model.ensemble_layer is None:
-        raise RuntimeError("Interpretable Model is missing an Ensemble Layer")
-    lig_mod = LayerIntegratedGradients(interp_model, interp_model.ensemble_layer)
-    mod_attr = lig_mod.attribute(inputs=image_text,
-        baselines=(image_baselines, text_baselines),
-        additional_forward_args=tokenizer,
-        attribute_to_layer_input=interp_model.attr_ensem_input)
+    mod_attr = None
+    for i in range(images.shape[0]):
+        print("Attribution %i of %i..." % (i+1, images.shape[0]))
+        image = images[i].unsqueeze(0)
+        text = [texts[i]]    
+        token_dict = tokenizer(text, padding=True, return_tensors="pt")
+        token_ids = token_dict['input_ids']
+        image_text = (image, token_ids)
+        # Feature baselines
+        image_baselines = torch.zeros_like(image)
+        token_ref= TokenReferenceBase(reference_token_idx=tokenizer.convert_tokens_to_ids("[PAD]"))
+        text_baselines = token_ref.generate_reference(token_ids.numel(), device='cpu').unsqueeze(0)
+        # Layer Integrated Gradients
+        if interp_model.ensemble_layer is None:
+            raise RuntimeError("Interpretable Model is missing an Ensemble Layer")
+        lig_mod = LayerIntegratedGradients(interp_model, interp_model.ensemble_layer)
+        mod_attr_i = lig_mod.attribute(inputs=image_text,
+            baselines=(image_baselines, text_baselines),
+            additional_forward_args=tokenizer,
+            attribute_to_layer_input=interp_model.attr_ensem_input)
+        if mod_attr is None:
+            mod_attr = mod_attr_i
+        else:
+            mod_attr = torch.cat((mod_attr, mod_attr_i))  
+
     attrs['models'] = mod_attr
-    
     return attrs
 
 
@@ -198,6 +211,7 @@ def visualize_input_attributions(attrs, inputs, y_hat, y, tokenizer, model_name,
     save_dir="data/08_reporting", save_name="tmp.png"):
     
     # Prediction string
+    y_hat = y_hat.item()
     pred = 1 if y_hat>0.5 else 0
     y_hat_label = "Hateful" if pred==1 else "Not Hateful" 
     y_label = "Hateful" if y==1 else "Not Hateful" 
@@ -325,26 +339,28 @@ def visualize_input_attributions(attrs, inputs, y_hat, y, tokenizer, model_name,
 
 def visualize_model_attributions(attrs, inputs, y_hat, y, sub_models, model_name, 
     save_dir="data/08_reporting", save_name="tmp.png"):
-        
-    ensem_attr = attrs['models'].squeeze(0)
-    ensem_attr_normed = ensem_attr/ensem_attr.norm()
+    ensem_attr = attrs['models']
+    ensem_attr_mean = ensem_attr.mean(dim=0)
+    ensem_attr_normed = ensem_attr_mean/ensem_attr_mean.norm()
     # Get sub-model output sizes
     hidden_size = [sub.last_hidden_size for sub in sub_models]
     # Populate sub-model attributions
     sub_attr = {}
     sub_attr_normed = {}
+    sub_attr_total = {}
     attr_start = 0
     max_hidden = -sys.maxsize
     min_hidden = sys.maxsize
     max_attr = -sys.maxsize
     min_attr = sys.maxsize
     for i, sub in enumerate(sub_models):
-        sub_mod_name = sub.__class__.__name__ + ("(%i)"%(i,))
+        sub_mod_name = sub.__class__.__name__ + ("(%i)"%(i+1,))
         attr_stop = attr_start + hidden_size[i]
-        this_ensem_attr = ensem_attr[attr_start:attr_stop]
+        this_ensem_attr = ensem_attr[:, attr_start:attr_stop]
         sub_attr[sub_mod_name] = this_ensem_attr        
         this_ensem_attr_normed = ensem_attr_normed[attr_start:attr_stop]
         sub_attr_normed[sub_mod_name] = this_ensem_attr_normed        
+        sub_attr_total[sub_mod_name] = this_ensem_attr.sum(dim=1)
         attr_start = attr_stop
         max_hidden = max(max_hidden, hidden_size[i])
         min_hidden = min(min_hidden, hidden_size[i])
@@ -352,6 +368,7 @@ def visualize_model_attributions(attrs, inputs, y_hat, y, sub_models, model_name
         min_attr = min(min_attr, this_ensem_attr_normed.min())
     # Pad and stack for plotting
     sub_attr_stack = []
+    sub_tot_attr_stack = []
     sub_names = []
     pad_value = min_attr - ((max_attr - min_attr) * 0.1) 
     for name in sub_attr_normed.keys():
@@ -360,11 +377,14 @@ def visualize_model_attributions(attrs, inputs, y_hat, y, sub_models, model_name
         padded = F.pad(sub_attr_normed[name], pads, mode='constant', value=pad_value).unsqueeze(0)
         sub_attr_stack.append(padded.numpy())
         sub_names.append(name)
+        sub_tot_attr_stack.append(sub_attr_total[name].unsqueeze(0).numpy())
+        ic(sub_attr_total[name].numpy())
     sub_attrs_plot = np.concatenate(sub_attr_stack)
+    sub_tot_attrs_plot = np.concatenate(sub_tot_attr_stack).T
     # Visualize
-    fig = plt.figure(figsize=(12,6))
-    # gs = fig.add_gridspec(1, len(sub_models), left=0.025, right=1.0, bottom=0.1, top=0.75, wspace=0.1, width_ratios=width_ratios)
-    ax = fig.add_subplot()
+    fig = plt.figure(figsize=(20,6))
+    gs = fig.add_gridspec(1, 2, left=0.05, right=0.95, bottom=0.1, top=0.75, wspace=0.1)
+    ax = fig.add_subplot(gs[0, 0])
     color_res = 256
     viridis = cm.get_cmap('viridis', color_res)
     custom_colors = viridis(np.linspace(0,1,color_res))
@@ -377,11 +397,19 @@ def visualize_model_attributions(attrs, inputs, y_hat, y, sub_models, model_name
     ax.set_aspect(50.0)
     ax.xaxis.set_ticks_position("none")
     ax.set_xticklabels([])
-    ax.set_yticks(np.arange(len(sub_names)), labels=sub_names)
-    ax.set_title("Ensemble Layer Attribution by Sub-Model")
-    fig.colorbar(pc, ax=ax)
+    ax.set_yticks(np.arange(len(sub_names))+0.5, labels=sub_names)
+    ax.yaxis.tick_right()
+    ax.set_title("Avg. Ensemble Layer Attribution by Sub-Model")
+    cb = fig.colorbar(pc, ax=ax, location='left')
     #plt.grid(axis='y')
-    fig.tight_layout()
+    #fig.tight_layout()
+    
+    ax2 = fig.add_subplot(gs[0,1])
+    
+    ax2.boxplot(sub_tot_attrs_plot, vert=False)
+
+    ax2.set_title("Total Attribution per Sub-Model")
+    
     fig.savefig(os.path.join(save_dir, save_name))
 
 
@@ -406,7 +434,8 @@ def interp(model_name:str, ckpt_dir:str, no_save:bool, save_dir:str, save_name:s
     ensemble:bool):
     
     ## DataLoader
-    datamodule = MaeMaeDataModule(batch_size=1) # Attributors want one sample at a time?
+    B = 50 if ensemble else 1
+    datamodule = MaeMaeDataModule(batch_size=B) # Attributors want one sample at a time?
     datamodule.prepare_data()
     datamodule.setup("fit")
     dataloader = datamodule.train_dataloader()    
@@ -428,7 +457,7 @@ def interp(model_name:str, ckpt_dir:str, no_save:bool, save_dir:str, save_name:s
             'img':data_sample["image"],
             'txt':data_sample["text"]
         }
-        y_hat = interp_model.inner_model(data_sample).item()
+        y_hat = interp_model.inner_model(data_sample)
         y = data_sample["label"] 
         visualize_attributions(attrs, inputs, y_hat, y, interp_model.tokenizer,
             interp_model.sub_models, model_name, save_dir, save_name, ensemble)
