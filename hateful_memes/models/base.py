@@ -136,7 +136,7 @@ def base_train(
 
     try:
         model.backbone
-        callbacks.append(BackBoneOverrider(finetune_epochs, verbose=True, backbone_initial_ratio_lr=0.001, lambda_func=lambda epoch: 1.2))
+        callbacks.append(BackBoneOverrider(finetune_epochs, verbose=True, backbone_initial_ratio_lr=0.01, lambda_func=lambda epoch: 1.2))
         ic("Adding finetuning")
     except AttributeError:
         ic("no backbone")
