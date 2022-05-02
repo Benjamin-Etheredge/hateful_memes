@@ -113,12 +113,19 @@ class VisualBertWithODModule(BaseMaeMaeModel):
                 upper = int(max((center_y - norm_h / 2), 0) * h)
                 right = int(min((center_x + norm_w / 2), 1) * w)
                 lower = int(min((center_y + norm_h / 2), 1) * h)
+                # yes, i know this is not a good idea, but it allows us to 
+                # handle situations where the object is too small (0 pixels in width or height)
                 try:
                     obj_img = batch_img[:, upper:lower, left:right]
-                    obj_img = T.Resize((180, 180))(obj_img)
+                    obj_img = T.Resize((224, 224))(obj_img)
                 except:
-                    obj_img = torch.zeros(3, 180, 180).to(self.device)
+                    obj_img = torch.zeros(3, 224, 224).to(self.device)
                 obj_imgs.append(obj_img)
+            
+            # always include full image
+            obj_imgs.append(
+                T.Resize((224, 224))(batch_img)
+            )
 
             obj_imgs = torch.stack(obj_imgs)
 
