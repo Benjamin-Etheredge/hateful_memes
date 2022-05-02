@@ -1,5 +1,5 @@
 batch_size: 8
-lr: 1e-4
+lr: 1e-3
 epochs: 1000
 max_length: 96
 dense_dim: 1024

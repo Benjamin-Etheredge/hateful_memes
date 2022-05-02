@@ -1,5 +1,5 @@
 batch_size: 128
-lr: 1e-5
+lr: 1e-3
 embed_dim: 512
 dense_dim: 512
 max_length: 96
