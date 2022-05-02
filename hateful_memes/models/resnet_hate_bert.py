@@ -48,6 +48,10 @@ class ResnetHateBert(BaseMaeMaeModel):
         ic(self.resnet)
         self.num_ftrs_resnet = self.resnet.fc.in_features
         self.resnet.fc = nn.Flatten()
+        self.resnet_fc = nn.Linear(self.num_ftrs_resnet, self.num_ftrs_resnet)
+        self.bert_fc = nn.Sequential(
+            nn.Linear(768, 768),
+        )
         ic(self.resnet)
 
         resenet_size = 2048
@@ -55,6 +59,9 @@ class ResnetHateBert(BaseMaeMaeModel):
         self.last_hidden_size = resenet_size + bert_size
         self.final_fc = nn.Sequential(
             nn.Linear(self.last_hidden_size, dense_dim),
+            nn.GELU(),
+            nn.Dropout(dropout_rate),
+            nn.Linear(dense_dim, dense_dim),
             nn.GELU(),
             nn.Dropout(dropout_rate),
             nn.Linear(dense_dim, 1),
@@ -84,10 +91,12 @@ class ResnetHateBert(BaseMaeMaeModel):
         # Image
         images = batch['image']
         image_x = self.resnet(images)
+        image_x = self.resnet_fc(image_x)
 
         text_x = self.bert(**input)
 
         text_x = text_x.last_hidden_state[:, 0]
+        text_x = self.bert_fc(text_x)
 
         x = torch.cat((text_x, image_x), dim=1)
 
