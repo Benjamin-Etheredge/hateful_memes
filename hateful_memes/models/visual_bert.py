@@ -26,18 +26,15 @@ class VisualBertModule(BaseMaeMaeModel):
     ):
         """ Visual Bert Model """
         super().__init__(*base_args, **base_kwargs)
-        self.visual_bert = VisualBertModel.from_pretrained("uclanlp/visualbert-vqa-coco-pre")
+        visual_bert = VisualBertModel.from_pretrained("uclanlp/visualbert-vqa-coco-pre")
         # ic(self.visual_bert)
         # ic(self.visual_bert.config)
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
         resnet = models.resnet50(pretrained=True)
         self.num_ftrs_resnet = resnet.fc.in_features
-        resnet.fc = nn.Sequential(
-            nn.Flatten(),
-            nn.Linear(self.num_ftrs_resnet, self.num_ftrs_resnet),
-        )
+        resnet.fc = nn.Flatten()
+        self.resnet_fc = nn.Linear(self.num_ftrs_resnet, self.num_ftrs_resnet)
         # ic(resnet)
-        self.resnet = resnet
 
         # TODO linear vs embedding for dim changing
         # TODO auto size
@@ -45,6 +42,9 @@ class VisualBertModule(BaseMaeMaeModel):
             nn.Linear(768, dense_dim),
             nn.GELU(),
             nn.Dropout(dropout_rate),
+            # nn.Linear(dense_dim, dense_dim),
+            # nn.GELU(),
+            # nn.Dropout(dropout_rate),
             nn.Linear(dense_dim, 1)
         )
         # TODO config modification
@@ -53,10 +53,10 @@ class VisualBertModule(BaseMaeMaeModel):
         self.include_top = include_top
         self.dropout_rate = dropout_rate
         self.dense_dim = dense_dim
-        self.visual_bert_config = self.visual_bert.config
+        self.visual_bert_config = visual_bert.config
         self.last_hidden_size = 768
 
-        self.backbone = [self.resnet, self.visual_bert]
+        self.backbone = nn.ModuleList([visual_bert, resnet])
 
         self.save_hyperparameters()
     
@@ -64,9 +64,7 @@ class VisualBertModule(BaseMaeMaeModel):
         """ Shut up """
         text = batch['text']
         image = batch['image']
-        image_x = self.resnet(image)
-
-        image_x = image_x.view(image_x.shape[0], 1, -1)
+        visual_bert, resnet = self.backbone
 
         inputs = self.tokenizer(
             text, 
@@ -74,7 +72,13 @@ class VisualBertModule(BaseMaeMaeModel):
             padding='max_length', 
             truncation=True, 
             max_length=self.max_length)
-        inputs = inputs.to(self.device)
+
+        inputs = {k: v.to(device=self.device, non_blocking=True) for k, v in inputs.items()}
+        # inputs = inputs.to(self.device)
+
+        image_x = resnet(image)
+        image_x = self.resnet_fc(image_x)
+        image_x = image_x.view(image_x.shape[0], 1, -1)
 
         inputs.update({
             "visual_embeds": image_x,
@@ -82,7 +86,7 @@ class VisualBertModule(BaseMaeMaeModel):
             "visual_attention_mask": torch.ones(image_x.shape[:-1], dtype=torch.float, device=self.device),
         })
 
-        x = self.visual_bert(**inputs)
+        x = visual_bert(**inputs)
 
         x = x.pooler_output
         x = x.view(x.shape[0], -1)
