@@ -128,11 +128,7 @@ def get_input_attributions(interp_model:InterpModel, data_sample):
     token_dict = tokenizer(text, add_special_tokens=False, return_tensors="pt")
     token_ids = token_dict['input_ids']
     image_text = (image, token_ids)
-    # Feature masks (?)
-    image_mask = torch.tensor(felzenszwalb(image.squeeze(dim=0).numpy(), channel_axis=0,
-        scale=0.25, min_size=5))
-    text_mask = torch.arange(token_ids.numel()) + image_mask.max()
-    # Feature baselines
+        # Feature baselines
     image_baselines = torch.zeros_like(image)
     token_ref= TokenReferenceBase(reference_token_idx=tokenizer.convert_tokens_to_ids("[PAD]"))
     text_baselines = token_ref.generate_reference(token_ids.numel(), device='cpu').unsqueeze(0)
@@ -160,9 +156,11 @@ def get_input_attributions(interp_model:InterpModel, data_sample):
             attrs['txt'] = txt_attr
     elif attr_mode == 'KS': 
         # KernelSHAP
-        # Superpixel feature mask for image
-        # Convert text to embedding space
-
+        # Feature masks (?)
+        image_mask = torch.tensor(felzenszwalb(image.squeeze(dim=0).numpy(), channel_axis=0,
+            scale=0.25, min_size=5))
+        text_mask = torch.arange(token_ids.numel()) + image_mask.max()
+        # TODO Do we need to convert text to embedding space(?)
         ks = KernelShap(interp_model)
         ks_attr = ks.attribute(image_text, 
             additional_forward_args=tokenizer,
@@ -364,6 +362,9 @@ def visualize_model_attributions(attrs, inputs, y_hat, y, sub_models, model_name
         sub_attr[sub_mod_name] = this_ensem_attr        
         this_ensem_attr_normed = ensem_attr_normed[attr_start:attr_stop]
         sub_attr_normed[sub_mod_name] = this_ensem_attr_normed        
+        # Here, we define a sub-model's total attribution as
+        # the sum of the ensemble-layer attributions that
+        # belong to this sub-model
         sub_attr_total[sub_mod_name] = this_ensem_attr.sum(dim=1)
         attr_start = attr_stop
         max_hidden = max(max_hidden, hidden_size[i])
@@ -388,6 +389,7 @@ def visualize_model_attributions(attrs, inputs, y_hat, y, sub_models, model_name
     # Visualize
     fig = plt.figure(figsize=(20,6))
     gs = fig.add_gridspec(1, 2, left=0.05, right=0.95, bottom=0.1, top=0.75, wspace=0.1)
+    # Average ensemble-layer contributions per sub-model
     ax = fig.add_subplot(gs[0, 0])
     color_res = 256
     viridis = cm.get_cmap('viridis', color_res)
@@ -397,7 +399,6 @@ def visualize_model_attributions(attrs, inputs, y_hat, y, sub_models, model_name
     custom_colors[:invalid_bound] = invalid_color
     custom_cm = ListedColormap(custom_colors)
     pc = ax.pcolor(sub_attrs_plot, cmap=custom_cm, rasterized=True)
-    #img = ax.imshow(sub_attrs_plot, cmap=custom_cm)
     ax.set_aspect(50.0)
     ax.xaxis.set_ticks_position("none")
     ax.set_xticklabels([])
@@ -405,13 +406,9 @@ def visualize_model_attributions(attrs, inputs, y_hat, y, sub_models, model_name
     ax.yaxis.tick_right()
     ax.set_title("Avg. Ensemble Layer Attribution by Sub-Model")
     cb = fig.colorbar(pc, ax=ax, location='left')
-    #plt.grid(axis='y')
-    #fig.tight_layout()
-    
+    # Absolute total attribution per sub-model over N runs
     ax2 = fig.add_subplot(gs[0,1])
-    
     ax2.boxplot(sub_tot_attrs_plot, vert=False)
-
     ax2.set_title("Total Attribution per Sub-Model")
     
     fig.savefig(os.path.join(save_dir, save_name))
