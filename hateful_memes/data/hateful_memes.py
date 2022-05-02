@@ -33,24 +33,31 @@ class MaeMaeDataset(torch.utils.data.Dataset):
 
         if set == "train": 
             self.info = pd.read_json(self.root_dir/"train.jsonl", lines=True)
+
         elif set == "super_train": 
             info0 = pd.read_json(self.root_dir/"train.jsonl", lines=True)
-            info1 = pd.read_json(self.root_dir/"dev_seen.jsonl", lines=True)
+            # info1 = pd.read_json(self.root_dir/"dev_seen.jsonl", lines=True)
             info2 = pd.read_json(self.root_dir/"test_seen.jsonl", lines=True)
-            self.info = pd.concat([info0, info1, info2])
+            self.info = pd.concat([info0, info2])
             # info2 = pd.read_json(self.root_dir/"dev_unseen.jsonl", lines=True)
-        # elif set == "dev_seen":
-        #     self.info = pd.read_json(self.root_dir/"dev_seen.jsonl", lines=True)
+
+        elif set == "dev_seen":
+            self.info = pd.read_json(self.root_dir/"dev_seen.jsonl", lines=True)
+
         elif set == "dev_unseen":
             self.info = pd.read_json(self.root_dir/"dev_unseen.jsonl", lines=True)
-        # elif set == "dev":
-        #     info1 = pd.read_json(self.root_dir/"dev_seen.jsonl", lines=True)
-        #     info2 = pd.read_json(self.root_dir/"dev_unseen.jsonl", lines=True)
-        #     self.info = pd.concat([info1, info2])
-        # elif set == "test_seen":
-        #     self.info = pd.read_json(self.root_dir/"test_seen.jsonl", lines=True)
+
+        elif set == "dev":
+            info1 = pd.read_json(self.root_dir/"dev_seen.jsonl", lines=True)
+            info2 = pd.read_json(self.root_dir/"dev_unseen.jsonl", lines=True)
+            self.info = pd.concat([info1, info2])
+
+        elif set == "test_seen":
+            self.info = pd.read_json(self.root_dir/"test_seen.jsonl", lines=True)
+
         elif set == "test_unseen":
             self.info = pd.read_json(self.root_dir/"test_unseen.jsonl", lines=True)
+
         else:
             raise ValueError(f"Unknown set: {set}")
 
@@ -242,6 +249,13 @@ class MaeMaeDataModule(pl.LightningDataModule):
             txt_transforms=self.txt_transforms,
             set="test_unseen",
         )
+
+        train_ids = set(self.train_dataset.info['id'])
+        val_ids = set(self.val_dataset.info['id'])
+        test_ids = set(self.test_dataset.info['id'])
+        assert len(train_ids.intersection(val_ids)) == 0
+        assert len(train_ids.intersection(test_ids)) == 0
+        assert len(val_ids.intersection(test_ids)) == 0
 
     def train_dataloader(self, shuffle=True, drop_last=True):
         return torch.utils.data.DataLoader(
