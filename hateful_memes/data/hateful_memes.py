@@ -36,18 +36,19 @@ class MaeMaeDataset(torch.utils.data.Dataset):
         elif set == "super_train": 
             info0 = pd.read_json(self.root_dir/"train.jsonl", lines=True)
             info1 = pd.read_json(self.root_dir/"dev_seen.jsonl", lines=True)
-            info2 = pd.read_json(self.root_dir/"dev_unseen.jsonl", lines=True)
+            info2 = pd.read_json(self.root_dir/"test_seen.jsonl", lines=True)
             self.info = pd.concat([info0, info1, info2])
-        elif set == "dev_seen":
-            self.info = pd.read_json(self.root_dir/"dev_seen.jsonl", lines=True)
+            # info2 = pd.read_json(self.root_dir/"dev_unseen.jsonl", lines=True)
+        # elif set == "dev_seen":
+        #     self.info = pd.read_json(self.root_dir/"dev_seen.jsonl", lines=True)
         elif set == "dev_unseen":
             self.info = pd.read_json(self.root_dir/"dev_unseen.jsonl", lines=True)
-        elif set == "dev":
-            info1 = pd.read_json(self.root_dir/"dev_seen.jsonl", lines=True)
-            info2 = pd.read_json(self.root_dir/"dev_unseen.jsonl", lines=True)
-            self.info = pd.concat([info1, info2])
-        elif set == "test_seen":
-            self.info = pd.read_json(self.root_dir/"test_seen.jsonl", lines=True)
+        # elif set == "dev":
+        #     info1 = pd.read_json(self.root_dir/"dev_seen.jsonl", lines=True)
+        #     info2 = pd.read_json(self.root_dir/"dev_unseen.jsonl", lines=True)
+        #     self.info = pd.concat([info1, info2])
+        # elif set == "test_seen":
+        #     self.info = pd.read_json(self.root_dir/"test_seen.jsonl", lines=True)
         elif set == "test_unseen":
             self.info = pd.read_json(self.root_dir/"test_unseen.jsonl", lines=True)
         else:
@@ -67,9 +68,11 @@ class MaeMaeDataset(torch.utils.data.Dataset):
             if "train" in set:
                 ic("train set")
                 self.img_transforms = self.base_train_img_transforms()
+                self.pil_img_transforms = self.base_train_pil_img_transforms()
             else:
                 ic("test set")
                 self.img_transforms = self.base_test_img_transforms()
+                self.pil_img_transforms = self.base_test_pil_img_transforms()
 
         self.include_text_features = include_text_features
         self.class_weights = self.info['label'].value_counts().to_numpy()
@@ -95,7 +98,9 @@ class MaeMaeDataset(torch.utils.data.Dataset):
         # image = io.imread(img_path)
         image = Image.open(img_path).convert('RGB')
         # image = self.images[idx]
-        raw_pil_image = image.resize((224, 224))
+        raw_pil_image = image
+        if self.pil_img_transforms is not None:
+            raw_pil_image = self.pil_img_transforms(image)
         # raw_np_image = np.asarray(image)
         if self.img_transforms:
             image = self.img_transforms(image)
@@ -146,6 +151,17 @@ class MaeMaeDataset(torch.utils.data.Dataset):
             T.ToTensor(), # this already seems to scale okay
             T.Normalize(mean=[0.485, 0.456, 0.406],
                         std=[0.229, 0.224, 0.225]),
+        ])
+    def base_train_pil_img_transforms(self):
+        return T.Compose([
+            T.RandomHorizontalFlip(p=0.1),
+            T.AutoAugment(T.AutoAugmentPolicy.IMAGENET),
+            T.RandomResizedCrop(scale=(0.5, 1), size=(224,224)), # this does good for slowing overfitting
+        ])
+
+    def base_test_pil_img_transforms(self):
+        return T.Compose([
+            T.Resize(size=(224,224)),
         ])
 
 def collate_fn(batch):
@@ -218,7 +234,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
             self.data_dir,
             img_transforms=self.img_transforms, 
             txt_transforms=self.txt_transforms,
-            set='test_seen',
+            set='dev_unseen',
         )
         self.test_dataset = MaeMaeDataset(
             self.data_dir,
@@ -231,10 +247,10 @@ class MaeMaeDataModule(pl.LightningDataModule):
         return torch.utils.data.DataLoader(
             self.train_dataset,
             batch_size=self.batch_size,
-            sampler=torch.utils.data.sampler.WeightedRandomSampler(
-                self.train_dataset.weights, 
-                len(self.train_dataset), # TODO basically 2 gpus does 2 epochs at once without //2
-                replacement=True),
+            # sampler=torch.utils.data.sampler.WeightedRandomSampler(
+            #     self.train_dataset.weights, 
+            #     len(self.train_dataset), # TODO basically 2 gpus does 2 epochs at once without //2
+            #     replacement=True),
                 # (self.train_dataset.num_items//5)*4,
                 # replacement=False),
             # shuffle=shuffle,

@@ -109,11 +109,11 @@ jobs:
           dvc repro visual_bert
           dvc push --run-cache -d visual_bert
 
-      - name: Train VisualBERT with OD
-        continue-on-error: true
-        run: |
-          dvc repro visual_bert_with_od
-          dvc push --run-cache -d visual_bert_with_od
+      # - name: Train VisualBERT with OD
+      #   continue-on-error: true
+      #   run: |
+      #     dvc repro visual_bert_with_od
+      #     dvc push --run-cache -d visual_bert_with_od
 
       - name: Train Super Model
         continue-on-error: true

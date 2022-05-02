@@ -32,7 +32,10 @@ class VisualBertModule(BaseMaeMaeModel):
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
         resnet = models.resnet50(pretrained=True)
         self.num_ftrs_resnet = resnet.fc.in_features
-        resnet.fc = nn.Flatten()
+        resnet.fc = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(self.num_ftrs_resnet, self.num_ftrs_resnet),
+        )
         # ic(resnet)
         self.resnet = resnet
 
