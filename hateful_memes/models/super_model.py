@@ -124,7 +124,7 @@ class SuperModel(BaseMaeMaeModel):
         self.dense_dim = dense_dim
         self.last_hidden_size = dense_dim
 
-        self.hparams['latent_dim'] = self.latent_dim
+        #self.hparams['latent_dim'] = self.latent_dim  # Breaks checkpoints
         self.backbone = self.models
         self.save_hyperparameters()
     
