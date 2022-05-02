@@ -27,6 +27,7 @@ stages:
         --num_queries ${num_queries}
         --batch_size ${batch_size}
         --grad_clip ${gradient_clip_value}
+        --weight_decay ${weight_decay}
         --model_dir data/06_models/visual_bert_with_od
         --project ${project_prefix}visual_bert_with_od
     deps:

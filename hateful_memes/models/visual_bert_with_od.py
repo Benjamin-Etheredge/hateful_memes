@@ -27,11 +27,13 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         dropout_rate=0.0,
         dense_dim=256,
         num_queries=50,
+        weight_decay=0.0,
     ):
         """ Visual Bert Model """
         super().__init__()
+        self.wd = weight_decay
         # Visual Bert
-        pretrained_type = "nlvr2" # nlvr2 or vqa
+        pretrained_type = "vqa" # nlvr2 or vqa
         self.visual_bert = VisualBertModel.from_pretrained(f"uclanlp/visualbert-{pretrained_type}-coco-pre").to(self.device)
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 
@@ -192,6 +194,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
 @click.option('--dense_dim', default=256, help='Dense dim')
 @click.option('--dropout_rate', default=0.1, help='Dropout rate')
 @click.option('--num_queries', default=50, help='Number of queries')
+@click.option('--weight_decay', default=1e-6, help='Weight decay')
 # Train kwargs
 @click.option('--batch_size', default=0, help='Batch size')
 @click.option('--epochs', default=10, help='Epochs')
@@ -199,7 +202,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
 @click.option('--grad_clip', default=1.0, help='Gradient clip')
 @click.option('--fast_dev_run', default=False, help='Fast dev run')
 @click.option('--project', default="visual-bert-with-od", help='Project')
-def main(lr, max_length, dense_dim, dropout_rate, num_queries, **train_kwargs):
+def main(lr, max_length, dense_dim, dropout_rate, num_queries, weight_decay, **train_kwargs):
     """ train model """
 
     model = VisualBertWithODModule(
@@ -207,7 +210,8 @@ def main(lr, max_length, dense_dim, dropout_rate, num_queries, **train_kwargs):
         max_length=max_length, 
         dense_dim=dense_dim, 
         dropout_rate=dropout_rate,
-        num_queries=num_queries)
+        num_queries=num_queries,
+        weight_decay=weight_decay)
     base_train(model=model, **train_kwargs)
 
 
