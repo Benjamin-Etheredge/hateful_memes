@@ -25,7 +25,12 @@ class AutoTextModule(BaseMaeMaeModel):
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.config = AutoConfig.from_pretrained(model_name)
         ic(self.config)
-        self.model = AutoModel.from_pretrained(model_name, config=self.config)
+        self.model = AutoModel.from_pretrained(
+            model_name, 
+            config=self.config,
+            # NOTE already has dropout
+            )
+        ic(self.model)
 
         self.max_length = max_length
         self.include_top = include_top

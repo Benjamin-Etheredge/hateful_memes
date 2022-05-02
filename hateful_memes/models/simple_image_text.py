@@ -147,8 +147,7 @@ class BaseImageTextMaeMaeModel(BaseMaeMaeModel):
 
         if self.include_top:
             x = self.final_fc(x)
-
-        x = torch.squeeze(x)
+            x = torch.squeeze(x, dim=-1)
         return x
 
 
@@ -179,7 +178,9 @@ def main(lr, num_layers, embed_dim, dense_dim, max_length, tokenizer_name, dropo
         dense_dim=dense_dim,
         max_length=max_length,
         num_layers=num_layers,
-        dropout_rate=dropout_rate)
+        dropout_rate=dropout_rate,
+        weight_decay=1e-4,)
+
     
     base_train(model=model, **train_kwargs)
 

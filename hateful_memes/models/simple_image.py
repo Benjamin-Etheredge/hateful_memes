@@ -143,7 +143,8 @@ def main(lr, dense_dim, dropout_rate, batch_norm,
         lr=lr, 
         dense_dim=dense_dim, 
         dropout_rate=dropout_rate,
-        batch_norm=batch_norm)
+        batch_norm=batch_norm,
+        weight_decay=1e-5,)
 
     base_train(model=model, **train_kwargs)
 

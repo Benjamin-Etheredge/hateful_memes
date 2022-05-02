@@ -156,7 +156,7 @@ def base_train(
         strategy="ddp",
         # gpus=[1],
         accelerator='auto',
-        replace_sampler_ddp=False,
+        # replace_sampler_ddp=False,
         # auto_select_gpus=True,
         logger=logger,
         max_epochs=epochs,

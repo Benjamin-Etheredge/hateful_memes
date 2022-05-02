@@ -1,5 +1,5 @@
 model_name: 'vit'
-batch_size: 128
+batch_size: 64
 lr: 1e-4
 epochs: 1000
 dense_dim: 128
