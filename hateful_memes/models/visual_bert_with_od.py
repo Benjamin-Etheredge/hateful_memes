@@ -9,7 +9,6 @@ import torchvision.transforms.functional as TF
 import torchvision.models as models
 
 from transformers import BertTokenizer, VisualBertModel
-from transformers import DetrFeatureExtractor, DetrForObjectDetection, AutoConfig
 
 import numpy as np
 
@@ -181,7 +180,6 @@ class VisualBertWithODModule(BaseMaeMaeModel):
 
 
 @click.command()
-@click.option('--freeze', default=True, help='Freeze models')
 @click.option('--lr', default=1e-4, help='Learning rate')
 @click.option('--max_length', default=128, help='Max length')
 @click.option('--dense_dim', default=256, help='Dense dim')
