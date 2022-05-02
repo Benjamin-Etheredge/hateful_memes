@@ -128,6 +128,10 @@ def get_input_attributions(interp_model:InterpModel, data_sample):
     token_dict = tokenizer(text, add_special_tokens=False, return_tensors="pt")
     token_ids = token_dict['input_ids']
     image_text = (image, token_ids)
+    # Feature masks (?)
+    image_mask = torch.tensor(felzenszwalb(image.squeeze(dim=0).numpy(), channel_axis=0,
+        scale=0.25, min_size=5))
+    text_mask = torch.arange(token_ids.numel()) + image_mask.max()
     # Feature baselines
     image_baselines = torch.zeros_like(image)
     token_ref= TokenReferenceBase(reference_token_idx=tokenizer.convert_tokens_to_ids("[PAD]"))

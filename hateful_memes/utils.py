@@ -1,5 +1,6 @@
 import os
 from pytorch_lightning.loggers import WandbLogger, CSVLogger
+from icecream import ic
 
 
 def get_project_logger(*, project=None, save_dir=None, offline=False):

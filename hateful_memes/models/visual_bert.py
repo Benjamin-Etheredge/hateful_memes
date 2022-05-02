@@ -64,7 +64,7 @@ class VisualBertModule(BaseMaeMaeModel):
         self.last_hidden_size = dense_dim
 
         self.save_hyperparameters()
-    
+
     def forward(self, batch):
         """ Shut up """
         text = batch['text']
