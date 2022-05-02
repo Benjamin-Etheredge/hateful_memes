@@ -267,7 +267,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
             #     replacement=True),
                 # (self.train_dataset.num_items//5)*4,
                 # replacement=False),
-            # shuffle=shuffle,
+            shuffle=shuffle,
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
             persistent_workers=self.persitent_workers,
