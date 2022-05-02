@@ -47,9 +47,9 @@ class VisualBertWithODModule(BaseMaeMaeModel):
             nn.Flatten(),
             nn.Linear(self.num_ftrs_resnet, self.num_ftrs_resnet),
         )
-        for param in resnet.parameters():
-            param.requires_grad = False
-        resnet.eval()
+        # for param in resnet.parameters():
+        #     param.requires_grad = False
+        # resnet.eval()
         resnet.to(self.device)
         self.resnet = resnet
 
@@ -58,7 +58,11 @@ class VisualBertWithODModule(BaseMaeMaeModel):
             visualbert_input_dim = 1024
         elif pretrained_type == "vqa":
             visualbert_input_dim = 2048
-        self.fc_bridge = nn.Linear(2048, visualbert_input_dim)
+        self.fc_bridge = nn.Sequential(
+            nn.Linear(2048, visualbert_input_dim),
+            nn.GELU(),
+            nn.Dropout(dropout_rate),
+        )
 
         # FC layers for classification
         self.fc = nn.Sequential(
@@ -76,7 +80,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         self.visual_bert_config = self.visual_bert.config
         self.num_queries = num_queries
 
-        self.backbone = [self.od_model, self.visual_bert]
+        self.backbone = [self.od_model, self.resnet, self.visual_bert]
 
         self.save_hyperparameters()
 
@@ -126,15 +130,14 @@ class VisualBertWithODModule(BaseMaeMaeModel):
 
             obj_imgs = torch.stack(obj_imgs)
 
-            with torch.no_grad():
-                img_outputs = self.resnet(obj_imgs)
+            # with torch.no_grad():
+            img_outputs = self.resnet(obj_imgs)
 
             img_outputs = torch.squeeze(img_outputs)
             batch_outputs.append(img_outputs)
         image_x = torch.stack(batch_outputs)
         
         image_x = self.fc_bridge(image_x)
-        image_x = F.relu(image_x)
 
         return image_x
 
@@ -151,7 +154,9 @@ class VisualBertWithODModule(BaseMaeMaeModel):
             padding='max_length', 
             truncation=True, 
             max_length=self.max_length)
-        inputs = inputs.to(self.device)
+
+        inputs = {k: v.to(device=self.device, non_blocking=True) for k, v in inputs.items()}
+        # inputs = inputs.to(self.device)
 
         inputs.update(
             {
