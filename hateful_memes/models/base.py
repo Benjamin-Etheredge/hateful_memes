@@ -108,7 +108,7 @@ def base_train(
         monitor_metric="val/loss",
         monitor_metric_mode="min",
         stopping_patience=16,
-        mixed_precision=False,
+        mixed_precision=True,
         finetune_epochs=10,
     ):
     logger = get_project_logger(project=project, save_dir=log_dir, offline=fast_dev_run)
@@ -151,7 +151,7 @@ def base_train(
         accumulate_grad_batches = None
     ic(accumulate_grad_batches)
     
-    trainer = Trainer(
+    trainer_kwargs = dict(
         devices=-1 if not fast_dev_run else 1,
         strategy="ddp",
         # gpus=[1],
@@ -159,7 +159,7 @@ def base_train(
         # replace_sampler_ddp=False,
         # auto_select_gpus=True,
         logger=logger,
-        max_epochs=epochs,
+        max_epochs=3,
         gradient_clip_val=grad_clip,
         # track_grad_norm=2, 
         fast_dev_run=fast_dev_run, 
@@ -173,7 +173,8 @@ def base_train(
         # profiler="simple",
         # callbacks=[checkpoint_callback, early_stopping])
         callbacks=[*callbacks],
-    )
+        )
+    trainer = Trainer(**trainer_kwargs)
 
     data = MaeMaeDataModule(batch_size=batch_size if batch_size > 0 else 32)
     ic(model.lr)
@@ -204,8 +205,7 @@ def base_train(
     ic(model.lr)
     trainer.fit(
         model, 
-        datamodule=data,
-        )
+        datamodule=data)
 
     if fast_dev_run:
         return
@@ -214,55 +214,54 @@ def base_train(
     #############################################################
     # Setup data for predictions
     data = MaeMaeDataModule(batch_size=batch_size)
-    data.setup(None)
+    data.setup("validate")
 
     # Load train data
     train_data = data.train_dataloader(shuffle=False, drop_last=False)
-    train_labels = []
-    train_img_ids = []
-    for batch in train_data:
-        train_labels += batch['label'].tolist()
-        train_img_ids += batch['img_id']
+
+    train_labels = data.train_dataset.info['label'].tolist()
+    train_img_ids = data.train_dataset.info['id'].tolist()
 
     # Load val data
     val_data = data.val_dataloader()
-    val_labels = []
-    val_img_ids = []
-    for batch in val_data:
-        val_labels += batch['label'].tolist()
-        val_img_ids += batch['img_id']
+    val_labels = data.val_dataset.info['label'].tolist()
+    val_img_ids = data.val_dataset.info['id'].tolist()
 
     # Load test data
     test_data = data.test_dataloader()
-    test_labels = []
-    test_img_ids = []
-    for batch in test_data:
-        test_labels += batch['label'].tolist()
-        test_img_ids += batch['img_id']
+    test_labels = data.test_dataset.info['label'].tolist()
+    test_img_ids = data.test_dataset.info['id'].tolist()
 
     # Get Predictions
+    del trainer_kwargs['strategy']
+    trainer_kwargs['devices'] = 1
+    trainer = Trainer(**trainer_kwargs)
     train_batched_preds, val_batched_preds, test_batched_preds= trainer.predict(
         model,
         dataloaders=[train_data, val_data, test_data],
-        ckpt_path='best',
     )
     # train_pred, val_pred = trainer.predict(model, dataloaders=[train_data, val_data], ckpt_path='best')
+    ic(val_batched_preds)
 
     # organize predictions
     import pandas as pd
     import time
 
+    ic(len(train_batched_preds), len(val_batched_preds), len(test_batched_preds))
+    ic(len(train_labels), len(val_labels), len(test_labels))
+    ic(len(train_img_ids), len(val_img_ids), len(test_img_ids))
     train_preds = []
     for batch_preds in train_batched_preds:
-        train_preds += nn.Sigmoid()(batch_preds).tolist()
+        train_preds += torch.sigmoid(batch_preds.type(torch.float32)).tolist()
 
     val_preds = []
     for batch_preds in val_batched_preds:
-        val_preds += nn.Sigmoid()(batch_preds).tolist()
+        val_preds += torch.sigmoid(batch_preds.type(torch.float32)).tolist()
 
     test_preds = []
     for batch_preds in test_batched_preds:
-        test_preds += nn.Sigmoid()(batch_preds).tolist()
+        test_preds += torch.sigmoid(batch_preds.type(torch.float32)).tolist()
+    ic(len(train_preds), len(val_preds), len(test_preds))
 
     train_results = pd.DataFrame(
         dict(
@@ -302,15 +301,32 @@ def base_train(
     full_results.to_pickle(f'{out_fp}.pkl')
     full_results.to_csv(f'{out_fp}.csv', index=False)
     print(f'Saved full results to {out_fp}.pkl')
-    # train_cm = wandb.plot.confusion_matrix(
-    #     y_true=train_labels,
-    #     preds=train_pred,
-    #     class_names=['not hateful', 'hateful'],
-    # )
+    train_cm = wandb.plot.confusion_matrix(
+        y_true=torch.tensor(train_labels).unsqueeze(1),
+        preds=None,
+        probs=torch.tensor(train_preds).unsqueeze(1),
+        class_names=['not hateful', 'hateful'],
+    )
+    val_cm = wandb.plot.confusion_matrix(
+        y_true=torch.tensor(val_labels).unsqueeze(1),
+        preds=None,
+        probs=torch.tensor(val_preds).unsqueeze(1),
+        class_names=['not hateful', 'hateful'],
+    )
+    test_cm = wandb.plot.confusion_matrix(
+        y_true=torch.tensor(test_labels).unsqueeze(1),
+        preds=None,
+        probs=torch.tensor(test_preds).unsqueeze(1),
+        class_names=['not hateful', 'hateful'],
+    )
     # val_cm = wandb.plot.confusion_matrix(
     #     y_true=val_labels,
     #     preds=val_pred,
     #     class_names=['not hateful', 'hateful'],
     # )
-    # wandb.log({"train_cm": train_cm})
+    wandb.log({
+        "train_cm": train_cm,
+        "val_cm": val_cm,
+        "test_cm": test_cm,
+    })
     # wandb.log({"val_cm": val_cm})

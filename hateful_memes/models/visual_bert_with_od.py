@@ -237,5 +237,5 @@ def main(lr, max_length, dense_dim, dropout_rate, num_queries, weight_decay, **t
 
 
 if __name__ == "__main__":
-    pl.seed_everything(42)
+    # pl.seed_everything(42)
     main()
