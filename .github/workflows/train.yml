@@ -1,13 +1,13 @@
 name: Train all models
 on: 
     workflow_dispatch:
-    push:
-      paths:
-        - '**.js'
-        - '**.py'
-        - 'config/*yaml'
-        - 'dvc.yaml'
-        - .github/workflows/train.yml
+    # push:
+    #   paths:
+    #     - '**.js'
+    #     - '**.py'
+    #     - 'config/*yaml'
+    #     - 'dvc.yaml'
+    #     - .github/workflows/train.yml
 # defaults:
 #     run:
 #       shell: bash
