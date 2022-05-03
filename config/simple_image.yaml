@@ -1,4 +1,4 @@
-batch_size: 128 
+batch_size: 64 
 lr: 1e-3
 epochs: 1000
 dense_dim: 512
