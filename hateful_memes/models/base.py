@@ -269,7 +269,7 @@ def base_train(
             img_id=train_img_ids,
             label=train_labels,
             pred=train_preds,
-            source='train',
+            source=['train']*len(train_img_ids),
         )
     )
     
@@ -278,7 +278,7 @@ def base_train(
             img_id=val_img_ids,
             label=val_labels,
             pred=val_preds,
-            source='val',
+            source=['val']*len(val_img_ids),
         )
     )
 
@@ -287,7 +287,7 @@ def base_train(
             img_id=test_img_ids,
             label=test_labels,
             pred=test_preds,
-            source='test',
+            source=['test']*len(test_img_ids),
         )
     )
 
