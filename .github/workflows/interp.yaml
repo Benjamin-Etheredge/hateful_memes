@@ -1,12 +1,12 @@
 name: Interpret super model
 on: 
-    workflow_dispatch:
-    # push:
-    #   paths:
-    #     - 'config/hateful_ofa.yaml'
-    #     - 'dvc.yaml'
-    #     - .github/workflows/train_ofa.yml
-    #     - hateful_memes/models/hateful_ofa.py
+  workflow_dispatch:
+    push:
+      paths:
+        - 'config/reporting.yaml'
+        - 'dvc.yaml'
+        - '.github/workflows/interp.yaml'
+        - '**.py'
 # defaults:
 #     run:
 #       shell: bash
