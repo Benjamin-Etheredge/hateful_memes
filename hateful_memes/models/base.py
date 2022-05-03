@@ -292,8 +292,10 @@ def base_train(
     curr_time = time.strftime("%Y%m%d-%H%M%S")
     full_results = pd.concat([train_results, val_results, test_results])
     
-    out_name = model_dir.replace('06_models', '07_model_output')
-    out_fp = f'{out_name}_{curr_time}'
+    out_folder = model_dir.replace('06_models', '07_model_output')
+    if not os.path.exists(out_folder):
+        os.mkdir(out_folder)
+    out_fp = os.path.join(out_folder, curr_time)
 
     full_results.to_pickle(f'{out_fp}.pkl')
     full_results.to_csv(f'{out_fp}.csv', index=False)
