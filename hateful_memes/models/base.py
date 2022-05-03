@@ -129,14 +129,14 @@ def base_train(
             mode=monitor_metric_mode,
             min_delta=0.0001,
             verbose=True),
-        StochasticWeightAveraging(),
+        # StochasticWeightAveraging(annealing_epochs=8), # may be causing issues with grad accumualtion
         LearningRateMonitor(),
         # Finetuner(model.backbones, finetune_epochs),
     ]
 
     try:
         model.backbone
-        callbacks.append(BackBoneOverrider(finetune_epochs, verbose=True, backbone_initial_ratio_lr=0.01, lambda_func=lambda epoch: 1.2))
+        callbacks.append(BackBoneOverrider(finetune_epochs, verbose=True, backbone_initial_ratio_lr=0.01, lambda_func=lambda _: 1.5))
         ic("Adding finetuning")
     except AttributeError:
         ic("no backbone")
@@ -159,7 +159,7 @@ def base_train(
         # replace_sampler_ddp=False,
         # auto_select_gpus=True,
         logger=logger,
-        max_epochs=3,
+        max_epochs=epochs,
         gradient_clip_val=grad_clip,
         # track_grad_norm=2, 
         fast_dev_run=fast_dev_run, 

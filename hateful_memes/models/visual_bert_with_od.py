@@ -33,7 +33,9 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         super().__init__(*base_args, **base_kwargs)
         # Visual Bert
         pretrained_type = "vqa" # nlvr2 or vqa
-        self.visual_bert = VisualBertModel.from_pretrained(f"uclanlp/visualbert-{pretrained_type}-coco-pre").to(self.device)
+        self.visual_bert = VisualBertModel.from_pretrained(f"uclanlp/visualbert-{pretrained_type}-coco-pre")
+        for param in self.visual_bert.parameters(recurse=False):
+            param.requires_grad = False
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 
         # DETR object detector
@@ -55,8 +57,9 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         # for param in resnet.parameters():
             # param.requires_grad = False
         # resnet.eval()
-        resnet.to(self.device)
         self.resnet = resnet
+        for param in self.resnet.parameters(recurse=False):
+            param.requires_grad = False
 
         # FC layer bridging resnet and visualbert
         if pretrained_type == "nlvr2":
@@ -99,29 +102,28 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         image_feats = self.od_feature_extractor(images=image, return_tensors="pt")
 
         image_feats = image_feats.to(self.device)
-        od_outputs = self.od_model(**image_feats)
+        with torch.no_grad():
+            od_outputs = self.od_model(**image_feats)
         logits = od_outputs.logits
         probas = logits.softmax(-1)
-        batch_keep_idxs = np.argsort(probas.max(-1).values.detach().cpu().numpy())[::-1][:, :self.num_queries]
+        batch_keep_idxs = torch.argsort(probas.max(dim=-1)[0], descending=True, dim=-1)[:, :self.num_queries]
         # batch_keep_idxs = torch.argsort(torch.max(probas, dim=-1)[0])[::-1][:, :self.num_queries]
         batch_pred_boxes = od_outputs['pred_boxes']
 
         batch_keep_boxes = []
-        for i in range(batch_keep_idxs.shape[0]):
-            img_keep_idxs = batch_keep_idxs[i]
-            img_pred_boxes = batch_pred_boxes[i]
-            img_keep_boxes = img_pred_boxes[img_keep_idxs]
-            batch_keep_boxes.append(img_keep_boxes)
-        batch_keep_boxes = torch.stack(batch_keep_boxes)
+        # for idx, img_pred_boxes in batch_keep_idxs, img_pred_boxes:
+            # batch_keep_boxes.append(img_keep_boxes)
+        batch_keep_boxes = torch.stack([pred_box[idx] for pred_box, idx in zip(batch_pred_boxes, batch_keep_idxs)])
 
         # crop images
         batch_outputs = []
         batch_inputs = []
-        for idx, batch_img in enumerate(image):
+        for batch_img, img_pred_boxes in zip(image, batch_keep_boxes):
             batch_img = T.functional.to_tensor(batch_img)
             w, h = batch_img.shape[2], batch_img.shape[1]
-            img_pred_boxes = batch_keep_boxes[idx]
             obj_imgs = []
+            obj_imgs.append(self.normalizer(self.resizer(batch_img)))
+            # obj_imgs.append(self.normalizer(self.resizer(batch_img)).to(self.device, non_blocking=True))
             for i in range(self.num_queries):
                 box = img_pred_boxes[i]
                 center_x, center_y, norm_w, norm_h = box
@@ -135,25 +137,14 @@ class VisualBertWithODModule(BaseMaeMaeModel):
                     obj_img = batch_img[:, upper:lower, left:right]
                     obj_img = self.normalizer(self.resizer(obj_img))
                 except:
-                    obj_img = torch.zeros(3, 224, 224)
-                obj_imgs.append(obj_img)
+                    # obj_img = torch.zeros(3, 224, 224, device=self.device)
+                    pass
             
-            # always include full image
-            obj_imgs.append(
-                self.normalizer(self.resizer(batch_img))
-            )
-
             obj_imgs = torch.stack(obj_imgs)
-            obj_img = obj_imgs.to(self.device, non_blocking=True)
+            # obj_img = obj_imgs.to(self.device, non_blocking=True)
+            batch_inputs.append(obj_imgs)
 
-            # with torch.no_grad():
-            # ic(obj_img.shape)
-            # img_outputs = self.resnet(obj_imgs)
-
-            # img_outputs = torch.squeeze(img_outputs)
-            # batch_outputs.append(img_outputs)
-            batch_inputs.append(obj_img)
-        batch_inputs = torch.stack(batch_inputs)
+        batch_inputs = torch.stack(batch_inputs).to(self.device)
         old_shape = batch_inputs.shape
         # ic(batch_inputs.shape)
         batch_inputs = batch_inputs.reshape(-1, 3, 224, 224)

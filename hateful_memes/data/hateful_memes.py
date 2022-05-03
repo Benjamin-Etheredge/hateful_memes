@@ -180,6 +180,8 @@ def collate_fn(batch):
     images, texts, raw_pil_images, labels = zip(*batch)
     # images, texts, raw_pil_images, labels = zip(*batch)
 
+    # images, texts, raw_pil_images, labels = zip(*batch)
+
     # for sample in batch:
     #     images.append(sample['image'])
     #     raw_pil_images.append(sample['raw_pil_image'])
@@ -191,9 +193,9 @@ def collate_fn(batch):
     labels = torch.as_tensor(labels)
     return dict(
         image=images,
-        raw_pil_image=raw_pil_images,
+        raw_pil_image=list(raw_pil_images),
         # raw_np_image=raw_np_images,
-        text=texts,
+        text=list(texts),
         label=labels,
     )
 
@@ -206,7 +208,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
         img_transforms=None, 
         txt_transforms=None,
         num_workers=None,
-        pin_memory=True,
+        pin_memory=False,
         persistent_workers=True,
         # collate_fn=None,
         # tokenizer=None,
