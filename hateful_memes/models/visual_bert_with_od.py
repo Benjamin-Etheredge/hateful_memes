@@ -42,7 +42,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         # od_model = torch.hub.load('facebookresearch/detr', 'detr_resnet101', pretrained=True)
         od_model = DetrForObjectDetection.from_pretrained("facebook/detr-resnet-50")
         self.od_feature_extractor = DetrFeatureExtractor.from_pretrained("facebook/detr-resnet-50")
-        for param in od_model.parameters():
+        for param in od_model.parameters(recurse=False):
             param.requires_grad = False
         od_model.eval()
         self.od_model = od_model
@@ -178,12 +178,11 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         with torch.no_grad():
             image_x = self.detect_objects(image)
 
-        # ic(image_x.shape)
-
         inputs.update(
             {
                 "visual_embeds": image_x,
-                "visual_token_type_ids": torch.ones(image_x.shape[:-1], dtype=torch.long, device=self.device),
+                # "visual_token_type_ids": torch.ones(image_x.shape[:-1], dtype=torch.long, device=self.device),
+                "visual_token_type_ids": torch.arange(1, image_x.shape[1]+1).repeat((image_x.shape[0], 1)).to(self.device)
                 "visual_attention_mask": torch.ones(image_x.shape[:-1], dtype=torch.float, device=self.device),
             }
         )
