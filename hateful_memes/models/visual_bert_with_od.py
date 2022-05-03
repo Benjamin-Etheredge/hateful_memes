@@ -233,7 +233,7 @@ def main(lr, max_length, dense_dim, dropout_rate, num_queries, weight_decay, **t
         dropout_rate=dropout_rate,
         num_queries=num_queries,
         weight_decay=weight_decay)
-    base_train(model=model, **train_kwargs)
+    base_train(model=model, finetune_epochs=2, **train_kwargs)
 
 
 if __name__ == "__main__":

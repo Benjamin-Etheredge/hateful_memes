@@ -164,12 +164,12 @@ class MaeMaeDataset(torch.utils.data.Dataset):
         return T.Compose([
             T.RandomHorizontalFlip(p=0.1),
             T.AutoAugment(T.AutoAugmentPolicy.IMAGENET),
-            T.RandomResizedCrop(scale=(0.5, 1), size=(224,224)), # this does good for slowing overfitting
+            # T.RandomResizedCrop(scale=(0.5, 1), size=(224,224)), # this does good for slowing overfitting
         ])
 
     def base_test_pil_img_transforms(self):
         return T.Compose([
-            T.Resize(size=(224,224)),
+            # T.Resize(size=(224,224)),
         ])
 
 def collate_fn(batch):
