@@ -1,6 +1,7 @@
 import imp
 import os
 from icecream import ic
+import numpy as np
 
 import torch
 from torch.optim.lr_scheduler import ReduceLROnPlateau
@@ -302,21 +303,21 @@ def base_train(
     full_results.to_csv(f'{out_fp}.csv', index=False)
     print(f'Saved full results to {out_fp}.pkl')
     train_cm = wandb.plot.confusion_matrix(
-        y_true=torch.tensor(train_labels).unsqueeze(1),
+        y_true=np.array(train_labels),
         preds=None,
-        probs=torch.tensor(train_preds).unsqueeze(1),
+        probs=torch.stack([torch.tensor(train_preds), 1 - torch.tensor(train_preds)], dim=1).numpy(),
         class_names=['not hateful', 'hateful'],
     )
     val_cm = wandb.plot.confusion_matrix(
-        y_true=torch.tensor(val_labels).unsqueeze(1),
+        y_true=np.array(val_labels),
         preds=None,
-        probs=torch.tensor(val_preds).unsqueeze(1),
+        probs=torch.stack([torch.tensor(val_preds), 1 - torch.tensor(val_preds)], dim=1).numpy(),
         class_names=['not hateful', 'hateful'],
     )
     test_cm = wandb.plot.confusion_matrix(
-        y_true=torch.tensor(test_labels).unsqueeze(1),
+        y_true=np.array(test_labels),
         preds=None,
-        probs=torch.tensor(test_preds).unsqueeze(1),
+        probs=torch.stack([torch.tensor(test_preds), 1 - torch.tensor(test_preds)], dim=1).numpy(),
         class_names=['not hateful', 'hateful'],
     )
     # val_cm = wandb.plot.confusion_matrix(
