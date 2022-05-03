@@ -130,7 +130,7 @@ def base_train(
             mode=monitor_metric_mode,
             min_delta=0.0001,
             verbose=True),
-        # StochasticWeightAveraging(annealing_epochs=8), # may be causing issues with grad accumualtion
+        StochasticWeightAveraging(annealing_epochs=5), # may be causing issues with grad accumualtion
         LearningRateMonitor(),
         # Finetuner(model.backbones, finetune_epochs),
     ]
