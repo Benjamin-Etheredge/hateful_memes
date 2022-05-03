@@ -34,7 +34,7 @@ class MaeMaeDataset(torch.utils.data.Dataset):
         if set == "train": 
             self.info = pd.read_json(self.root_dir/"train.jsonl", lines=True)
 
-        elif set == "super_train": 
+        elif set == "super_train" or set == "val_train": 
             info0 = pd.read_json(self.root_dir/"train.jsonl", lines=True)
             # info1 = pd.read_json(self.root_dir/"dev_seen.jsonl", lines=True)
             info2 = pd.read_json(self.root_dir/"test_seen.jsonl", lines=True)
@@ -72,10 +72,14 @@ class MaeMaeDataset(torch.utils.data.Dataset):
         # if self.txt_transforms is None:
         #     self.txt_transforms = self.create_text_transform()
         if self.img_transforms is None:
-            if "train" in set:
+            if "super_train" == set or "train" == set:
                 ic("train set")
                 self.img_transforms = self.base_train_img_transforms()
                 self.pil_img_transforms = self.base_train_pil_img_transforms()
+            elif "val_train" == set:
+                ic("val train set")
+                self.img_transforms = self.base_test_img_transforms()
+                self.pil_img_transforms = self.base_test_pil_img_transforms()
             else:
                 ic("test set")
                 self.img_transforms = self.base_test_img_transforms()
@@ -122,7 +126,7 @@ class MaeMaeDataset(torch.utils.data.Dataset):
 
         extra_text_info = {}
 
-        return (image, text, raw_pil_image, label, img_id)
+        return (image, text, raw_pil_image, label)
         sample = dict(
             image=image,
             # raw_np_image=raw_np_image,
@@ -173,7 +177,7 @@ class MaeMaeDataset(torch.utils.data.Dataset):
         ])
 
 def collate_fn(batch):
-    images, texts, raw_pil_images, labels, img_ids = zip(*batch)
+    images, texts, raw_pil_images, labels = zip(*batch)
     # images, texts, raw_pil_images, labels = zip(*batch)
 
     # for sample in batch:
@@ -191,7 +195,6 @@ def collate_fn(batch):
         # raw_np_image=raw_np_images,
         text=texts,
         label=labels,
-        img_id=img_ids,
     )
 
 
@@ -233,12 +236,20 @@ class MaeMaeDataModule(pl.LightningDataModule):
     
     def setup(self, stage: str):
         # self.log(batch_size=self.batch_size)
-        self.train_dataset = MaeMaeDataset(
-            self.data_dir,
-            img_transforms=self.img_transforms, 
-            txt_transforms=self.txt_transforms,
-            set="super_train",
-        )
+        if stage=="validate":
+            self.train_dataset = MaeMaeDataset(
+                self.data_dir,
+                img_transforms=self.img_transforms, 
+                txt_transforms=self.txt_transforms,
+                set="val_train",
+            )
+        else:
+            self.train_dataset = MaeMaeDataset(
+                self.data_dir,
+                img_transforms=self.img_transforms, 
+                txt_transforms=self.txt_transforms,
+                set="super_train",
+            )
         self.val_dataset = MaeMaeDataset(
             self.data_dir,
             img_transforms=self.img_transforms, 
