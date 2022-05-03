@@ -108,11 +108,13 @@ def base_train(
         monitor_metric="val/loss",
         monitor_metric_mode="min",
         stopping_patience=16,
-        mixed_precision=False,
+        mixed_precision=True,
         finetune_epochs=10,
+        data_kwargs=None,
     ):
     logger = get_project_logger(project=project, save_dir=log_dir, offline=fast_dev_run)
     # TODO pull out lr and maybe arg optimizer
+    data_kwargs = data_kwargs or {}
 
 
     callbacks = [
@@ -175,7 +177,7 @@ def base_train(
         callbacks=[*callbacks],
     )
 
-    data = MaeMaeDataModule(batch_size=batch_size if batch_size > 0 else 32)
+    data = MaeMaeDataModule(batch_size=batch_size if batch_size > 0 else 32, **data_kwargs)
     ic(model.lr)
 
     if not fast_dev_run and batch_size <= 0:
@@ -190,6 +192,7 @@ def base_train(
         )
         ic(result)
         batch_size = result['scale_batch_size']
+        data = MaeMaeDataModule(batch_size=batch_size, **data_kwargs)
         # lr_find = result['lr_find']
         # plt = lr_find.plot(suggest=True)
         # wandb.log({"lr_plot": plt})
@@ -199,7 +202,6 @@ def base_train(
     #     # new_lr = trainer.tuner.lr_find.suggestion()
     #     # model.hparams.lr = new_lr
     #     # model.lr = new_lr
-    data = MaeMaeDataModule(batch_size=batch_size if batch_size > 0 else 32)
 
     ic(model.lr)
     trainer.fit(

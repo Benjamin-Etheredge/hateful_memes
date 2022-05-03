@@ -26,24 +26,24 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         include_top=True,
         dropout_rate=0.0,
         dense_dim=256,
-        num_queries=50,
+        num_queries=4,
         *base_args, **base_kwargs
     ):
         """ Visual Bert Model """
         super().__init__(*base_args, **base_kwargs)
         # Visual Bert
         pretrained_type = "vqa" # nlvr2 or vqa
-        self.visual_bert = VisualBertModel.from_pretrained(f"uclanlp/visualbert-{pretrained_type}-coco-pre").to(self.device)
+        self.visual_bert = VisualBertModel.from_pretrained(f"uclanlp/visualbert-{pretrained_type}-coco-pre")
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 
         # DETR object detector
         # od_model = torch.hub.load('facebookresearch/detr', 'detr_resnet101', pretrained=True)
-        od_model = DetrForObjectDetection.from_pretrained("facebook/detr-resnet-50")
-        self.od_feature_extractor = DetrFeatureExtractor.from_pretrained("facebook/detr-resnet-50")
-        for param in od_model.parameters():
-            param.requires_grad = False
-        od_model.eval()
-        self.od_model = od_model
+        # od_model = DetrForObjectDetection.from_pretrained("facebook/detr-resnet-50")
+        # self.od_feature_extractor = DetrFeatureExtractor.from_pretrained("facebook/detr-resnet-50")
+        # for param in od_model.parameters():
+            # param.requires_grad = False
+        # od_model.eval()
+        # self.od_model = od_model
 
         # Resnet
         resnet = models.resnet50(pretrained=True)
@@ -55,7 +55,6 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         # for param in resnet.parameters():
             # param.requires_grad = False
         # resnet.eval()
-        resnet.to(self.device)
         self.resnet = resnet
 
         # FC layer bridging resnet and visualbert
@@ -84,6 +83,10 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         self.visual_bert_config = self.visual_bert.config
         self.num_queries = num_queries
 
+
+        self.txt_toks=[('bert', BertTokenizer.from_pretrained('bert-base-uncased'))],
+        self.img_toks=[('od', DetrFeatureExtractor.from_pretrained("facebook/detr-resnet-50"))]
+
         self.backbone = [
             # self.od_model,
             self.resnet,
@@ -94,12 +97,16 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         self.normalizer = T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         self.save_hyperparameters()
 
-    def detect_objects(self, image):
+    def detect_objects(self, image, od_feats):
 
-        image_feats = self.od_feature_extractor(images=image, return_tensors="pt")
-
-        image_feats = image_feats.to(self.device)
-        od_outputs = self.od_model(**image_feats)
+        # ic(len(od_feats))
+        # ic(od_feats)
+        m = self.od_feature_extractor(image, return_tensors="pt")
+        # ic(m.keys())
+        # ic(m['pixel_values'][0].shape)
+        # ic(od_feats.keys())
+        # ic(od_feats)
+        od_outputs = self.od_model(**od_feats)
         logits = od_outputs.logits
         probas = logits.softmax(-1)
         batch_keep_idxs = np.argsort(probas.max(-1).values.detach().cpu().numpy())[::-1][:, :self.num_queries]
@@ -117,8 +124,10 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         # crop images
         batch_outputs = []
         batch_inputs = []
-        for idx, batch_img in enumerate(image):
-            batch_img = T.functional.to_tensor(batch_img)
+        
+        img = [T.functional.to_tensor(i) for i in image]
+        for idx, batch_img in enumerate(img):
+            # batch_img = T.functional.to_tensor(batch_img)
             w, h = batch_img.shape[2], batch_img.shape[1]
             img_pred_boxes = batch_keep_boxes[idx]
             obj_imgs = []
@@ -155,47 +164,72 @@ class VisualBertWithODModule(BaseMaeMaeModel):
             batch_inputs.append(obj_img)
         batch_inputs = torch.stack(batch_inputs)
         old_shape = batch_inputs.shape
-        # ic(batch_inputs.shape)
         batch_inputs = batch_inputs.reshape(-1, 3, 224, 224)
-        # ic(batch_inputs.shape)
         batch_outputs = self.resnet(batch_inputs)
-        # ic(batch_outputs.shape)
         batch_outputs = batch_outputs.view(*old_shape[0:2], batch_outputs.shape[-1])
 
         image_x = batch_outputs
-        # image_x = image_x.to(self.device)
-        
-        # image_x = self.fc_bridge(image_x)
+        # ic(batch_outputs.shape)
+        # ic(image_x.shape)
 
         return image_x
+    def reres(self, image):
+        batch_inputs = torch.stack(batch_inputs)
+        old_shape = batch_inputs.shape
+        batch_inputs = batch_inputs.reshape(-1, 3, 224, 224)
+        batch_outputs = self.resnet(batch_inputs)
+        batch_outputs = batch_outputs.view(*old_shape[0:2], batch_outputs.shape[-1])
+
+        image_x = batch_outputs
+        return image_x
+        # ic(batch_outputs.shape)
+
+    @staticmethod
+    def batch_converter():
+        pass
 
     def forward(self, batch):
         """ Shut up """
-        text = batch['text']
-        image = batch['raw_pil_image']
+        # text = batch['text']
+        # image = batch['image']
+        od_image = batch['od']
+        # pil_image = batch['pil_image']
+        token_text = batch['bert']
+        # ic(image)
+        # for key, value in batch.items():
+            # ic(key, type(value))
 
-        inputs = self.tokenizer(
-            text, 
-            return_tensors="pt", 
-            padding='max_length', 
-            truncation=True, 
-            max_length=self.max_length)
+        # inputs = self.tokenizer(
+            # text, 
+            # return_tensors="pt", 
+            # padding='max_length', 
+            # truncation=True, 
+            # max_length=self.max_length)
 
-        inputs = {k: v.to(device=self.device, non_blocking=True) for k, v in inputs.items()}
+        # inputs = {k: v.to(device=self.device, non_blocking=True) for k, v in inputs.items()}
         # inputs = inputs.to(self.device)
 
-        with torch.no_grad():
-            image_x = self.detect_objects(image)
+        # ic(od_image.shape)
+        # for key in od_image.keys():
+            # ic(key, od_image[key].shape)
 
+        # with torch.no_grad():
+            # image_x = self.detect_objects(pil_image, od_image)
+        
         # ic(image_x.shape)
 
-        inputs.update(
-            {
-                "visual_embeds": image_x,
-                "visual_token_type_ids": torch.ones(image_x.shape[:-1], dtype=torch.long, device=self.device),
-                "visual_attention_mask": torch.ones(image_x.shape[:-1], dtype=torch.float, device=self.device),
-            }
-        )
+        # ic(image_x.shape)
+        inputs = token_text
+
+        # image_x = image
+        # ic(image_x.shape)
+        image_x = self.reres(od_image)
+
+        inputs.update({
+            "visual_embeds": image_x,
+            "visual_token_type_ids": torch.ones(image_x.shape[:-1], dtype=torch.long, device=self.device),
+            "visual_attention_mask": torch.ones(image_x.shape[:-1], dtype=torch.float, device=self.device),
+        })
 
         x = self.visual_bert(**inputs)
 
@@ -206,8 +240,10 @@ class VisualBertWithODModule(BaseMaeMaeModel):
             x = self.fc(x)
             x = torch.squeeze(x, dim=1)
 
+        # ic(x)
         return x
 
+    
 
 @click.command()
 @click.option('--lr', default=1e-4, help='Learning rate')
@@ -233,7 +269,19 @@ def main(lr, max_length, dense_dim, dropout_rate, num_queries, weight_decay, **t
         dropout_rate=dropout_rate,
         num_queries=num_queries,
         weight_decay=weight_decay)
-    base_train(model=model, **train_kwargs)
+    base_train(
+        model=model, 
+        data_kwargs=dict(
+            od=True, 
+            # pil=True,
+            # image_feature_extractor="facebook"
+            # tokenizer="bert-base-uncased",
+            # max_length=96,
+            txt_toks=[('bert', BertTokenizer.from_pretrained('bert-base-uncased'))],
+            img_toks=[('od_im', DetrFeatureExtractor.from_pretrained("facebook/detr-resnet-50"))]
+        ),
+
+        **train_kwargs)
 
 
 if __name__ == "__main__":
