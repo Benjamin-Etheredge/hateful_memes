@@ -32,6 +32,7 @@ class BaseMaeMaeModel(LightningModule):
         self, 
         lr=0.0003, 
         weight_decay=0.00,
+        plot_name="Nameless"
     ) -> None:
         super().__init__()
         self.lr = lr
@@ -46,6 +47,7 @@ class BaseMaeMaeModel(LightningModule):
         self.val_acc = torchmetrics.Accuracy(**metrics_kwargs)
         self.val_f1 = torchmetrics.F1Score(average="micro", **metrics_kwargs)
         self.val_auroc = torchmetrics.AUROC(average="micro", **metrics_kwargs)
+        self.plot_name = plot_name
 
     def forward(self, batch):
         raise NotImplemented

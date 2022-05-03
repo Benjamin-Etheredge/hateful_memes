@@ -24,7 +24,7 @@ class BaseITModule(BaseMaeMaeModel):
         *base_args, **base_kwargs
     ):
 
-        super().__init__(*base_args, **base_kwargs)
+        super().__init__(*base_args, **base_kwargs, plot_name=model_name.upper())
         
         if model_name == 'vit':
             model_fullname = 'google/vit-base-patch16-224'

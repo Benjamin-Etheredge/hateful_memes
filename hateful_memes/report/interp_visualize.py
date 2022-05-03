@@ -37,7 +37,7 @@ def visualize_input_attributions(attrs, inputs, y_hat, y, tokenizer, model_name,
         tf_str = "true"
     if pred==0:
         pn_str = "negative"
-    pred_str = "Model predicted: \"%s\", w/ logit %.3g\n(%s %s)" % (y_hat_label, y_hat_prob, tf_str, pn_str)
+    pred_str = "Model predicted: \"%s\", w/ prob. %.3g\n(%s %s)" % (y_hat_label, y_hat_prob, tf_str, pn_str)
 
     # Both visualizations use the original image
     img_in = inputs['img']
@@ -158,6 +158,13 @@ def visualize_model_attributions(attrs, inputs, y_hat, y, sub_models, model_name
     ensem_attr = attrs['models']
     ensem_attr_mean = ensem_attr.mean(dim=0)
     ensem_attr_normed = ensem_attr_mean/ensem_attr_mean.norm()
+    # Masks for results
+    y_hat_prob = torch.sigmoid(y_hat)
+    pred = y_hat_prob>=0.5
+    tp_idx = np.nonzero(((pred == y) & (pred == 1)).numpy())
+    tn_idx = np.nonzero(((pred == y) & (pred == 0)).numpy())
+    fp_idx = np.nonzero(((pred != y) & (pred == 1)).numpy())
+    fn_idx = np.nonzero(((pred != y) & (pred == 0)).numpy())
     # Get sub-model output sizes
     hidden_size = [sub.last_hidden_size for sub in sub_models]
     # Populate sub-model attributions
@@ -170,7 +177,7 @@ def visualize_model_attributions(attrs, inputs, y_hat, y, sub_models, model_name
     max_attr = -sys.maxsize
     min_attr = sys.maxsize
     for i, sub in enumerate(sub_models):
-        sub_mod_name = sub.__class__.__name__ + ("(%i)"%(i+1,))
+        sub_mod_name = sub.plot_name + ("(%i)"%(i+1,))
         attr_stop = attr_start + hidden_size[i]
         this_ensem_attr = ensem_attr[:, attr_start:attr_stop]
         sub_attr[sub_mod_name] = this_ensem_attr        
@@ -233,12 +240,40 @@ def visualize_model_attributions(attrs, inputs, y_hat, y, sub_models, model_name
     ax1 = fig1.add_subplot(gs1[0,0])
     #ax1.set_xticks(np.arange(0, max_hidden, 64), labels=[str(_x) for _x in range(0, max_hidden, 64)])
     ax1.boxplot(sub_tot_attrs_plot, vert=False)
-    ax1.set_xlabel("Total attribution to logit")
-    ax1.set_yticks(np.arange(len(sub_names))+0.5, labels=sub_names)
+    ax1.set_yticklabels(sub_names)
     ax1.set_ylabel("Sub-model name")
+    ax1.set_xlabel("Total attribution to logit")
     ax1.set_title("Total Attribution per Sub-Model")
     save1 = save_name + "_1.png"    
     fig1.savefig(save1)
+
+    # Absolute total attribution per sub-model by outcome
+    tp_attr = sub_tot_attrs_plot[tp_idx]
+    tn_attr = sub_tot_attrs_plot[tn_idx]
+    fp_attr = sub_tot_attrs_plot[fp_idx]
+    fn_attr = sub_tot_attrs_plot[fn_idx]
+    
+    fig2 = plt.figure(figsize=(17,8))
+    gs2 = fig2.add_gridspec(2, 2, left=0.1, right=0.95, wspace=0.35)
+    ax2_tp = fig2.add_subplot(gs2[0,0])
+    ax2_tp.boxplot(tp_attr, vert=False) 
+    ax2_tp.set_yticklabels(sub_names)
+    ax2_tp.set_title("True Positives")
+    ax2_tn = fig2.add_subplot(gs2[0,1]) 
+    ax2_tn.boxplot(tn_attr, vert=False) 
+    ax2_tn.set_yticklabels(sub_names)
+    ax2_tn.set_title("True Negatives")
+    ax2_fp = fig2.add_subplot(gs2[1,0]) 
+    ax2_fp.boxplot(fp_attr, vert=False) 
+    ax2_fp.set_yticklabels(sub_names)
+    ax2_fp.set_title("False Positives")
+    ax2_fn = fig2.add_subplot(gs2[1,1]) 
+    ax2_fn.boxplot(fn_attr, vert=False) 
+    ax2_fn.set_yticklabels(sub_names)
+    ax2_fn.set_title("False Negatives")
+    fig2.suptitle("Total Logit Attribution Per Sub-Model")
+    save2 = save_name + "_2.png"
+    fig2.savefig(save2)
 
 
 def visualize_attributions(attrs, inputs, y_hat, y, tokenizer, sub_models, model_name,

@@ -757,26 +757,26 @@ stages:
       \ --ensemble\n"
     deps:
     - path: hateful_memes/models/auto_text_model.py
-      md5: 9789bb7dd6453a44b2f5863050e738ed
-      size: 3399
+      md5: 68e0c237a051e862975877073a85480f
+      size: 3465
     - path: hateful_memes/models/baseIT.py
-      md5: b886f244c754c0fcacc0d53bb413cccf
-      size: 3638
+      md5: beb7026b19d9c272f15b68dbfa3cc475
+      size: 3668
     - path: hateful_memes/models/simple_image.py
-      md5: d519137d502c0d9bed201f7849d73c5c
-      size: 4595
+      md5: 2a1060dee85fe8cca185afb1233ca7fa
+      size: 4621
     - path: hateful_memes/models/simple_mlp_image.py
-      md5: 69fe90eb218b10667d9a72c084dada79
-      size: 2749
+      md5: b2f62e921e00d5256a78504ec4550073
+      size: 2779
     - path: hateful_memes/models/simple_text.py
-      md5: e97f6413ec92d21fcaa6da09b7f548be
-      size: 3886
+      md5: cb5958948d7895e3f10a37de07c87270
+      size: 3911
     - path: hateful_memes/models/super_model.py
-      md5: 24b381a65d721eb87a268b323c34d236
-      size: 7133
+      md5: 894b4fa416a2d1c8acb12091b6a25648
+      size: 7157
     - path: hateful_memes/models/visual_bert.py
-      md5: 7dcea0d6d52e10a4f1dd5e7b80b2bb8e
-      size: 4066
+      md5: de92369929a235b8f50619de6180e25d
+      size: 4090
     - path: hateful_memes/report/model_interp.py
       md5: d28ffc3d37aa9d9fa8130bce753d3eff
       size: 11615
@@ -785,24 +785,24 @@ stages:
       size: 4816
     outs:
     - path: data/08_reporting/interp_data/super_model/attr_study.pt
-      md5: 3df12afc76ce2be742deb422ea2ab3a3
-      size: 43028835
+      md5: 2a715a82fa60ad88abb57370afa4d14a
+      size: 42583907
   vis_super:
     cmd: "python -m hateful_memes.report.interp_visualize  --attr_file data/08_reporting/interp_data/super_model/attr_study.pt\
       \ --save_dir data/08_reporting/interp_vis/super_model --save_prefix attr_study_vis\
       \ --ensemble\n"
     deps:
     - path: data/08_reporting/interp_data/super_model/attr_study.pt
-      md5: 3df12afc76ce2be742deb422ea2ab3a3
-      size: 43028835
+      md5: 2a715a82fa60ad88abb57370afa4d14a
+      size: 42583907
     - path: hateful_memes/report/interp_visualize.py
-      md5: 4f921c78562acb58f743e66d6f24e80e
-      size: 11302
+      md5: b5814fb39e20561c4a42309e15d83782
+      size: 12681
     - path: hateful_memes/report/model_wrappers.py
       md5: 8fbe29d3af8ccfbc5ec2a68b3312e5bb
       size: 4816
     outs:
     - path: data/08_reporting/interp_vis/super_model
-      md5: 5685a774df3438ae34c849351eee6eb9.dir
-      size: 108042
-      nfiles: 2
+      md5: 70a4756caa5b6fa2d452c0110e2d5723.dir
+      size: 161804
+      nfiles: 3

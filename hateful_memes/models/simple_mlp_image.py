@@ -17,7 +17,7 @@ class SimpleMLPImageMaeMaeModel(BaseMaeMaeModel):
         include_top=True,
         *base_args, **base_kwargs
     ):
-        super().__init__(*base_args, **base_kwargs)
+        super().__init__(*base_args, **base_kwargs, plot_name="Simple-MLP-image")
         # TODO better batch norm usage and remove bias
 
         self.l1 = nn.Linear(1*224*224*3, dense_dim)

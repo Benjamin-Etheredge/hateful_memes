@@ -25,7 +25,7 @@ class VisualBertModule(BaseMaeMaeModel):
         *base_args, **base_kwargs
     ):
         """ Visual Bert Model """
-        super().__init__(*base_args, **base_kwargs)
+        super().__init__(*base_args, **base_kwargs, plot_name="VisualBERT")
         visual_bert = VisualBertModel.from_pretrained("uclanlp/visualbert-vqa-coco-pre")
         # ic(self.visual_bert)
         # ic(self.visual_bert.config)

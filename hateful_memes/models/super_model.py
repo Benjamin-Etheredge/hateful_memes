@@ -42,9 +42,8 @@ class SuperModel(BaseMaeMaeModel):
         *base_args, **base_kwargs
     ):
         """ Super Model """
-        super().__init__(*base_args, **base_kwargs)
+        super().__init__(*base_args, **base_kwargs, plot_name="Super-model")
         ic.disable()
-
         self.models = []
         if resnet_ckpt:
             # self.models.append(ResNetModule.load_from_checkpoint(resnet_ckpt))
