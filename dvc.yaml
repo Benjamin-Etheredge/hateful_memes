@@ -708,7 +708,8 @@ stages:
     cmd: >
       python -m hateful_memes.report.interp_visualize 
       --attr_file data/08_reporting/interp_data/super_model/attr_study.pt
-      --save_name data/08_reporting/interp_vis/super_model/attr_study_vis.png
+      --save_dir data/08_reporting/interp_vis/super_model
+      --save_prefix attr_study_vis
       --ensemble
 
     deps:
@@ -717,4 +718,4 @@ stages:
       - data/08_reporting/interp_data/super_model/attr_study.pt
       
     outs:
-      - data/08_reporting/interp_vis/super_model/attr_study_vis.png
+      - data/08_reporting/interp_vis/super_model

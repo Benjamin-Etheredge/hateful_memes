@@ -751,3 +751,58 @@ stages:
       md5: f5c98863f681776c05fdf85c191ebb6c.dir
       size: 270289629
       nfiles: 1
+  interp_super:
+    cmd: "python -m hateful_memes.report.model_interp --model_name super-model --ckpt_dir\
+      \ data/06_models/super_model --batch_size 50 --save_name data/08_reporting/interp_data/super_model/attr_study.pt\
+      \ --ensemble\n"
+    deps:
+    - path: hateful_memes/models/auto_text_model.py
+      md5: 9789bb7dd6453a44b2f5863050e738ed
+      size: 3399
+    - path: hateful_memes/models/baseIT.py
+      md5: b886f244c754c0fcacc0d53bb413cccf
+      size: 3638
+    - path: hateful_memes/models/simple_image.py
+      md5: d519137d502c0d9bed201f7849d73c5c
+      size: 4595
+    - path: hateful_memes/models/simple_mlp_image.py
+      md5: 69fe90eb218b10667d9a72c084dada79
+      size: 2749
+    - path: hateful_memes/models/simple_text.py
+      md5: e97f6413ec92d21fcaa6da09b7f548be
+      size: 3886
+    - path: hateful_memes/models/super_model.py
+      md5: 24b381a65d721eb87a268b323c34d236
+      size: 7133
+    - path: hateful_memes/models/visual_bert.py
+      md5: 7dcea0d6d52e10a4f1dd5e7b80b2bb8e
+      size: 4066
+    - path: hateful_memes/report/model_interp.py
+      md5: d28ffc3d37aa9d9fa8130bce753d3eff
+      size: 11615
+    - path: hateful_memes/report/model_wrappers.py
+      md5: 8fbe29d3af8ccfbc5ec2a68b3312e5bb
+      size: 4816
+    outs:
+    - path: data/08_reporting/interp_data/super_model/attr_study.pt
+      md5: 3df12afc76ce2be742deb422ea2ab3a3
+      size: 43028835
+  vis_super:
+    cmd: "python -m hateful_memes.report.interp_visualize  --attr_file data/08_reporting/interp_data/super_model/attr_study.pt\
+      \ --save_dir data/08_reporting/interp_vis/super_model --save_prefix attr_study_vis\
+      \ --ensemble\n"
+    deps:
+    - path: data/08_reporting/interp_data/super_model/attr_study.pt
+      md5: 3df12afc76ce2be742deb422ea2ab3a3
+      size: 43028835
+    - path: hateful_memes/report/interp_visualize.py
+      md5: 4f921c78562acb58f743e66d6f24e80e
+      size: 11302
+    - path: hateful_memes/report/model_wrappers.py
+      md5: 8fbe29d3af8ccfbc5ec2a68b3312e5bb
+      size: 4816
+    outs:
+    - path: data/08_reporting/interp_vis/super_model
+      md5: 5685a774df3438ae34c849351eee6eb9.dir
+      size: 108042
+      nfiles: 2

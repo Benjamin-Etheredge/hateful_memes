@@ -11,6 +11,7 @@ from matplotlib import cm
 from matplotlib.colors import ListedColormap
 import click
 import json
+from pathlib import Path
 
 from hateful_memes.report.model_wrappers import InterpModel
 
@@ -198,11 +199,14 @@ def visualize_model_attributions(attrs, inputs, y_hat, y, sub_models, model_name
         sub_tot_attr_stack.append(sub_attr_total[name].unsqueeze(0).numpy())
     sub_attrs_plot = np.concatenate(sub_attr_stack)
     sub_tot_attrs_plot = np.concatenate(sub_tot_attr_stack).T
+    
     # Visualize
-    fig = plt.figure(figsize=(20,6))
-    gs = fig.add_gridspec(1, 2, left=0.05, right=0.95, bottom=0.1, top=0.75, wspace=0.3)
+    #fig = plt.figure(figsize=(20,6))
+    #gs = fig.add_gr(idspec(1, 2, left=0.05, right=0.95, bottom=0.1, top=0.75, wspace=0.3)
     # Average ensemble-layer contributions per sub-model
-    ax = fig.add_subplot(gs[0, 0])
+    fig0 = plt.figure(figsize=(11,6))
+    gs0 = fig0.add_gridspec(1, 1, left=0.25, right=0.95)
+    ax0 = fig0.add_subplot(gs0[0,0])
     color_res = 256
     viridis = cm.get_cmap('viridis', color_res)
     custom_colors = viridis(np.linspace(0,1,color_res))
@@ -210,20 +214,31 @@ def visualize_model_attributions(attrs, inputs, y_hat, y, sub_models, model_name
     invalid_bound = floor(0.05 * color_res)
     custom_colors[:invalid_bound] = invalid_color
     custom_cm = ListedColormap(custom_colors)
-    pc = ax.pcolor(sub_attrs_plot, cmap=custom_cm, rasterized=True)
-    ax.set_aspect(50.0)
-    ax.xaxis.set_ticks_position("none")
-    ax.set_xticklabels([])
-    ax.set_yticks(np.arange(len(sub_names))+0.5, labels=sub_names)
-    ax.yaxis.tick_right()
-    ax.set_title("Avg. Ensemble Layer Attribution by Sub-Model")
-    cb = fig.colorbar(pc, ax=ax, location='left')
+    pc = ax0.pcolor(sub_attrs_plot, cmap=custom_cm, rasterized=True)
+    ax0.set_aspect(50.0)
+    #ax0.xaxis.set_ticks_position("none")
+    ax0.set_xticks(np.arange(0, max_hidden, 64), labels=[str(_x) for _x in range(0, max_hidden, 64)])
+    ax0.set_xlabel("Ensemble layer section size (neurons)")
+    ax0.set_yticks(np.arange(len(sub_names))+0.5, labels=sub_names)
+    ax0.set_ylabel("Sub-model name")
+    #ax0.yaxis.tick_right()
+    ax0.set_title("Avg. Ensemble Layer Attribution by Sub-Model")
+    cb = fig0.colorbar(pc, ax=ax0, location='right')
+    save0 = save_name + "_0.png"
+    fig0.savefig(save0)
+
     # Absolute total attribution per sub-model over N runs
-    ax2 = fig.add_subplot(gs[0,1])
-    ax2.boxplot(sub_tot_attrs_plot, vert=False)
-    ax2.set_title("Total Attribution per Sub-Model")
-    
-    fig.savefig(save_name)
+    fig1 = plt.figure(figsize=(11, 6))
+    gs1 = fig1.add_gridspec(1, 1, left=0.25, right=0.95)
+    ax1 = fig1.add_subplot(gs1[0,0])
+    #ax1.set_xticks(np.arange(0, max_hidden, 64), labels=[str(_x) for _x in range(0, max_hidden, 64)])
+    ax1.boxplot(sub_tot_attrs_plot, vert=False)
+    ax1.set_xlabel("Total attribution to logit")
+    ax1.set_yticks(np.arange(len(sub_names))+0.5, labels=sub_names)
+    ax1.set_ylabel("Sub-model name")
+    ax1.set_title("Total Attribution per Sub-Model")
+    save1 = save_name + "_1.png"    
+    fig1.savefig(save1)
 
 
 def visualize_attributions(attrs, inputs, y_hat, y, tokenizer, sub_models, model_name,
@@ -238,9 +253,10 @@ def visualize_attributions(attrs, inputs, y_hat, y, tokenizer, sub_models, model
 
 @click.command
 @click.option('--attr_file', default='data/08_reporting/tmp.pt', help='PT file in which attribution scores are stored')
-@click.option('--save_name', default='tmp.png')
+@click.option('--save_dir', default='data/08_reporting')
+@click.option('--save_prefix', default='tmp')
 @click.option('--ensemble', is_flag=True, help='Visualize model attribution for an ensemble')
-def visualize(attr_file:str, save_name:str, ensemble:bool):
+def visualize(attr_file:str, save_dir:str, save_prefix:str, ensemble:bool):
     ## Retrive data sample
     data_sample = torch.load(attr_file)
     model_name = data_sample['model_name']
@@ -256,10 +272,15 @@ def visualize(attr_file:str, save_name:str, ensemble:bool):
     }
     y_hat = interp_model.inner_model(data_sample)
     y = data_sample["label"] 
-    
+
+    ## Set up outdir
+    if ~Path(save_dir).exists():
+        os.mkdir(save_dir)
+    save_prefix = os.path.join(save_dir, save_prefix)
+
     ## Visualize
     visualize_attributions(data_sample, inputs, y_hat, y, interp_model.tokenizer,
-        interp_model.sub_models, model_name, save_name, ensemble)
+        interp_model.sub_models, model_name, save_prefix, ensemble)
 
 
 if __name__ == '__main__':
