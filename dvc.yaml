@@ -679,7 +679,8 @@ stages:
       --model_name super-model
       --ckpt_dir data/06_models/super_model
       --batch_size 50
-      --save_name data/08_reporting/interp_data/super_model/attr_study.pt
+      --save_dir data/08_reporting/interp_data/super_model
+      --save_prefix attr_study
       --ensemble
 
     deps:
@@ -694,14 +695,14 @@ stages:
       - hateful_memes/models/auto_text_model.py
     
     outs:
-      - data/08_reporting/interp_data/super_model/attr_study.pt
+      - data/08_reporting/interp_data/super_model
 
 
 
   vis_super:
     cmd: >
       python -m hateful_memes.report.interp_visualize 
-      --attr_file data/08_reporting/interp_data/super_model/attr_study.pt
+      --attr_file data/08_reporting/interp_data/super_model
       --save_dir data/08_reporting/interp_vis/super_model
       --save_prefix attr_study_vis
       --ensemble
@@ -709,7 +710,7 @@ stages:
     deps:
       - hateful_memes/report/interp_visualize.py
       - hateful_memes/report/model_wrappers.py
-      - data/08_reporting/interp_data/super_model/attr_study.pt
+      - data/08_reporting/interp_data/super_model
       
     outs:
       - data/08_reporting/interp_vis/super_model

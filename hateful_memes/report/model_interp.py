@@ -26,6 +26,7 @@ import sys
 import torch.nn.functional as F
 from math import ceil, floor
 import json
+from pytorch_lightning.utilities.seed import seed_everything
 
 import hateful_memes
 from hateful_memes.data.hateful_memes import MaeMaeDataModule
@@ -156,12 +157,23 @@ def get_ensemble_attributions(interp_model:InterpModel, data_sample):
 def interp(model_name:str, ckpt_dir:str, batch_size:int, save_dir:str, save_prefix:str,
     ensemble:bool, trials:int):
     
+    seed_everything(42)
+
     ## DataLoader
     B = batch_size if ensemble else 1
     datamodule = MaeMaeDataModule(batch_size=B) # Attributors want one sample at a time?
     datamodule.prepare_data()
     datamodule.setup("fit")
-    dataloader = datamodule.test_dataloader()    
+
+    dataloader = torch.utils.data.DataLoader(
+        datamodule.test_dataset,
+        batch_size=datamodule.batch_size,
+        shuffle=True,
+        num_workers=2,
+        pin_memory=datamodule.pin_memory,
+        persistent_workers=datamodule.persitent_workers,
+        collate_fn=datamodule.collate_fn,
+    ) 
     
     ## Set up outdir
     if not Path(save_dir).exists():
