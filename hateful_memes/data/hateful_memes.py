@@ -179,7 +179,8 @@ def collate_fn(batch):
         image=images,
         raw_pil_image=raw_pil_images,
         # raw_np_image=raw_np_images,
-        text=texts,
+        # text=texts,
+        text = list(texts),
         label=labels
     )
 

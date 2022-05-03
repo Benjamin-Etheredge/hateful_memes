@@ -1,0 +1,65 @@
+name: Interpret super model
+on: 
+    workflow_dispatch:
+    # push:
+    #   paths:
+    #     - 'config/hateful_ofa.yaml'
+    #     - 'dvc.yaml'
+    #     - .github/workflows/train_ofa.yml
+    #     - hateful_memes/models/hateful_ofa.py
+# defaults:
+#     run:
+#       shell: bash
+jobs:
+  get_attr:
+    runs-on: [self-hosted, gpu]
+    container:
+      # image: etheredgeb/hateful-memes:cicd
+      image: docker://iterativeai/cml:0-dvc2-base1-gpu
+      # image: docker://python:3.8
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.MINIO_AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.MINIO_AWS_SECRET_ACCESS_KEY }}
+        WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        ENABLE_PROGRESS_BAR: 0
+        TOKENIZERS_PARALLELISM: false
+      options: --gpus all --shm-size=8G
+
+    timeout-minutes: 1440  # Increased job runtime since ML is slow
+    steps:
+      # HOTFIX: https://github.com/actions/checkout/issues/760
+      - name: work around permission issue
+        run: git config --global --add safe.directory /__w/hateful_memes/hateful_memes
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Branch name
+        run: echo running on branch ${GITHUB_REF##*/}
+
+      - name: Install requirements
+        run: |
+          pip install -r requirements.txt --no-cache-dir
+          pip install -e .
+
+      - name: Pull data
+        run: 
+          dvc pull data/01_raw/hateful_memes
+
+      - name: Pull everything else
+        continue-on-error: true
+        run: dvc pull -a --run-cache
+
+      - name: Get sub-model attribution scores
+        continue-on-error: false
+        run: |
+          dvc repro interp_super
+          dvc push -d interp_super
+
+      - name: Commit run
+        run: |
+          cml ci
+          cml pr .
+        
+

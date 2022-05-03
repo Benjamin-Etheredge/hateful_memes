@@ -61,8 +61,6 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
     
     def forward(self, batch):
         text_features = batch['text']
-        ic(text_features)
-        ic(type(text_features))
         input = self.tokenizer(text_features, padding='max_length', truncation=True, max_length=self.max_length)
         # ic(input.keys())
         ids = torch.tensor(input['input_ids']).to(self.device)

@@ -667,3 +667,54 @@ stages:
       - hateful_memes/models/hateful_ofa.py
     outs:
       - data/06_models/hateful_ofa
+
+
+  ################################################################################
+  # REPORTING
+  ################################################################################
+
+  interp_super:
+    vars:
+      - config/reporting.yaml
+
+    cmd: >
+      python -m hateful_memes.report.model_interp
+      --model_name super-model
+      --ckpt_dir data/06_models/super_model
+      --batch_size ${super.batch_size}
+      --save_name data/08_reporting/interp_data/super_model/attr_study.pt
+      --ensemble
+
+    deps:
+      - hateful_memes/report/model_interp.py
+      - hateful_memes/report/model_wrappers.py
+      - hateful_memes/models/super_model.py
+      - hateful_memes/models/simple_mlp_image.py
+      - hateful_memes/models/simple_text.py
+      - hateful_memes/models/simple_image.py
+      - hateful_memes/models/visual_bert.py
+      - hateful_memes/models/baseIT.py
+      - hateful_memes/models/auto_text_model.py
+    
+    outs:
+      - data/08_reporting/interp_data/super_model/attr_study.pt
+
+
+
+  vis_super:
+    vars:
+      - config/reporting.yaml
+    
+    cmd: >
+      python -m hateful_memes.report.interp_visualize 
+      --attr_file data/08_reporting/interp_data/super_model/attr_study.pt
+      --save_name data/08_reporting/interp_vis/super_model/attr_study_vis.png
+      --ensemble
+
+    deps:
+      - hateful_memes/report/interp_visualize.py
+      - hateful_memes/report/model_wrappers.py
+      - data/08_reporting/interp_data/super_model/attr_study.pt
+      
+    outs:
+      - data/08_reporting/interp_vis/super_model/attr_study_vis.png
