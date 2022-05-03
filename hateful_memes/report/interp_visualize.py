@@ -252,25 +252,35 @@ def visualize_model_attributions(attrs, inputs, y_hat, y, sub_models, model_name
     tn_attr = sub_tot_attrs_plot[tn_idx]
     fp_attr = sub_tot_attrs_plot[fp_idx]
     fn_attr = sub_tot_attrs_plot[fn_idx]
+    num_pos = tp_attr.shape[0] + fn_attr.shape[0]
+    num_neg = tn_attr.shape[0] + fp_attr.shape[0]
+    tp_rate = tp_attr.shape[0]/num_pos
+    tn_rate = tn_attr.shape[0]/num_neg
+    fp_rate = fp_attr.shape[0]/num_neg
+    fn_rate = fn_attr.shape[0]/num_pos
     
     fig2 = plt.figure(figsize=(17,8))
     gs2 = fig2.add_gridspec(2, 2, left=0.1, right=0.95, wspace=0.35)
     ax2_tp = fig2.add_subplot(gs2[0,0])
-    ax2_tp.boxplot(tp_attr, vert=False) 
+    ax2_tp.violinplot(tp_attr, vert=False, showmedians=True) 
     ax2_tp.set_yticklabels(sub_names)
-    ax2_tp.set_title("True Positives")
-    ax2_tn = fig2.add_subplot(gs2[0,1]) 
-    ax2_tn.boxplot(tn_attr, vert=False) 
+    ax2_tp.set_xlim(-0.6, 1.2)
+    ax2_tp.set_title("True Positives (%0.2g)" % tp_rate)
+    ax2_tn = fig2.add_subplot(gs2[1,1]) 
+    ax2_tn.violinplot(tn_attr, vert=False, showmedians=True) 
     ax2_tn.set_yticklabels(sub_names)
-    ax2_tn.set_title("True Negatives")
+    ax2_tn.set_xlim(-0.6, 1.2)
+    ax2_tn.set_title("True Negatives (%0.2g)" % tn_rate)
     ax2_fp = fig2.add_subplot(gs2[1,0]) 
-    ax2_fp.boxplot(fp_attr, vert=False) 
+    ax2_fp.violinplot(fp_attr, vert=False, showmedians=True) 
     ax2_fp.set_yticklabels(sub_names)
-    ax2_fp.set_title("False Positives")
-    ax2_fn = fig2.add_subplot(gs2[1,1]) 
-    ax2_fn.boxplot(fn_attr, vert=False) 
+    ax2_fp.set_xlim(-0.6, 1.2)
+    ax2_fp.set_title("False Positives (%0.2g)" % fp_rate)
+    ax2_fn = fig2.add_subplot(gs2[0,1]) 
+    ax2_fn.violinplot(fn_attr, vert=False, showmedians=True) 
     ax2_fn.set_yticklabels(sub_names)
-    ax2_fn.set_title("False Negatives")
+    ax2_fn.set_xlim(-0.6, 1.2)
+    ax2_fn.set_title("False Negatives (%0.2g)" % fn_rate)
     fig2.suptitle("Total Logit Attribution Per Sub-Model")
     save2 = save_name + "_2.png"
     fig2.savefig(save2)
