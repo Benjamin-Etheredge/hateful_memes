@@ -32,9 +32,9 @@ class InterpModel():
         self.sub_models = None
         if model_name == 'visual-bert':
             self.inner_model = VisualBertModule.load_from_checkpoint(checkpoint_path=ckpt_path)
-            self.image_embed_layer = self.inner_model.resnet
+            self.image_embed_layer = self.inner_model.backbone[1]
             self.attr_image_input = True
-            self.text_embed_layer = self.inner_model.visual_bert.embeddings.word_embeddings
+            self.text_embed_layer = self.inner_model.backbone[0].embeddings.word_embeddings
             self.attr_text_input = False
             self.tokenizer = self.inner_model.tokenizer
         elif model_name == 'beit':
@@ -49,11 +49,16 @@ class InterpModel():
             self.text_embed_layer = self.inner_model.model.embeddings.word_embeddings
             self.attr_text_input = False
             self.tokenizer = self.inner_model.tokenizer
+        elif model_name == 'distilbert':
+            self.inner_model = AutoTextModule.load_from_checkpoint(checkpoint_path=ckpt_path)
+            self.text_embed_layer = self.inner_model.model.embeddings.word_embeddings
+            self.attr_text_input = False
+            self.tokenizer = self.inner_model.tokenizer        
         elif model_name == 'visual-bert-with-od':
             self.inner_model = VisualBertWithODModule.load_from_checkpoint(checkpoint_path=ckpt_path)
-            self.image_embed_layer = self.inner_model.resnet
+            self.image_embed_layer = self.inner_model.backbone[1]
             self.attr_image_input = True
-            self.text_embed_layer = self.inner_model.visual_bert.embeddings.word_embeddings
+            self.text_embed_layer = self.inner_model.backbone[0].embeddings.word_embeddings
             self.attr_text_input = False
             self.tokenizer = self.inner_model.tokenizer 
         elif model_name == 'super-model':

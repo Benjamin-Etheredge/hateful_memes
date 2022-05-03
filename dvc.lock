@@ -806,3 +806,198 @@ stages:
       md5: 321a09d46d646f8e940944154bc4a6bb.dir
       size: 170469
       nfiles: 3
+  interp_vb:
+    cmd: "python -m hateful_memes.report.model_interp --model_name visual-bert --ckpt_dir\
+      \ data/06_models/visual_bert --save_dir data/08_reporting/interp_data/visual_bert\
+      \ --save_prefix attr_study --trials 20\n"
+    deps:
+    - path: hateful_memes/models/visual_bert.py
+      md5: de92369929a235b8f50619de6180e25d
+      size: 4090
+    - path: hateful_memes/report/model_interp.py
+      md5: 687fc2bf301572df6dd5c56f982d035e
+      size: 8456
+    - path: hateful_memes/report/model_wrappers.py
+      md5: d3c5977e534f029887d1a4068642fee8
+      size: 4826
+    outs:
+    - path: data/08_reporting/interp_data/visual_bert
+      md5: 66366f8592231a9f47710c84b0e677e3.dir
+      size: 56278124
+      nfiles: 20
+  vis_vb:
+    cmd: "python -m hateful_memes.report.interp_visualize  --attr_file data/08_reporting/interp_data/visual_bert\
+      \ --save_dir data/08_reporting/interp_vis/visual_bert --save_prefix attr_study_vis\n"
+    deps:
+    - path: data/08_reporting/interp_data/visual_bert
+      md5: 66366f8592231a9f47710c84b0e677e3.dir
+      size: 56278124
+      nfiles: 20
+    - path: hateful_memes/report/interp_visualize.py
+      md5: 815373c5ef414a421a1206cd2bb87d46
+      size: 13470
+    - path: hateful_memes/report/model_wrappers.py
+      md5: d3c5977e534f029887d1a4068642fee8
+      size: 4826
+    outs:
+    - path: data/08_reporting/interp_vis/visual_bert/
+      md5: 3ac5c7e6405b467e35c1c0eab618e7c7.dir
+      size: 6278099
+      nfiles: 20
+  interp_vb@trial4:
+    cmd: "python -m hateful_memes.report.model_interp --model_name visual-bert --ckpt_dir\
+      \ data/06_models/visual_bert --save_name data/08_reporting/interp_data/visual_bert/attr_study_trial4.pt\n"
+    deps:
+    - path: hateful_memes/models/visual_bert.py
+      md5: de92369929a235b8f50619de6180e25d
+      size: 4090
+    - path: hateful_memes/report/model_interp.py
+      md5: b954023f44d3d3ec5e4186729b6c7c00
+      size: 7986
+    - path: hateful_memes/report/model_wrappers.py
+      md5: d3c5977e534f029887d1a4068642fee8
+      size: 4826
+    outs:
+    - path: data/08_reporting/interp_data/visual_bert/attr_study_trial4.pt
+      md5: 27c75e45db1fed068d89948b6804794d
+      size: 2836191
+  interp_vb@trial3:
+    cmd: "python -m hateful_memes.report.model_interp --model_name visual-bert --ckpt_dir\
+      \ data/06_models/visual_bert --save_name data/08_reporting/interp_data/visual_bert/attr_study_trial3.pt\n"
+    deps:
+    - path: hateful_memes/models/visual_bert.py
+      md5: de92369929a235b8f50619de6180e25d
+      size: 4090
+    - path: hateful_memes/report/model_interp.py
+      md5: b954023f44d3d3ec5e4186729b6c7c00
+      size: 7986
+    - path: hateful_memes/report/model_wrappers.py
+      md5: d3c5977e534f029887d1a4068642fee8
+      size: 4826
+    outs:
+    - path: data/08_reporting/interp_data/visual_bert/attr_study_trial3.pt
+      md5: 27c75e45db1fed068d89948b6804794d
+      size: 2836191
+  vis_vb@trial3:
+    cmd: "python -m hateful_memes.report.interp_visualize  --attr_file data/08_reporting/interp_data/visual_bert/attr_study_trial3.pt\
+      \ --save_dir data/08_reporting/interp_vis/visual_bert --save_prefix attr_study_vis_trial3\n"
+    deps:
+    - path: data/08_reporting/interp_data/visual_bert/attr_study_trial3.pt
+      md5: 27c75e45db1fed068d89948b6804794d
+      size: 2836191
+    - path: hateful_memes/report/interp_visualize.py
+      md5: b02a4d159bb3c1564fd2711fb9de4e08
+      size: 13259
+    - path: hateful_memes/report/model_wrappers.py
+      md5: d3c5977e534f029887d1a4068642fee8
+      size: 4826
+    outs:
+    - path: data/08_reporting/interp_vis/visual_bert/attr_study_vis_trial3.png
+      md5: d8f5d8fc1f95b926cf6917209f4f8065
+      size: 344353
+  interp_vb@trial2:
+    cmd: "python -m hateful_memes.report.model_interp --model_name visual-bert --ckpt_dir\
+      \ data/06_models/visual_bert --save_name data/08_reporting/interp_data/visual_bert/attr_study_trial2.pt\n"
+    deps:
+    - path: hateful_memes/models/visual_bert.py
+      md5: de92369929a235b8f50619de6180e25d
+      size: 4090
+    - path: hateful_memes/report/model_interp.py
+      md5: b954023f44d3d3ec5e4186729b6c7c00
+      size: 7986
+    - path: hateful_memes/report/model_wrappers.py
+      md5: d3c5977e534f029887d1a4068642fee8
+      size: 4826
+    outs:
+    - path: data/08_reporting/interp_data/visual_bert/attr_study_trial2.pt
+      md5: 27c75e45db1fed068d89948b6804794d
+      size: 2836191
+  vis_vb@trial2:
+    cmd: "python -m hateful_memes.report.interp_visualize  --attr_file data/08_reporting/interp_data/visual_bert/attr_study_trial2.pt\
+      \ --save_dir data/08_reporting/interp_vis/visual_bert --save_prefix attr_study_vis_trial2\n"
+    deps:
+    - path: data/08_reporting/interp_data/visual_bert/attr_study_trial2.pt
+      md5: 27c75e45db1fed068d89948b6804794d
+      size: 2836191
+    - path: hateful_memes/report/interp_visualize.py
+      md5: b02a4d159bb3c1564fd2711fb9de4e08
+      size: 13259
+    - path: hateful_memes/report/model_wrappers.py
+      md5: d3c5977e534f029887d1a4068642fee8
+      size: 4826
+    outs:
+    - path: data/08_reporting/interp_vis/visual_bert/attr_study_vis_trial2.png
+      md5: 66a543d0f6a05a91bb1f7fca2174e2f4
+      size: 344512
+  interp_vb@trial10:
+    cmd: "python -m hateful_memes.report.model_interp --model_name visual-bert --ckpt_dir\
+      \ data/06_models/visual_bert --save_name data/08_reporting/interp_data/visual_bert/attr_study_trial10.pt\n"
+    deps:
+    - path: hateful_memes/models/visual_bert.py
+      md5: de92369929a235b8f50619de6180e25d
+      size: 4090
+    - path: hateful_memes/report/model_interp.py
+      md5: b954023f44d3d3ec5e4186729b6c7c00
+      size: 7986
+    - path: hateful_memes/report/model_wrappers.py
+      md5: d3c5977e534f029887d1a4068642fee8
+      size: 4826
+    outs:
+    - path: data/08_reporting/interp_data/visual_bert/attr_study_trial10.pt
+      md5: 27c75e45db1fed068d89948b6804794d
+      size: 2836191
+  vis_vb@trial10:
+    cmd: "python -m hateful_memes.report.interp_visualize  --attr_file data/08_reporting/interp_data/visual_bert/attr_study_trial10.pt\
+      \ --save_dir data/08_reporting/interp_vis/visual_bert --save_prefix attr_study_vis_trial10\n"
+    deps:
+    - path: data/08_reporting/interp_data/visual_bert/attr_study_trial10.pt
+      md5: 27c75e45db1fed068d89948b6804794d
+      size: 2836191
+    - path: hateful_memes/report/interp_visualize.py
+      md5: b02a4d159bb3c1564fd2711fb9de4e08
+      size: 13259
+    - path: hateful_memes/report/model_wrappers.py
+      md5: d3c5977e534f029887d1a4068642fee8
+      size: 4826
+    outs:
+    - path: data/08_reporting/interp_vis/visual_bert/attr_study_vis_trial10.png
+      md5: 66a543d0f6a05a91bb1f7fca2174e2f4
+      size: 344512
+  interp_dbert:
+    cmd: "python -m hateful_memes.report.model_interp --model_name distilbert --ckpt_dir\
+      \ data/06_models/distilbert --save_dir data/08_reporting/interp_data/distilbert\
+      \ --save_prefix attr_study --trials 20\n"
+    deps:
+    - path: hateful_memes/models/auto_text_model.py
+      md5: 68e0c237a051e862975877073a85480f
+      size: 3465
+    - path: hateful_memes/report/model_interp.py
+      md5: 687fc2bf301572df6dd5c56f982d035e
+      size: 8456
+    - path: hateful_memes/report/model_wrappers.py
+      md5: ade70958c8f001e6e8df4bf4853bd958
+      size: 5152
+    outs:
+    - path: data/08_reporting/interp_data/distilbert
+      md5: 5456e27d6c94360c5407a7cec460d34f.dir
+      size: 28257404
+      nfiles: 20
+  vis_dbert:
+    cmd: "python -m hateful_memes.report.interp_visualize  --attr_file data/08_reporting/interp_data/distilbert\
+      \ --save_dir data/08_reporting/interp_vis/distilbert --save_prefix attr_study_vis\n"
+    deps:
+    - path: data/08_reporting/interp_data/distilbert
+      md5: 5456e27d6c94360c5407a7cec460d34f.dir
+      size: 28257404
+      nfiles: 20
+    - path: hateful_memes/report/interp_visualize.py
+      md5: f2fa731291cbb35f5965abe676177bf8
+      size: 13454
+    - path: hateful_memes/report/model_wrappers.py
+      md5: ade70958c8f001e6e8df4bf4853bd958
+      size: 5152
+    outs:
+    - path: data/08_reporting/interp_vis/distilbert
+      md5: d9c3283013151fda0827286847bdb7c0.dir
+      size: 2618994
+      nfiles: 20

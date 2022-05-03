@@ -12,6 +12,7 @@ from matplotlib.colors import ListedColormap
 import click
 import json
 from pathlib import Path
+import glob
 
 from hateful_memes.report.model_wrappers import InterpModel
 
@@ -26,18 +27,19 @@ def visualize_input_attributions(attrs, inputs, y_hat, y, tokenizer, model_name,
     save_name="tmp.png"):
     
     # Prediction string
-    y_hat = y_hat.item()
+    y_hat = y_hat
     y_hat_prob = F.sigmoid(y_hat)
-    pred = 1 if y_hat_prob>=0.5 else 0
-    y_hat_label = "Hateful" if pred==1 else "Not Hateful" 
-    y_label = "Hateful" if y==1 else "Not Hateful" 
+    pred = y_hat_prob>=0.5
+    y_hat_label = "Hateful" if pred.item()==1 else "Not Hateful" 
+    y_label = "Hateful" if y.item()==1 else "Not Hateful" 
     pn_str = "positive"
     tf_str = "false"
-    if y==pred:
+    if y.item()==pred.item():
         tf_str = "true"
-    if pred==0:
+    if pred.item()==0:
         pn_str = "negative"
-    pred_str = "Model predicted: \"%s\", w/ prob. %.3g\n(%s %s)" % (y_hat_label, y_hat_prob, tf_str, pn_str)
+        y_hat_prob = 1 - y_hat_prob
+    pred_str = "Model predicted: \"%s\", w/ prob. %.3g\n(%s %s)" % (y_hat_label, y_hat_prob.item(), tf_str, pn_str)
 
     # Both visualizations use the original image
     img_in = inputs['img']
@@ -88,7 +90,7 @@ def visualize_input_attributions(attrs, inputs, y_hat, y, tokenizer, model_name,
         if all_attrs is not None:
             all_attrs = np.concatenate([all_attrs, txt_attr.numpy().copy().flatten()])
         else:
-            all_attrs = np.concatenate(txt_attr.numpy().copy().flatten())
+            all_attrs = txt_attr.numpy().copy().flatten()
 
     attrs_norm = np.linalg.norm(all_attrs)
 
@@ -96,7 +98,7 @@ def visualize_input_attributions(attrs, inputs, y_hat, y, tokenizer, model_name,
     if 'img' in attrs.keys():
         axi = fig.add_subplot(gs[0, current_sub])
         current_sub += 1
-        img_attr_comb = np.sum(img_attr_vis, axis=-1)
+        #img_attr_comb = np.sum(img_attr_vis, axis=-1)
         #img_attr_normed = img_attr_comb/np.linalg.norm(img_attr_comb)
         img_attr_normed = img_attr_comb/attrs_norm
         grey_img = rgb_to_grey(img_in_vis)
@@ -297,35 +299,39 @@ def visualize_attributions(attrs, inputs, y_hat, y, tokenizer, sub_models, model
 
 
 @click.command
-@click.option('--attr_file', default='data/08_reporting/tmp.pt', help='PT file in which attribution scores are stored')
+@click.option('--attr_file', default='data/08_reporting', help='Directory in which attribution scores are stored')
 @click.option('--save_dir', default='data/08_reporting')
 @click.option('--save_prefix', default='tmp')
 @click.option('--ensemble', is_flag=True, help='Visualize model attribution for an ensemble')
 def visualize(attr_file:str, save_dir:str, save_prefix:str, ensemble:bool):
-    ## Retrive data sample
-    data_sample = torch.load(attr_file)
-    model_name = data_sample['model_name']
-    ckpt_dir = data_sample['ckpt_dir']
-   
-    ## Model to interpret
-    interp_model = InterpModel(model_name, ckpt_dir) 
-
-    ## Gather inputs 
-    inputs = {
-        'img':data_sample["image"],
-        'txt':data_sample["text"]
-    }
-    y_hat = interp_model.inner_model(data_sample)
-    y = data_sample["label"] 
-
+    
     ## Set up outdir
-    if ~Path(save_dir).exists():
+    if not Path(save_dir).exists():
         os.mkdir(save_dir)
-    save_prefix = os.path.join(save_dir, save_prefix)
+    
+    pt_files = glob.glob(os.path.join(attr_file, "*.pt"))
+    for t, pt_file in enumerate(pt_files):
+        ## Retrive data sample
+        data_sample = torch.load(pt_file)
+        model_name = data_sample['model_name']
+        ckpt_dir = data_sample['ckpt_dir']
+    
+        ## Model to interpret
+        interp_model = InterpModel(model_name, ckpt_dir) 
 
-    ## Visualize
-    visualize_attributions(data_sample, inputs, y_hat, y, interp_model.tokenizer,
-        interp_model.sub_models, model_name, save_prefix, ensemble)
+        ## Gather inputs 
+        inputs = {
+            'img':data_sample["image"],
+            'txt':data_sample["text"]
+        }
+        y_hat = interp_model.inner_model(data_sample)
+        y = data_sample["label"] 
+
+        save_t = os.path.join(save_dir, save_prefix + "_%i" % (t,))
+
+        ## Visualize
+        visualize_attributions(data_sample, inputs, y_hat, y, interp_model.tokenizer,
+            interp_model.sub_models, model_name, save_t, ensemble)
 
 
 if __name__ == '__main__':
