@@ -207,21 +207,97 @@ def base_train(
         datamodule=data,
         )
 
-    # # Setup data for predictions
-    # data = MaeMaeDataModule(batch_size=batch_size)
-    # data.setup(None)
-    # train_data = data.train_dataloader(shuffle=False, drop_last=False)
-    # train_labels = []
-    # for batch in train_data:
-    #     train_labels += batch['label']
-    # val_data = data.val_dataloader()
-    # val_labels = []
-    # for batch in val_data:
-    #     val_labels += batch['label']
+    #############################################################
+    # Output Results
+    #############################################################
+    # Setup data for predictions
+    data = MaeMaeDataModule(batch_size=batch_size)
+    data.setup(None)
 
-    # train_pred, val_pred = trainer.predict(model, dataloaders=[train_data, val_data])
-    # ic(train_pred, val_pred)
+    # Load train data
+    train_data = data.train_dataloader(shuffle=False, drop_last=False)
+    train_labels = []
+    train_img_ids = []
+    for batch in train_data:
+        train_labels += batch['label'].tolist()
+        train_img_ids += batch['img_id']
 
+    # Load val data
+    val_data = data.val_dataloader()
+    val_labels = []
+    val_img_ids = []
+    for batch in val_data:
+        val_labels += batch['label'].tolist()
+        val_img_ids += batch['img_id']
+
+    # Load test data
+    test_data = data.test_dataloader()
+    test_labels = []
+    test_img_ids = []
+    for batch in test_data:
+        test_labels += batch['label'].tolist()
+        test_img_ids += batch['img_id']
+
+    # Get Predictions
+    train_batched_preds, val_batched_preds, test_batched_preds= trainer.predict(
+        model,
+        dataloaders=[train_data, val_data, test_data],
+        ckpt_path='best',
+    )
+    # train_pred, val_pred = trainer.predict(model, dataloaders=[train_data, val_data], ckpt_path='best')
+
+    # organize predictions
+    import pandas as pd
+    import time
+
+    train_preds = []
+    for batch_preds in train_batched_preds:
+        train_preds += nn.Sigmoid()(batch_preds).tolist()
+
+    val_preds = []
+    for batch_preds in val_batched_preds:
+        val_preds += nn.Sigmoid()(batch_preds).tolist()
+
+    test_preds = []
+    for batch_preds in test_batched_preds:
+        test_preds += nn.Sigmoid()(batch_preds).tolist()
+
+    train_results = pd.DataFrame(
+        dict(
+            img_id=train_img_ids,
+            label=train_labels,
+            pred=train_preds,
+            source='train',
+        )
+    )
+    
+    val_results = pd.DataFrame(
+        dict(
+            img_id=val_img_ids,
+            label=val_labels,
+            pred=val_preds,
+            source='val',
+        )
+    )
+
+    test_results = pd.DataFrame(
+        dict(
+            img_id=test_img_ids,
+            label=test_labels,
+            pred=test_preds,
+            source='test',
+        )
+    )
+
+    curr_time = time.strftime("%Y%m%d-%H%M%S")
+    full_results = pd.concat([train_results, val_results, test_results])
+    
+    out_name = model_dir.replace('06_models', '07_model_output')
+    out_fp = f'{out_name}_{curr_time}'
+
+    full_results.to_pickle(f'{out_fp}.pkl')
+    full_results.to_csv(f'{out_fp}.csv', index=False)
+    print(f'Saved full results to {out_fp}.pkl')
     # train_cm = wandb.plot.confusion_matrix(
     #     y_true=train_labels,
     #     preds=train_pred,

@@ -118,10 +118,11 @@ class MaeMaeDataset(torch.utils.data.Dataset):
 
         label = data['label']
         # TODO maybe make label transformer
+        img_id = data['id']
 
         extra_text_info = {}
 
-        return (image, text, raw_pil_image, label)
+        return (image, text, raw_pil_image, label, img_id)
         sample = dict(
             image=image,
             # raw_np_image=raw_np_image,
@@ -172,7 +173,7 @@ class MaeMaeDataset(torch.utils.data.Dataset):
         ])
 
 def collate_fn(batch):
-    images, texts, raw_pil_images, labels = zip(*batch)
+    images, texts, raw_pil_images, labels, img_ids = zip(*batch)
     # images, texts, raw_pil_images, labels = zip(*batch)
 
     # for sample in batch:
@@ -189,7 +190,8 @@ def collate_fn(batch):
         raw_pil_image=raw_pil_images,
         # raw_np_image=raw_np_images,
         text=texts,
-        label=labels
+        label=labels,
+        img_id=img_ids,
     )
 
 
