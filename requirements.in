@@ -47,3 +47,4 @@ rouge_score
 
 timm
 opencv-python-headless
+scikit-learn

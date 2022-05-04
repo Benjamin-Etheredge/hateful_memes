@@ -1,5 +1,5 @@
 vars:
-  - project_prefix: "iso_"
+  - project_prefix: ""
 
 stages:
   test_visual_bert_with_od:

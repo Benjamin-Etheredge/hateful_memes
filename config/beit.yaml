@@ -2,6 +2,6 @@ model_name: 'beit'
 batch_size: 64
 lr: 1e-3
 epochs: 1000
-dense_dim: 128
-dropout_rate: 0.2
+dense_dim: 1024
+dropout_rate: 0.1
 gradient_clip_value: 1.0
