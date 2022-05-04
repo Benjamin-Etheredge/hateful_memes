@@ -30,7 +30,7 @@ class AutoTextModule(BaseMaeMaeModel):
             config=self.config,
             # NOTE already has dropout
             )
-        ic(self.model)
+        # ic(self.model)
 
         self.max_length = max_length
         self.include_top = include_top
@@ -39,6 +39,8 @@ class AutoTextModule(BaseMaeMaeModel):
 
         self.last_hidden_size = self.config.hidden_size
         self.fc = nn.Sequential(
+            # https://github.com/huggingface/transformers/blob/v4.18.0/src/transformers/models/electra/modeling_electra.py#L961
+            nn.Dropout(dropout_rate),
             nn.Linear(self.last_hidden_size, dense_dim),
             nn.GELU(),
             nn.Dropout(dropout_rate),
@@ -60,6 +62,7 @@ class AutoTextModule(BaseMaeMaeModel):
         inputs = inputs.to(self.device)
         
         x = self.model(**inputs)
+        # ic(x.keys())
         x = x.last_hidden_state
         
         #https://github.com/huggingface/transformers/blob/v4.18.0/src/transformers/models/distilbert/modeling_distilbert.py#L691
@@ -100,5 +103,5 @@ def main(lr, max_length, dense_dim, dropout_rate, model_name,
 
 
 if __name__ == "__main__":
-    pl.seed_everything(42)
+    # pl.seed_everything(42)
     main()

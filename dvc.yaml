@@ -1,5 +1,5 @@
 vars:
-  - project_prefix: "iso_"
+  - project_prefix: ""
 
 stages:
   test_visual_bert_with_od:
@@ -502,6 +502,7 @@ stages:
         --simple_mlp_image_ckpt data/06_models/simple_mlp_image
         --simple_text_ckpt data/06_models/simple_text
         --visual_bert_ckpt data/06_models/visual_bert
+        --visual_bert_with_od_ckpt data/06_models/visual_bert_with_od
         --vit_ckpt data/06_models/vit
         --beit_ckpt data/06_models/beit
         --electra_ckpt data/06_models/electra
@@ -528,8 +529,7 @@ stages:
       - data/06_models/beit
       - data/06_models/electra
       - data/06_models/distilbert
-        # --visual_bert_with_od_ckpt data/06_models/visual_bert_with_od
-      # - data/06_models/visual_bert_with_od
+      - data/06_models/visual_bert_with_od
     outs:
       - data/06_models/super_model
   

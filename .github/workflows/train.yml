@@ -25,7 +25,7 @@ jobs:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         ENABLE_PROGRESS_BAR: 0
         TOKENIZERS_PARALLELISM: true
-      options: --gpus all --shm-size=16gb
+      options: --gpus all --shm-size=64gb
 
     timeout-minutes: 1440  # Increased job runtime since ML is slow
     steps:

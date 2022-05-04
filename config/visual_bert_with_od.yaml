@@ -1,9 +1,11 @@
-batch_size: 8
+batch_size: 32
 lr: 1e-3
 epochs: 1000
-max_length: 96
+max_length: 32
 dense_dim: 1024
-num_queries: 5
-dropout_rate: 0.2
+# Always uses og image, so 7+1 = 8
+num_queries: 3
+dropout_rate: 0.1
 gradient_clip_value: 1.0
-weight_decay: 1e-3
+weight_decay: 0
+

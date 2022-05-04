@@ -9,6 +9,7 @@ import torchvision.transforms.functional as TF
 import torchvision.models as models
 
 from transformers import BertTokenizer, VisualBertModel
+from transformers import DetrFeatureExtractor, DetrForObjectDetection
 
 import numpy as np
 
@@ -21,28 +22,31 @@ class VisualBertWithODModule(BaseMaeMaeModel):
 
     def __init__(
         self,
-        lr=0.003,
         max_length=512,
         include_top=True,
         dropout_rate=0.0,
         dense_dim=256,
         num_queries=50,
-        weight_decay=0.0,
+        *base_args, **base_kwargs
     ):
         """ Visual Bert Model """
-        super().__init__()
-        self.wd = weight_decay
+
+        super().__init__(*base_args, **base_kwargs)
         # Visual Bert
         pretrained_type = "vqa" # nlvr2 or vqa
-        self.visual_bert = VisualBertModel.from_pretrained(f"uclanlp/visualbert-{pretrained_type}-coco-pre").to(self.device)
+        self.visual_bert = VisualBertModel.from_pretrained(f"uclanlp/visualbert-{pretrained_type}-coco-pre")
+        for param in self.visual_bert.parameters(recurse=False):
+            param.requires_grad = False
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 
         # DETR object detector
-        od_model = torch.hub.load('facebookresearch/detr', 'detr_resnet101', pretrained=True)
-        od_model.to(self.device)
-        for param in od_model.parameters():
+        # od_model = torch.hub.load('facebookresearch/detr', 'detr_resnet101', pretrained=True)
+        od_model = DetrForObjectDetection.from_pretrained("facebook/detr-resnet-50")
+        self.od_feature_extractor = DetrFeatureExtractor.from_pretrained("facebook/detr-resnet-50")
+        for param in od_model.parameters(recurse=False):
             param.requires_grad = False
         od_model.eval()
+
         self.od_model = od_model
 
         # Resnet
@@ -50,24 +54,25 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         self.num_ftrs_resnet = resnet.fc.in_features
         resnet.fc = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(self.num_ftrs_resnet, self.num_ftrs_resnet),
+            # nn.Linear(self.num_ftrs_resnet, self.num_ftrs_resnet),
         )
-        for param in resnet.parameters():
-            param.requires_grad = False
-        resnet.eval()
-        resnet.to(self.device)
+        # for param in resnet.parameters():
+            # param.requires_grad = False
+        # resnet.eval()
         self.resnet = resnet
+        for param in self.resnet.parameters(recurse=False):
+            param.requires_grad = False
 
         # FC layer bridging resnet and visualbert
         if pretrained_type == "nlvr2":
             visualbert_input_dim = 1024
         elif pretrained_type == "vqa":
             visualbert_input_dim = 2048
-        self.fc_bridge = nn.Sequential(
-            nn.Linear(2048, visualbert_input_dim),
-            nn.GELU(),
-            nn.Dropout(dropout_rate),
-        )
+        # self.fc_bridge = nn.Sequential(
+        #     nn.Linear(2048, visualbert_input_dim),
+        #     nn.GELU(),
+        #     nn.Dropout(dropout_rate),
+        # )
 
         # FC layers for classification
         self.fc = nn.Sequential(
@@ -77,7 +82,6 @@ class VisualBertWithODModule(BaseMaeMaeModel):
             nn.Linear(dense_dim, 1)
         )
 
-        self.lr = lr
         self.max_length = max_length
         self.include_top = include_top
         self.dropout_rate = dropout_rate
@@ -87,35 +91,42 @@ class VisualBertWithODModule(BaseMaeMaeModel):
 
         self.backbone = [
             # self.od_model,
-            # self.resnet,
+            self.resnet,
             self.visual_bert
         ]
 
+        self.resizer = T.Resize((224, 224))
+        self.normalizer = T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         self.save_hyperparameters()
 
     def detect_objects(self, image):
 
-        images_list = [batch_img for batch_img in image]
-        od_outputs = self.od_model(images_list)
-        logits = od_outputs['pred_logits']
+        image_feats = self.od_feature_extractor(images=image, return_tensors="pt")
+
+        image_feats = image_feats.to(self.device)
+        with torch.no_grad():
+            od_outputs = self.od_model(**image_feats)
+        logits = od_outputs.logits
         probas = logits.softmax(-1)
-        batch_keep_idxs = np.argsort(probas.max(-1).values.detach().cpu().numpy())[::-1][:, :self.num_queries]
+        batch_keep_idxs = torch.argsort(probas.max(dim=-1)[0], descending=True, dim=-1)[:, :self.num_queries]
+        # batch_keep_idxs = torch.argsort(torch.max(probas, dim=-1)[0])[::-1][:, :self.num_queries]
         batch_pred_boxes = od_outputs['pred_boxes']
 
         batch_keep_boxes = []
-        for i in range(batch_keep_idxs.shape[0]):
-            img_keep_idxs = batch_keep_idxs[i]
-            img_pred_boxes = batch_pred_boxes[i]
-            img_keep_boxes = img_pred_boxes[img_keep_idxs]
-            batch_keep_boxes.append(img_keep_boxes)
-        batch_keep_boxes = torch.stack(batch_keep_boxes)
+        # for idx, img_pred_boxes in batch_keep_idxs, img_pred_boxes:
+            # batch_keep_boxes.append(img_keep_boxes)
+        batch_keep_boxes = torch.stack([pred_box[idx] for pred_box, idx in zip(batch_pred_boxes, batch_keep_idxs)])
 
         # crop images
         batch_outputs = []
-        for idx, batch_img in enumerate(images_list):
+        batch_inputs = []
+        for batch_img, img_pred_boxes in zip(image, batch_keep_boxes):
+            batch_img = T.functional.to_tensor(batch_img)
             w, h = batch_img.shape[2], batch_img.shape[1]
-            img_pred_boxes = batch_keep_boxes[idx]
             obj_imgs = []
+            obj_imgs.append(self.normalizer(self.resizer(batch_img)))
+            # obj_imgs.append(self.normalizer(self.resizer(batch_img)).to(self.device, non_blocking=True))
+
             for i in range(self.num_queries):
                 box = img_pred_boxes[i]
                 center_x, center_y, norm_w, norm_h = box
@@ -123,40 +134,39 @@ class VisualBertWithODModule(BaseMaeMaeModel):
                 upper = int(max((center_y - norm_h / 2), 0) * h)
                 right = int(min((center_x + norm_w / 2), 1) * w)
                 lower = int(min((center_y + norm_h / 2), 1) * h)
+
                 # yes, i know this is not a good idea, but it allows us to 
                 # handle situations where the object is too small (0 pixels in width or height)
                 try:
                     obj_img = batch_img[:, upper:lower, left:right]
-                    obj_img = T.Resize((224, 224))(obj_img)
+                    obj_img = self.normalizer(self.resizer(obj_img))
                 except:
-                    obj_img = torch.zeros(3, 224, 224).to(self.device)
-                obj_imgs.append(obj_img)
+                    # obj_img = torch.zeros(3, 224, 224, device=self.device)
+                    pass
             
-            # always include full image
-            obj_imgs.append(
-                T.Resize((224, 224))(batch_img)
-            )
-
             obj_imgs = torch.stack(obj_imgs)
+            # obj_img = obj_imgs.to(self.device, non_blocking=True)
+            batch_inputs.append(obj_imgs)
 
-            # with torch.no_grad():
-            img_outputs = self.resnet(obj_imgs)
+        batch_inputs = torch.stack(batch_inputs).to(self.device)
+        old_shape = batch_inputs.shape
+        # ic(batch_inputs.shape)
+        batch_inputs = batch_inputs.reshape(-1, 3, 224, 224)
+        # ic(batch_inputs.shape)
+        batch_outputs = self.resnet(batch_inputs)
+        # ic(batch_outputs.shape)
+        batch_outputs = batch_outputs.view(*old_shape[0:2], batch_outputs.shape[-1])
 
-            img_outputs = torch.squeeze(img_outputs)
-            batch_outputs.append(img_outputs)
-        image_x = torch.stack(batch_outputs)
+        image_x = batch_outputs
+        # image_x = image_x.to(self.device)
         
-        image_x = self.fc_bridge(image_x)
+        # image_x = self.fc_bridge(image_x)
 
         return image_x
 
     def forward(self, batch):
         """ Shut up """
         text = batch['text']
-        image = batch['image']
-
-        with torch.no_grad():
-            image_x = self.detect_objects(image)
 
         inputs = self.tokenizer(
             text, 
@@ -168,10 +178,14 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         inputs = {k: v.to(device=self.device, non_blocking=True) for k, v in inputs.items()}
         # inputs = inputs.to(self.device)
 
+        with torch.no_grad():
+            image_x = self.detect_objects(image)
+
         inputs.update(
             {
                 "visual_embeds": image_x,
-                "visual_token_type_ids": torch.ones(image_x.shape[:-1], dtype=torch.long, device=self.device),
+                # "visual_token_type_ids": torch.ones(image_x.shape[:-1], dtype=torch.long, device=self.device),
+                "visual_token_type_ids": torch.arange(1, image_x.shape[1]+1).repeat((image_x.shape[0], 1)).to(self.device),
                 "visual_attention_mask": torch.ones(image_x.shape[:-1], dtype=torch.float, device=self.device),
             }
         )
@@ -213,9 +227,9 @@ def main(lr, max_length, dense_dim, dropout_rate, num_queries, weight_decay, **t
         dropout_rate=dropout_rate,
         num_queries=num_queries,
         weight_decay=weight_decay)
-    base_train(model=model, **train_kwargs)
+    base_train(model=model, finetune_epochs=2, **train_kwargs)
 
 
 if __name__ == "__main__":
-    pl.seed_everything(42)
+    # pl.seed_everything(42)
     main()

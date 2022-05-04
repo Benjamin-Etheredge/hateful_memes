@@ -19,6 +19,7 @@ from captum.attr import (
     )
 from PIL import Image, ImageDraw, ImageFont
 import matplotlib.pyplot as plt
+
 from matplotlib import cm
 from matplotlib.colors import ListedColormap
 import numpy as np
@@ -43,8 +44,6 @@ from hateful_memes.report.model_wrappers import InterpModel
 
 
 
-
-
 def get_input_attributions(interp_model:InterpModel, data_sample):
     ## Calculate feature attribution
     # Features
@@ -57,10 +56,12 @@ def get_input_attributions(interp_model:InterpModel, data_sample):
     token_dict = tokenizer(text, add_special_tokens=False, return_tensors="pt")
     token_ids = token_dict['input_ids']
     image_text = (image, token_ids, pil_image)
+
     # Feature baselines
     image_baselines = torch.zeros_like(image)
     token_ref= TokenReferenceBase(reference_token_idx=tokenizer.convert_tokens_to_ids("[PAD]"))
     text_baselines = token_ref.generate_reference(token_ids.numel(), device='cpu').unsqueeze(0)
+
     pil_baselines = torch.zeros_like(pil_image)
     # Prep for attribution
     attrs = {}
@@ -101,7 +102,7 @@ def get_input_attributions(interp_model:InterpModel, data_sample):
             show_progress=True)   
         attrs['img'] = ks_attr[0]
         attrs['txt'] = ks_attr[1] 
-    
+
     return attrs
 
 
@@ -181,7 +182,6 @@ def interp(model_name:str, ckpt_dir:str, batch_size:int, save_dir:str, save_pref
 
     ## Model to interpret
     interp_model = InterpModel(model_name, ckpt_dir)
-
 
     for t, data_sample in enumerate(dataloader):
         if t >= trials:

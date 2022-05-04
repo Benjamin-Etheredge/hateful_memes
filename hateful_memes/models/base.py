@@ -1,6 +1,7 @@
 import imp
 import os
 from icecream import ic
+import numpy as np
 
 import torch
 from torch.optim.lr_scheduler import ReduceLROnPlateau
@@ -110,7 +111,7 @@ def base_train(
         monitor_metric="val/loss",
         monitor_metric_mode="min",
         stopping_patience=16,
-        mixed_precision=False,
+        mixed_precision=True,
         finetune_epochs=10,
     ):
     logger = get_project_logger(project=project, save_dir=log_dir, offline=fast_dev_run)
@@ -131,14 +132,14 @@ def base_train(
             mode=monitor_metric_mode,
             min_delta=0.0001,
             verbose=True),
-        StochasticWeightAveraging(),
+        # StochasticWeightAveraging(annealing_epochs=5), # may be causing issues with grad accumualtion
         LearningRateMonitor(),
         # Finetuner(model.backbones, finetune_epochs),
     ]
 
     try:
         model.backbone
-        callbacks.append(BackBoneOverrider(finetune_epochs, verbose=True, backbone_initial_ratio_lr=0.01, lambda_func=lambda epoch: 1.2))
+        callbacks.append(BackBoneOverrider(finetune_epochs, verbose=True, backbone_initial_ratio_lr=0.001, lambda_func=lambda _: 1.5))
         ic("Adding finetuning")
     except AttributeError:
         ic("no backbone")
@@ -153,9 +154,10 @@ def base_train(
         accumulate_grad_batches = None
     ic(accumulate_grad_batches)
     
-    trainer = Trainer(
-        devices=-1 if not fast_dev_run else 1,
-        strategy="ddp",
+    trainer_kwargs = dict(
+        # devices=-1 if not fast_dev_run else 1,
+        devices=1,
+        # strategy="ddp",
         # gpus=[1],
         accelerator='auto',
         # replace_sampler_ddp=False,
@@ -175,7 +177,8 @@ def base_train(
         # profiler="simple",
         # callbacks=[checkpoint_callback, early_stopping])
         callbacks=[*callbacks],
-    )
+        )
+    trainer = Trainer(**trainer_kwargs)
 
     data = MaeMaeDataModule(batch_size=batch_size if batch_size > 0 else 32)
     ic(model.lr)
@@ -206,33 +209,123 @@ def base_train(
     ic(model.lr)
     trainer.fit(
         model, 
-        datamodule=data,
+        datamodule=data)
+
+    if fast_dev_run:
+        return
+    #############################################################
+    # Output Results
+    #############################################################
+    # Setup data for predictions
+    data = MaeMaeDataModule(batch_size=batch_size)
+    data.setup("validate")
+
+    # Load train data
+    train_data = data.train_dataloader(shuffle=False, drop_last=False)
+
+    train_labels = data.train_dataset.info['label'].tolist()
+    train_img_ids = data.train_dataset.info['id'].tolist()
+
+    # Load val data
+    val_data = data.val_dataloader()
+    val_labels = data.val_dataset.info['label'].tolist()
+    val_img_ids = data.val_dataset.info['id'].tolist()
+
+    # Load test data
+    test_data = data.test_dataloader()
+    test_labels = data.test_dataset.info['label'].tolist()
+    test_img_ids = data.test_dataset.info['id'].tolist()
+
+    # Get Predictions
+    del trainer_kwargs['strategy']
+    del trainer_kwargs['accumulate_grad_batches']
+    trainer_kwargs['devices'] = 1
+    trainer = Trainer(**trainer_kwargs)
+    train_batched_preds, val_batched_preds, test_batched_preds= trainer.predict(
+        model,
+        dataloaders=[train_data, val_data, test_data],
+    )
+    # train_pred, val_pred = trainer.predict(model, dataloaders=[train_data, val_data], ckpt_path='best')
+
+    # organize predictions
+    import pandas as pd
+    import time
+
+    ic(len(train_batched_preds), len(val_batched_preds), len(test_batched_preds))
+    ic(len(train_labels), len(val_labels), len(test_labels))
+    ic(len(train_img_ids), len(val_img_ids), len(test_img_ids))
+    train_preds = []
+    for batch_preds in train_batched_preds:
+        train_preds += torch.sigmoid(batch_preds.type(torch.float32)).tolist()
+
+    val_preds = []
+    for batch_preds in val_batched_preds:
+        val_preds += torch.sigmoid(batch_preds.type(torch.float32)).tolist()
+
+    test_preds = []
+    for batch_preds in test_batched_preds:
+        test_preds += torch.sigmoid(batch_preds.type(torch.float32)).tolist()
+    ic(len(train_preds), len(val_preds), len(test_preds))
+
+    train_results = pd.DataFrame(
+        dict(
+            img_id=train_img_ids,
+            label=train_labels,
+            pred=train_preds,
+            source=['train']*len(train_img_ids),
         )
+    )
+    
+    val_results = pd.DataFrame(
+        dict(
+            img_id=val_img_ids,
+            label=val_labels,
+            pred=val_preds,
+            source=['val']*len(val_img_ids),
+        )
+    )
 
-    # # Setup data for predictions
-    # data = MaeMaeDataModule(batch_size=batch_size)
-    # data.setup(None)
-    # train_data = data.train_dataloader(shuffle=False, drop_last=False)
-    # train_labels = []
-    # for batch in train_data:
-    #     train_labels += batch['label']
-    # val_data = data.val_dataloader()
-    # val_labels = []
-    # for batch in val_data:
-    #     val_labels += batch['label']
+    test_results = pd.DataFrame(
+        dict(
+            img_id=test_img_ids,
+            label=test_labels,
+            pred=test_preds,
+            source=['test']*len(test_img_ids),
+        )
+    )
 
-    # train_pred, val_pred = trainer.predict(model, dataloaders=[train_data, val_data])
-    # ic(train_pred, val_pred)
+    curr_time = time.strftime("%Y%m%d-%H%M%S")
+    full_results = pd.concat([train_results, val_results, test_results])
+    
+    out_folder = model_dir.replace('06_models', '07_model_output')
+    if not os.path.exists(out_folder):
+        os.mkdir(out_folder)
+    out_fp = os.path.join(out_folder, curr_time)
 
-    # train_cm = wandb.plot.confusion_matrix(
-    #     y_true=train_labels,
-    #     preds=train_pred,
-    #     class_names=['not hateful', 'hateful'],
-    # )
-    # val_cm = wandb.plot.confusion_matrix(
-    #     y_true=val_labels,
-    #     preds=val_pred,
-    #     class_names=['not hateful', 'hateful'],
-    # )
-    # wandb.log({"train_cm": train_cm})
-    # wandb.log({"val_cm": val_cm})
+    full_results.to_pickle(f'{out_fp}.pkl')
+    full_results.to_csv(f'{out_fp}.csv', index=False)
+    print(f'Saved full results to {out_fp}.pkl')
+    train_cm = wandb.plot.confusion_matrix(
+        y_true=np.array(train_labels),
+        preds=None,
+        probs=torch.stack([torch.tensor(train_preds), 1 - torch.tensor(train_preds)], dim=1).numpy(),
+        class_names=['not hateful', 'hateful'],
+    )
+    val_cm = wandb.plot.confusion_matrix(
+        y_true=np.array(val_labels),
+        preds=None,
+        probs=torch.stack([torch.tensor(val_preds), 1 - torch.tensor(val_preds)], dim=1).numpy(),
+        class_names=['not hateful', 'hateful'],
+    )
+    test_cm = wandb.plot.confusion_matrix(
+        y_true=np.array(test_labels),
+        preds=None,
+        probs=torch.stack([torch.tensor(test_preds), 1 - torch.tensor(test_preds)], dim=1).numpy(),
+        class_names=['not hateful', 'hateful'],
+    )
+
+    wandb.log({
+        "train_cm": train_cm,
+        "val_cm": val_cm,
+        "test_cm": test_cm,
+    })

@@ -150,5 +150,5 @@ def main(lr, dense_dim, dropout_rate, batch_norm,
 
 
 if __name__ == "__main__":
-    pl.seed_everything(42)
+    # pl.seed_everything(42)
     main()

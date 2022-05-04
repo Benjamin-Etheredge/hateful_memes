@@ -25,12 +25,16 @@ class VisualBertModule(BaseMaeMaeModel):
         *base_args, **base_kwargs
     ):
         """ Visual Bert Model """
-        super().__init__(*base_args, **base_kwargs, plot_name="VisualBERT")
+        super().__init__(*base_args, **base_kwargs)
         visual_bert = VisualBertModel.from_pretrained("uclanlp/visualbert-vqa-coco-pre")
+        for param in visual_bert.parameters(recurse=True):
+            param.requires_grad = False
         # ic(self.visual_bert)
         # ic(self.visual_bert.config)
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
         resnet = models.resnet50(pretrained=True)
+        for param in resnet.parameters(recurse=True):
+            param.requires_grad = False
         self.num_ftrs_resnet = resnet.fc.in_features
         resnet.fc = nn.Flatten()
         self.resnet_fc = nn.Linear(self.num_ftrs_resnet, self.num_ftrs_resnet)
@@ -124,5 +128,5 @@ def main(lr, max_length, dense_dim, dropout_rate,
 
 
 if __name__ == "__main__":
-    pl.seed_everything(42)
+    # pl.seed_everything(42)
     main()

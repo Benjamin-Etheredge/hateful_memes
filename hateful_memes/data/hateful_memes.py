@@ -34,7 +34,7 @@ class MaeMaeDataset(torch.utils.data.Dataset):
         if set == "train": 
             self.info = pd.read_json(self.root_dir/"train.jsonl", lines=True)
 
-        elif set == "super_train": 
+        elif set == "super_train" or set == "val_train": 
             info0 = pd.read_json(self.root_dir/"train.jsonl", lines=True)
             # info1 = pd.read_json(self.root_dir/"dev_seen.jsonl", lines=True)
             info2 = pd.read_json(self.root_dir/"test_seen.jsonl", lines=True)
@@ -72,10 +72,14 @@ class MaeMaeDataset(torch.utils.data.Dataset):
         # if self.txt_transforms is None:
         #     self.txt_transforms = self.create_text_transform()
         if self.img_transforms is None:
-            if "train" in set:
+            if "super_train" == set or "train" == set:
                 ic("train set")
                 self.img_transforms = self.base_train_img_transforms()
                 self.pil_img_transforms = self.base_train_pil_img_transforms()
+            elif "val_train" == set:
+                ic("val train set")
+                self.img_transforms = self.base_test_img_transforms()
+                self.pil_img_transforms = self.base_test_pil_img_transforms()
             else:
                 ic("test set")
                 self.img_transforms = self.base_test_img_transforms()
@@ -118,6 +122,7 @@ class MaeMaeDataset(torch.utils.data.Dataset):
 
         label = data['label']
         # TODO maybe make label transformer
+        img_id = data['id']
 
         extra_text_info = {}
 
@@ -127,13 +132,13 @@ class MaeMaeDataset(torch.utils.data.Dataset):
     # TODO vocab is broken between train and test
     def base_train_img_transforms(self):
         return T.Compose([
-            T.RandomHorizontalFlip(p=0.1),
-            # T.RandomVerticalFlip(),
+            T.RandomHorizontalFlip(p=0.5),
+            T.RandomVerticalFlip(p=0.1),
             # transforms.ToPILImage(mode='RGB'),
-            # T.RandomRotation(degrees=15),
+            T.RandomRotation(degrees=15),
             T.AutoAugment(T.AutoAugmentPolicy.IMAGENET),
-            T.RandomResizedCrop(scale=(0.5, 1), size=(224,224)), # this does good for slowing overfitting
-            T.Resize(size=(224,224)),
+            T.RandomResizedCrop(scale=(0.2, 1), size=(224,224)), # this does good for slowing overfitting
+            # T.Resize(size=(224,224)),
             T.ToTensor(), # this already seems to scale okay
             T.Normalize(mean=[0.485, 0.456, 0.406],
                         std=[0.229, 0.224, 0.225]),
@@ -153,17 +158,21 @@ class MaeMaeDataset(torch.utils.data.Dataset):
     def base_train_pil_img_transforms(self):
         return T.Compose([
             T.RandomHorizontalFlip(p=0.1),
+            T.RandomVerticalFlip(p=0.1),
+            T.RandomRotation(degrees=15),
             T.AutoAugment(T.AutoAugmentPolicy.IMAGENET),
-            T.RandomResizedCrop(scale=(0.5, 1), size=(224,224)), # this does good for slowing overfitting
+            # T.RandomResizedCrop(scale=(0.5, 1), size=(224,224)), # this does good for slowing overfitting
         ])
 
     def base_test_pil_img_transforms(self):
         return T.Compose([
-            T.Resize(size=(224,224)),
+            # T.Resize(size=(224,224)),
         ])
 
 def collate_fn(batch):
     images, texts, raw_pil_images, labels = zip(*batch)
+    # images, texts, raw_pil_images, labels = zip(*batch)
+
     # images, texts, raw_pil_images, labels = zip(*batch)
 
     # for sample in batch:
@@ -177,11 +186,10 @@ def collate_fn(batch):
     labels = torch.as_tensor(labels)
     return dict(
         image=images,
-        raw_pil_image=raw_pil_images,
-        # raw_np_image=raw_np_images,
-        # text=texts,
-        text = list(texts),
-        label=labels
+        raw_pil_image=list(raw_pil_images),
+        # raw_np_image=raw_np_images,,
+        text=list(texts),
+        label=labels,
     )
 
 
@@ -193,7 +201,7 @@ class MaeMaeDataModule(pl.LightningDataModule):
         img_transforms=None, 
         txt_transforms=None,
         num_workers=None,
-        pin_memory=True,
+        pin_memory=False,
         persistent_workers=True,
         # collate_fn=None,
         # tokenizer=None,
@@ -223,12 +231,20 @@ class MaeMaeDataModule(pl.LightningDataModule):
     
     def setup(self, stage: str):
         # self.log(batch_size=self.batch_size)
-        self.train_dataset = MaeMaeDataset(
-            self.data_dir,
-            img_transforms=self.img_transforms, 
-            txt_transforms=self.txt_transforms,
-            set="super_train",
-        )
+        if stage=="validate":
+            self.train_dataset = MaeMaeDataset(
+                self.data_dir,
+                img_transforms=self.img_transforms, 
+                txt_transforms=self.txt_transforms,
+                set="val_train",
+            )
+        else:
+            self.train_dataset = MaeMaeDataset(
+                self.data_dir,
+                img_transforms=self.img_transforms, 
+                txt_transforms=self.txt_transforms,
+                set="super_train",
+            )
         self.val_dataset = MaeMaeDataset(
             self.data_dir,
             img_transforms=self.img_transforms, 
@@ -250,16 +266,22 @@ class MaeMaeDataModule(pl.LightningDataModule):
         assert len(val_ids.intersection(test_ids)) == 0
 
     def train_dataloader(self, shuffle=True, drop_last=True):
+        if shuffle:
+            kwargs = dict(
+                sampler=torch.utils.data.sampler.WeightedRandomSampler(
+                    self.train_dataset.weights, 
+                    len(self.train_dataset), # TODO basically 2 gpus does 2 epochs at once without //2
+                    replacement=True,
+                )
+            )
+            # kwargs = dict(shuffle=True)
+        else:
+            kwargs = dict(shuffle=False)
+
         return torch.utils.data.DataLoader(
             self.train_dataset,
             batch_size=self.batch_size,
-            # sampler=torch.utils.data.sampler.WeightedRandomSampler(
-            #     self.train_dataset.weights, 
-            #     len(self.train_dataset), # TODO basically 2 gpus does 2 epochs at once without //2
-            #     replacement=True),
-                # (self.train_dataset.num_items//5)*4,
-                # replacement=False),
-            shuffle=shuffle,
+            **kwargs,
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
             persistent_workers=self.persitent_workers,

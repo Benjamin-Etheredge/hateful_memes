@@ -1,8 +1,8 @@
-batch_size: 128
+batch_size: 64
 lr: 1e-3
 embed_dim: 512
 dense_dim: 512
-max_length: 96
+max_length: 32
 num_layers: 8
 tokenizer_name: 'bert-base-uncased'
 grad_clip: 1.0

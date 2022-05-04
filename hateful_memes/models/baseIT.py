@@ -103,5 +103,5 @@ def main(model_name, lr, dense_dim, dropout_rate,
     base_train(model=model, **train_kwargs)
 
 if __name__ == "__main__":
-    pl.seed_everything(42)
+    # pl.seed_everything(42)
     main()

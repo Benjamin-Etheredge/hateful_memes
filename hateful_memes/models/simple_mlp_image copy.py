@@ -86,5 +86,5 @@ def main(lr, dense_dim, dropout_rate, num_dense_layers,
 
 
 if __name__ == "__main__":
-    pl.seed_everything(42)
+    # pl.seed_everything(42)
     main()
