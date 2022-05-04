@@ -141,13 +141,13 @@ class MaeMaeDataset(torch.utils.data.Dataset):
     # TODO vocab is broken between train and test
     def base_train_img_transforms(self):
         return T.Compose([
-            T.RandomHorizontalFlip(p=0.1),
-            # T.RandomVerticalFlip(),
+            T.RandomHorizontalFlip(p=0.5),
+            T.RandomVerticalFlip(p=0.1),
             # transforms.ToPILImage(mode='RGB'),
-            # T.RandomRotation(degrees=15),
+            T.RandomRotation(degrees=15),
             T.AutoAugment(T.AutoAugmentPolicy.IMAGENET),
-            T.RandomResizedCrop(scale=(0.5, 1), size=(224,224)), # this does good for slowing overfitting
-            T.Resize(size=(224,224)),
+            T.RandomResizedCrop(scale=(0.2, 1), size=(224,224)), # this does good for slowing overfitting
+            # T.Resize(size=(224,224)),
             T.ToTensor(), # this already seems to scale okay
             T.Normalize(mean=[0.485, 0.456, 0.406],
                         std=[0.229, 0.224, 0.225]),
@@ -167,6 +167,8 @@ class MaeMaeDataset(torch.utils.data.Dataset):
     def base_train_pil_img_transforms(self):
         return T.Compose([
             T.RandomHorizontalFlip(p=0.1),
+            T.RandomVerticalFlip(p=0.1),
+            T.RandomRotation(degrees=15),
             T.AutoAugment(T.AutoAugmentPolicy.IMAGENET),
             # T.RandomResizedCrop(scale=(0.5, 1), size=(224,224)), # this does good for slowing overfitting
         ])
@@ -273,16 +275,22 @@ class MaeMaeDataModule(pl.LightningDataModule):
         assert len(val_ids.intersection(test_ids)) == 0
 
     def train_dataloader(self, shuffle=True, drop_last=True):
+        if shuffle:
+            kwargs = dict(
+                sampler=torch.utils.data.sampler.WeightedRandomSampler(
+                    self.train_dataset.weights, 
+                    len(self.train_dataset), # TODO basically 2 gpus does 2 epochs at once without //2
+                    replacement=True,
+                )
+            )
+            # kwargs = dict(shuffle=True)
+        else:
+            kwargs = dict(shuffle=False)
+
         return torch.utils.data.DataLoader(
             self.train_dataset,
             batch_size=self.batch_size,
-            # sampler=torch.utils.data.sampler.WeightedRandomSampler(
-            #     self.train_dataset.weights, 
-            #     len(self.train_dataset), # TODO basically 2 gpus does 2 epochs at once without //2
-            #     replacement=True),
-                # (self.train_dataset.num_items//5)*4,
-                # replacement=False),
-            shuffle=shuffle,
+            **kwargs,
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
             persistent_workers=self.persitent_workers,

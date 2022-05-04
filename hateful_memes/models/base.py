@@ -130,14 +130,14 @@ def base_train(
             mode=monitor_metric_mode,
             min_delta=0.0001,
             verbose=True),
-        StochasticWeightAveraging(annealing_epochs=5), # may be causing issues with grad accumualtion
+        # StochasticWeightAveraging(annealing_epochs=5), # may be causing issues with grad accumualtion
         LearningRateMonitor(),
         # Finetuner(model.backbones, finetune_epochs),
     ]
 
     try:
         model.backbone
-        callbacks.append(BackBoneOverrider(finetune_epochs, verbose=True, backbone_initial_ratio_lr=0.01, lambda_func=lambda _: 1.5))
+        callbacks.append(BackBoneOverrider(finetune_epochs, verbose=True, backbone_initial_ratio_lr=0.001, lambda_func=lambda _: 1.5))
         ic("Adding finetuning")
     except AttributeError:
         ic("no backbone")
@@ -153,8 +153,9 @@ def base_train(
     ic(accumulate_grad_batches)
     
     trainer_kwargs = dict(
-        devices=-1 if not fast_dev_run else 1,
-        strategy="ddp",
+        # devices=-1 if not fast_dev_run else 1,
+        devices=1,
+        # strategy="ddp",
         # gpus=[1],
         accelerator='auto',
         # replace_sampler_ddp=False,
@@ -235,6 +236,7 @@ def base_train(
 
     # Get Predictions
     del trainer_kwargs['strategy']
+    del trainer_kwargs['accumulate_grad_batches']
     trainer_kwargs['devices'] = 1
     trainer = Trainer(**trainer_kwargs)
     train_batched_preds, val_batched_preds, test_batched_preds= trainer.predict(
@@ -242,7 +244,6 @@ def base_train(
         dataloaders=[train_data, val_data, test_data],
     )
     # train_pred, val_pred = trainer.predict(model, dataloaders=[train_data, val_data], ckpt_path='best')
-    ic(val_batched_preds)
 
     # organize predictions
     import pandas as pd
@@ -320,14 +321,9 @@ def base_train(
         probs=torch.stack([torch.tensor(test_preds), 1 - torch.tensor(test_preds)], dim=1).numpy(),
         class_names=['not hateful', 'hateful'],
     )
-    # val_cm = wandb.plot.confusion_matrix(
-    #     y_true=val_labels,
-    #     preds=val_pred,
-    #     class_names=['not hateful', 'hateful'],
-    # )
+
     wandb.log({
         "train_cm": train_cm,
         "val_cm": val_cm,
         "test_cm": test_cm,
     })
-    # wandb.log({"val_cm": val_cm})

@@ -38,31 +38,35 @@ class ResnetHateBert(BaseMaeMaeModel):
             "am4nsolanki/autonlp-text-hateful-memes-36789092", 
             output_hidden_states=True,
             return_dict=True,)
-        ic(self.bert)
+        for param in self.bert.parameters(recurse=True):
+            param.requires_grad = False
+        # ic(self.bert)
         self.tokenizer = AutoTokenizer.from_pretrained("am4nsolanki/autonlp-text-hateful-memes-36789092")
-        ic(self.bert.config)
+        # ic(self.bert.config)
 
         self.vocab_size = self.tokenizer.vocab_size
 
         self.resnet = torchvision.models.resnet50(pretrained=True)
-        ic(self.resnet)
+        # ic(self.resnet)
         self.num_ftrs_resnet = self.resnet.fc.in_features
         self.resnet.fc = nn.Flatten()
-        self.resnet_fc = nn.Linear(self.num_ftrs_resnet, self.num_ftrs_resnet)
-        self.bert_fc = nn.Sequential(
-            nn.Linear(768, 768),
-        )
-        ic(self.resnet)
+        for param in self.resnet.parameters(recurse=True):
+            param.requires_grad = False
+        # self.resnet_fc = nn.Linear(self.num_ftrs_resnet, self.num_ftrs_resnet)
+        # self.bert_fc = nn.Sequential(
+            # nn.Linear(768, 768),
+        # )
+        # ic(self.resnet)
 
         resenet_size = 2048
         bert_size = 768
         self.last_hidden_size = resenet_size + bert_size
         self.final_fc = nn.Sequential(
             nn.Linear(self.last_hidden_size, dense_dim),
-            nn.GELU(),
+            nn.ReLU(),
             nn.Dropout(dropout_rate),
             nn.Linear(dense_dim, dense_dim),
-            nn.GELU(),
+            nn.ReLU(),
             nn.Dropout(dropout_rate),
             nn.Linear(dense_dim, 1),
         )
@@ -72,7 +76,7 @@ class ResnetHateBert(BaseMaeMaeModel):
         self.max_length = max_length
         self.dropout_rate = dropout_rate
         self.include_top = include_top
-        self.backbone = [self.resnet, self.bert]
+        self.backbone = self.resnet
 
         self.save_hyperparameters()
     
@@ -91,12 +95,14 @@ class ResnetHateBert(BaseMaeMaeModel):
         # Image
         images = batch['image']
         image_x = self.resnet(images)
-        image_x = self.resnet_fc(image_x)
+        # image_x = self.resnet_fc(image_x)
 
         text_x = self.bert(**input)
 
-        text_x = text_x.last_hidden_state[:, 0]
-        text_x = self.bert_fc(text_x)
+        # text_x = text_x.last_hidden_state[:, 0]
+        text_x = text_x[0]
+        text_x = text_x[:, 0]
+        # text_x = self.bert_fc(text_x)
 
         x = torch.cat((text_x, image_x), dim=1)
 
@@ -130,7 +136,7 @@ def main(lr, dense_dim, max_length, dropout_rate,
         max_length=max_length,
         dropout_rate=dropout_rate)
     
-    base_train(model=model, **train_kwargs)
+    base_train(model=model, finetune_epochs=5, **train_kwargs)
 
 
 if __name__ == "__main__":
