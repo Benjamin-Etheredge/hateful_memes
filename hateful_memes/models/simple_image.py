@@ -20,7 +20,7 @@ class SimpleImageMaeMaeModel(BaseMaeMaeModel):
         include_top=True,
         *base_args, **base_kwargs
     ):
-        super().__init__(*base_args, **base_kwargs)
+        super().__init__(*base_args, **base_kwargs, plot_name="Simple-image")
 
         self.conv1 = nn.Sequential(
             nn.Conv2d(3, 16, 3, padding=1, bias=False),

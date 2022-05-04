@@ -21,7 +21,7 @@ class AutoTextModule(BaseMaeMaeModel):
         dense_dim=256,
         *base_args, **base_kwargs
     ):
-        super().__init__(*base_args, **base_kwargs)
+        super().__init__(*base_args, **base_kwargs, plot_name="Electra" if 'electra' in model_name else "DistilBERT")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.config = AutoConfig.from_pretrained(model_name)
         ic(self.config)

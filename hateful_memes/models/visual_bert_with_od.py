@@ -199,6 +199,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
             x = self.fc(x)
             x = torch.squeeze(x, dim=1)
 
+        x = torch.squeeze(x, dim=1) if x.dim() > 1 else x
         return x
 
 

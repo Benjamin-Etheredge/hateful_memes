@@ -25,7 +25,7 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
         include_top=True,
         *base_args, **base_kwargs
     ):
-        super().__init__(*base_args, **base_kwargs)
+        super().__init__(*base_args, **base_kwargs, plot_name="Simple-text")
         
         # https://huggingface.co/docs/transformers/v4.18.0/en/model_doc/auto#transformers.AutoTokenizer
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(tokenizer_name)

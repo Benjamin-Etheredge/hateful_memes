@@ -18,6 +18,7 @@ from hateful_memes.models.simple_mlp_image import *
 
 from hateful_memes.models.base import BaseMaeMaeModel, base_train
 from hateful_memes.utils import get_checkpoint_path
+import sys
 
 
 class SuperModel(BaseMaeMaeModel):
@@ -41,9 +42,8 @@ class SuperModel(BaseMaeMaeModel):
         *base_args, **base_kwargs
     ):
         """ Super Model """
-        super().__init__(*base_args, **base_kwargs)
+        super().__init__(*base_args, **base_kwargs, plot_name="Super-model")
         ic.disable()
-
         self.models = []
         if resnet_ckpt:
             # self.models.append(ResNetModule.load_from_checkpoint(resnet_ckpt))
@@ -123,18 +123,26 @@ class SuperModel(BaseMaeMaeModel):
         self.dense_dim = dense_dim
         self.last_hidden_size = dense_dim
 
-        self.hparams['latent_dim'] = self.latent_dim
+        #self.hparams['latent_dim'] = self.latent_dim  # Breaks checkpoints
         self.backbone = self.models
         self.save_hyperparameters()
     
     def forward(self, batch):
         """ Shut up """
-        x = torch.cat([model(batch) for model in self.models], dim=1)
+        with torch.no_grad():
+            mod_out = []
+            for model in self.models:
+                out_i = model(batch)
+                if out_i.dim() == 1:
+                    out_i = torch.unsqueeze(out_i, 0)  # For single-sample batches in interpretability runs
+                mod_out.append(out_i)
+            x = torch.cat(mod_out, dim=1) 
+            #x = torch.cat([model(batch) for model in self.models], dim=1)
 
         if self.include_top:
             x = self.fc(x)
 
-        x = torch.squeeze(x, dim=1)
+        x = torch.squeeze(x, dim=1) if x.dim() > 1 else x
         return x
 
 

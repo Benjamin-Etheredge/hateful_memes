@@ -667,3 +667,116 @@ stages:
       - hateful_memes/models/hateful_ofa.py
     outs:
       - data/06_models/hateful_ofa
+
+
+  ################################################################################
+  # REPORTING
+  ################################################################################
+
+  interp_super:
+    cmd: >
+      python -m hateful_memes.report.model_interp
+      --model_name super-model
+      --ckpt_dir data/06_models/super_model
+      --batch_size 50
+      --save_dir data/08_reporting/interp_data/super_model
+      --save_prefix attr_study
+      --ensemble
+
+    deps:
+      - hateful_memes/report/model_interp.py
+      - hateful_memes/report/model_wrappers.py
+      - hateful_memes/models/super_model.py
+      - hateful_memes/models/simple_mlp_image.py
+      - hateful_memes/models/simple_text.py
+      - hateful_memes/models/simple_image.py
+      - hateful_memes/models/visual_bert.py
+      - hateful_memes/models/baseIT.py
+      - hateful_memes/models/auto_text_model.py
+    
+    outs:
+      - data/08_reporting/interp_data/super_model
+
+
+
+  vis_super:
+    cmd: >
+      python -m hateful_memes.report.interp_visualize 
+      --attr_file data/08_reporting/interp_data/super_model
+      --save_dir data/08_reporting/interp_vis/super_model
+      --save_prefix attr_study_vis
+      --ensemble
+
+    deps:
+      - hateful_memes/report/interp_visualize.py
+      - hateful_memes/report/model_wrappers.py
+      - data/08_reporting/interp_data/super_model
+      
+    outs:
+      - data/08_reporting/interp_vis/super_model
+
+
+
+  interp_vb:
+    cmd: >
+      python -m hateful_memes.report.model_interp
+      --model_name visual-bert
+      --ckpt_dir data/06_models/visual_bert
+      --save_dir data/08_reporting/interp_data/visual_bert
+      --save_prefix attr_study
+      --trials 20
+    deps: 
+      - hateful_memes/report/model_interp.py
+      - hateful_memes/report/model_wrappers.py
+      - hateful_memes/models/visual_bert.py
+    outs:
+      - data/08_reporting/interp_data/visual_bert
+
+  
+  vis_vb:
+    cmd: >
+      python -m hateful_memes.report.interp_visualize 
+      --attr_file data/08_reporting/interp_data/visual_bert
+      --save_dir data/08_reporting/interp_vis/visual_bert
+      --save_prefix attr_study_vis
+
+    deps:
+      - hateful_memes/report/interp_visualize.py
+      - hateful_memes/report/model_wrappers.py
+      - data/08_reporting/interp_data/visual_bert
+      
+    outs: 
+      - data/08_reporting/interp_vis/visual_bert/
+
+
+  interp_dbert:
+    cmd: >
+      python -m hateful_memes.report.model_interp
+      --model_name distilbert
+      --ckpt_dir data/06_models/distilbert
+      --save_dir data/08_reporting/interp_data/distilbert
+      --save_prefix attr_study
+      --trials 20
+    deps: 
+      - hateful_memes/report/model_interp.py
+      - hateful_memes/report/model_wrappers.py
+      - hateful_memes/models/auto_text_model.py
+    outs:
+      - data/08_reporting/interp_data/distilbert
+
+  
+  vis_dbert:
+    cmd: >
+      python -m hateful_memes.report.interp_visualize 
+      --attr_file data/08_reporting/interp_data/distilbert
+      --save_dir data/08_reporting/interp_vis/distilbert
+      --save_prefix attr_study_vis
+
+    deps:
+      - hateful_memes/report/interp_visualize.py
+      - hateful_memes/report/model_wrappers.py
+      - data/08_reporting/interp_data/distilbert
+      
+    outs: 
+      - data/08_reporting/interp_vis/distilbert
+        
