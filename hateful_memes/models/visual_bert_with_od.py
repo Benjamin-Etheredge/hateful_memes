@@ -30,6 +30,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         *base_args, **base_kwargs
     ):
         """ Visual Bert Model """
+
         super().__init__(*base_args, **base_kwargs)
         # Visual Bert
         pretrained_type = "vqa" # nlvr2 or vqa
@@ -45,6 +46,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         for param in od_model.parameters(recurse=False):
             param.requires_grad = False
         od_model.eval()
+
         self.od_model = od_model
 
         # Resnet
@@ -124,6 +126,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
             obj_imgs = []
             obj_imgs.append(self.normalizer(self.resizer(batch_img)))
             # obj_imgs.append(self.normalizer(self.resizer(batch_img)).to(self.device, non_blocking=True))
+
             for i in range(self.num_queries):
                 box = img_pred_boxes[i]
                 center_x, center_y, norm_w, norm_h = box
@@ -131,6 +134,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
                 upper = int(max((center_y - norm_h / 2), 0) * h)
                 right = int(min((center_x + norm_w / 2), 1) * w)
                 lower = int(min((center_y + norm_h / 2), 1) * h)
+
                 # yes, i know this is not a good idea, but it allows us to 
                 # handle situations where the object is too small (0 pixels in width or height)
                 try:
@@ -163,7 +167,6 @@ class VisualBertWithODModule(BaseMaeMaeModel):
     def forward(self, batch):
         """ Shut up """
         text = batch['text']
-        image = batch['raw_pil_image']
 
         inputs = self.tokenizer(
             text, 

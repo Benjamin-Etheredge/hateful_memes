@@ -8,3 +8,4 @@ num_queries: 3
 dropout_rate: 0.1
 gradient_clip_value: 1.0
 weight_decay: 0
+
