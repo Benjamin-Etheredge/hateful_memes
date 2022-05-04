@@ -133,9 +133,9 @@ class MaeMaeDataset(torch.utils.data.Dataset):
     def base_train_img_transforms(self):
         return T.Compose([
             T.RandomHorizontalFlip(p=0.5),
-            T.RandomVerticalFlip(p=0.1),
+            # T.RandomVerticalFlip(p=0.1),
             # transforms.ToPILImage(mode='RGB'),
-            T.RandomRotation(degrees=15),
+            # T.RandomRotation(degrees=15),
             T.AutoAugment(T.AutoAugmentPolicy.IMAGENET),
             T.RandomResizedCrop(scale=(0.2, 1), size=(224,224)), # this does good for slowing overfitting
             # T.Resize(size=(224,224)),
@@ -158,8 +158,8 @@ class MaeMaeDataset(torch.utils.data.Dataset):
     def base_train_pil_img_transforms(self):
         return T.Compose([
             T.RandomHorizontalFlip(p=0.1),
-            T.RandomVerticalFlip(p=0.1),
-            T.RandomRotation(degrees=15),
+            # T.RandomVerticalFlip(p=0.1),
+            # T.RandomRotation(degrees=15),
             T.AutoAugment(T.AutoAugmentPolicy.IMAGENET),
             # T.RandomResizedCrop(scale=(0.5, 1), size=(224,224)), # this does good for slowing overfitting
         ])
