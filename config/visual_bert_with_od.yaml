@@ -1,9 +1,11 @@
-freeze: False
-batch_size: 4
-lr: 2e-5
-epochs: 100
-max_length: 64
-dense_dim: 256
-num_queries: 20
-dropout_rate: 0.0
+batch_size: 32
+lr: 1e-3
+epochs: 1000
+max_length: 32
+dense_dim: 1024
+# Always uses og image, so 7+1 = 8
+num_queries: 3
+dropout_rate: 0.1
 gradient_clip_value: 1.0
+weight_decay: 0
+

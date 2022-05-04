@@ -3,44 +3,52 @@ import pytorch_lightning as pl
 import torch
 import click
 from transformers import AutoTokenizer, AutoModel, AutoConfig
+from transformers import ElectraTokenizer, ElectraModel, ElectraConfig
 from torch.nn import functional as F
 from torch import nn
-from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.callbacks.early_stopping import EarlyStopping
-from pytorch_lightning.loggers import WandbLogger
 from icecream import ic
 
 from hateful_memes.models.base import BaseMaeMaeModel, base_train
-from hateful_memes.data.hateful_memes import MaeMaeDataModule
 
 class AutoTextModule(BaseMaeMaeModel):
 
     def __init__(
         self, 
         model_name,
-        lr=0.003, 
         max_length=512, 
         include_top=True,
         dropout_rate=0.0,
         dense_dim=256,
-        # model_name='google/electra-small-discriminator',
+        *base_args, **base_kwargs
     ):
-        super().__init__()
+        super().__init__(*base_args, **base_kwargs)
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.config = AutoConfig.from_pretrained(model_name)
-        self.model = AutoModel.from_pretrained(model_name, config=self.config)
+        ic(self.config)
+        self.model = AutoModel.from_pretrained(
+            model_name, 
+            config=self.config,
+            # NOTE already has dropout
+            )
+        # ic(self.model)
 
-        self.lr = lr
         self.max_length = max_length
         self.include_top = include_top
         self.dropout_rate = dropout_rate
         self.dense_dim = dense_dim
 
-        self.fc1 = nn.Linear(self.config.hidden_size * self.max_length, dense_dim)
-        self.last_hidden_size = dense_dim
-        self.fc2 = nn.Linear(dense_dim, 1)
-        self.save_hyperparameters()
+        self.last_hidden_size = self.config.hidden_size
+        self.fc = nn.Sequential(
+            # https://github.com/huggingface/transformers/blob/v4.18.0/src/transformers/models/electra/modeling_electra.py#L961
+            nn.Dropout(dropout_rate),
+            nn.Linear(self.last_hidden_size, dense_dim),
+            nn.GELU(),
+            nn.Dropout(dropout_rate),
+            nn.Linear(dense_dim, 1)
+        )
+        self.backbone = self.model
 
+        self.save_hyperparameters()
     
     def forward(self, batch):
         text = batch['text']
@@ -54,15 +62,16 @@ class AutoTextModule(BaseMaeMaeModel):
         inputs = inputs.to(self.device)
         
         x = self.model(**inputs)
+        # ic(x.keys())
         x = x.last_hidden_state
-        x = x.view(x.shape[0], -1)
+        
+        #https://github.com/huggingface/transformers/blob/v4.18.0/src/transformers/models/distilbert/modeling_distilbert.py#L691
+        # Made adjustments based on the above link
+        x = x[:, 0]
 
-        x = self.fc1(x)
-        x = F.relu(x)
-        x = F.dropout(input=x, p=self.dropout_rate)
         if self.include_top:
-            x = self.fc2(x)
-            x.squeeze_(dim=-1)
+            x = self.fc(x)
+            x = x.squeeze(1)
 
         return x
     
@@ -94,5 +103,5 @@ def main(lr, max_length, dense_dim, dropout_rate, model_name,
 
 
 if __name__ == "__main__":
-    pl.seed_everything(42)
+    # pl.seed_everything(42)
     main()

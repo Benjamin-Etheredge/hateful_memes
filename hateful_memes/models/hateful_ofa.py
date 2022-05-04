@@ -1,3 +1,4 @@
+from regex import D
 import torch
 from torch.utils.data import SequentialSampler, BatchSampler
 from torch.utils.data import DataLoader
@@ -65,6 +66,9 @@ class HatefulOFADataModule(pl.LightningDataModule):
         train_itr = DataLoader(
             self.train_dataset,
             # batch_sampler=BatchSampler(SequentialSampler(self.train_dataset), batch_size=self.batch_size, drop_last=True),
+            batch_size=self.batch_size,
+            shuffle=True,
+            drop_last=True,
             collate_fn=self.train_dataset.collater,
             num_workers=self.fs_cfg.dataset.num_workers,
             # timeout=0,
@@ -76,6 +80,9 @@ class HatefulOFADataModule(pl.LightningDataModule):
         val_itr = DataLoader(
             self.val_dataset,
             # batch_sampler=BatchSampler(SequentialSampler(self.val_dataset), batch_size=self.batch_size, drop_last=True),
+            batch_size=self.batch_size,
+            shuffle=False,
+            drop_last=False,
             collate_fn=self.val_dataset.collater,
             num_workers=self.fs_cfg.dataset.num_workers,
             # timeout=0,
@@ -223,9 +230,9 @@ class HatefulOFA(pl.LightningModule):
     """Training"""
     def training_step(self, batch, batch_idx) -> torch.Tensor:
         loss, preds, targets = self._shared_step(batch)
-        self.train_acc(preds, targets)
-        self.train_f1(preds, targets)
-        self.train_auroc(preds, targets)
+        self.train_acc.update(preds, targets)
+        self.train_f1.update(preds, targets)
+        self.train_auroc.update(preds, targets)
 
         self.log("train/loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         self.log("train/acc", self.train_acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
@@ -236,9 +243,9 @@ class HatefulOFA(pl.LightningModule):
     """Validation"""
     def validation_step(self, batch, batch_idx) -> torch.Tensor:
         loss, preds, targets = self._shared_step(batch)
-        self.val_acc(preds, targets)
-        self.val_f1(preds, targets)
-        self.val_auroc(preds, targets)
+        self.val_acc.update(preds, targets)
+        self.val_f1.update(preds, targets)
+        self.val_auroc.update(preds, targets)
 
         self.log("val/loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         self.log("val/acc", self.val_acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
@@ -366,9 +373,10 @@ def main(
         gradient_clip_val=grad_norm_clip,
         fast_dev_run=fast_dev_run,
         devices=1, 
+        # strategy='ddp',
         accelerator='auto',
         logger=logger,
-        precision=16,
+        # precision=16,
         enable_progress_bar=os.environ.get('ENABLE_PROGRESS_BAR', 1) == 1,
     )
    

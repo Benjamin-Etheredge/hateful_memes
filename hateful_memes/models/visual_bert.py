@@ -18,66 +18,57 @@ class VisualBertModule(BaseMaeMaeModel):
 
     def __init__(
         self,
-        lr=0.003,
         max_length=512,
         include_top=True,
         dropout_rate=0.0,
         dense_dim=256,
-        freeze=False,
+        *base_args, **base_kwargs
     ):
         """ Visual Bert Model """
-        super().__init__()
-        # self.hparams = hparams
-        self.visual_bert = VisualBertModel.from_pretrained("uclanlp/visualbert-vqa-coco-pre")
-        if freeze:
-            for param in self.visual_bert.parameters():
-                param.requires_grad = False
-            self.visual_bert.eval()
+        super().__init__(*base_args, **base_kwargs)
+        visual_bert = VisualBertModel.from_pretrained("uclanlp/visualbert-vqa-coco-pre")
+        for param in visual_bert.parameters(recurse=True):
+            param.requires_grad = False
         # ic(self.visual_bert)
         # ic(self.visual_bert.config)
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
         resnet = models.resnet50(pretrained=True)
+        for param in resnet.parameters(recurse=True):
+            param.requires_grad = False
         self.num_ftrs_resnet = resnet.fc.in_features
         resnet.fc = nn.Flatten()
+        self.resnet_fc = nn.Linear(self.num_ftrs_resnet, self.num_ftrs_resnet)
         # ic(resnet)
-        self.resnet = resnet
-
-        if freeze:
-            for param in resnet.parameters():
-                param.requires_grad = False
-            resnet.eval()
 
         # TODO linear vs embedding for dim changing
         # TODO auto size
-        self.fc1 = nn.Linear(768, dense_dim)
-        self.fc2 = nn.Linear(dense_dim, dense_dim)
-        self.fc3 = nn.Linear(dense_dim, 1)
+        self.fc = nn.Sequential(
+            nn.Linear(768, dense_dim),
+            nn.GELU(),
+            nn.Dropout(dropout_rate),
+            # nn.Linear(dense_dim, dense_dim),
+            # nn.GELU(),
+            # nn.Dropout(dropout_rate),
+            nn.Linear(dense_dim, 1)
+        )
         # TODO config modification
 
-        self.lr = lr
         self.max_length = max_length
         self.include_top = include_top
         self.dropout_rate = dropout_rate
         self.dense_dim = dense_dim
-        self.to_freeze = freeze
-        self.visual_bert_config = self.visual_bert.config
-        self.last_hidden_size = dense_dim
+        self.visual_bert_config = visual_bert.config
+        self.last_hidden_size = 768
+
+        self.backbone = nn.ModuleList([visual_bert, resnet])
 
         self.save_hyperparameters()
-
+    
     def forward(self, batch):
         """ Shut up """
         text = batch['text']
         image = batch['image']
-        if self.to_freeze:
-            with torch.no_grad():
-                image_x = self.resnet(image)
-        else:
-            image_x = self.resnet(image)
-
-        image_x = image_x.view(image_x.shape[0], -1)
-
-        image_x = image_x.unsqueeze(1)
+        visual_bert, resnet = self.backbone
 
         inputs = self.tokenizer(
             text, 
@@ -85,44 +76,33 @@ class VisualBertModule(BaseMaeMaeModel):
             padding='max_length', 
             truncation=True, 
             max_length=self.max_length)
-        inputs = inputs.to(self.device)
 
-        inputs.update(
-            {
-                "visual_embeds": image_x,
-                "visual_token_type_ids": torch.ones(image_x.shape[:-1], dtype=torch.long).to(self.device),
-                "visual_attention_mask": torch.ones(image_x.shape[:-1], dtype=torch.float).to(self.device),
-            }
-        )
+        inputs = {k: v.to(device=self.device, non_blocking=True) for k, v in inputs.items()}
+        # inputs = inputs.to(self.device)
 
-        if self.to_freeze:
-            with torch.no_grad():
-                x = self.visual_bert(**inputs)
-        else:
-            x = self.visual_bert(**inputs)
+        image_x = resnet(image)
+        image_x = self.resnet_fc(image_x)
+        image_x = image_x.view(image_x.shape[0], 1, -1)
+
+        inputs.update({
+            "visual_embeds": image_x,
+            "visual_token_type_ids": torch.ones(image_x.shape[:-1], dtype=torch.long, device=self.device),
+            "visual_attention_mask": torch.ones(image_x.shape[:-1], dtype=torch.float, device=self.device),
+        })
+
+        x = visual_bert(**inputs)
 
         x = x.pooler_output
         x = x.view(x.shape[0], -1)
 
-        x = torch.squeeze(x)
-
-        x = self.fc1(x)
-        x = F.relu(x)
-        x = F.dropout(x, p=self.dropout_rate)
-
-        x = self.fc2(x)
-        x = F.relu(x)
-        x = F.dropout(x, p=self.dropout_rate)
-
         if self.include_top:
-            x = self.fc3(x)
-        
-        x = torch.squeeze(x, dim=1) if x.dim() > 1 else x
+            x = self.fc(x)
+            x = torch.squeeze(x, dim=1)
+
         return x
 
 
 @click.command()
-@click.option('--freeze', default=True, help='Freeze models')
 @click.option('--lr', default=1e-4, help='Learning rate')
 @click.option('--max_length', default=128, help='Max length')
 @click.option('--dense_dim', default=256, help='Dense dim')
@@ -135,12 +115,11 @@ class VisualBertModule(BaseMaeMaeModel):
 @click.option('--fast_dev_run', default=False, help='Fast dev run')
 @click.option('--log_dir', default="data/08_reporting/visual_bert", help='Log dir')
 @click.option('--project', default="visual-bert", help='Project')
-def main(freeze, lr, max_length, dense_dim, dropout_rate, 
+def main(lr, max_length, dense_dim, dropout_rate, 
          **train_kwargs):
     """ train model """
 
     model = VisualBertModule(
-        freeze=freeze,
         lr=lr, 
         max_length=max_length, 
         dense_dim=dense_dim, 
@@ -149,5 +128,5 @@ def main(freeze, lr, max_length, dense_dim, dropout_rate,
 
 
 if __name__ == "__main__":
-    pl.seed_everything(42)
+    # pl.seed_everything(42)
     main()

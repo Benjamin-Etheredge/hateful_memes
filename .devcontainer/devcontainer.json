@@ -35,7 +35,6 @@
 	"extensions": [
 		"ms-python.python",
 		"ms-python.vscode-pylance",
-        "iterative.dvc",
 		"redhat.vscode-yaml",
 		"GitHub.copilot",
 		"eamodio.gitlens"

@@ -1,3 +1,6 @@
+vars:
+  - project_prefix: ""
+
 stages:
   test_visual_bert_with_od:
     cmd: >
@@ -24,8 +27,9 @@ stages:
         --num_queries ${num_queries}
         --batch_size ${batch_size}
         --grad_clip ${gradient_clip_value}
+        --weight_decay ${weight_decay}
         --model_dir data/06_models/visual_bert_with_od
-        --freeze ${freeze}
+        --project ${project_prefix}visual_bert_with_od
     deps:
       - logs/test_visual_bert_with_od.log
       - data/01_raw/hateful_memes
@@ -38,13 +42,14 @@ stages:
   test_beit:
     cmd: >
         python -m hateful_memes.models.baseIT
-        --model_name vit
+        --model_name beit
         --batch_size 4 
         --fast_dev_run True
         && echo "PASSED" > logs/test_beit.log
     deps:
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes.py
+      - hateful_memes/models/base.py
       - hateful_memes/models/baseIT.py
     outs:
       - logs/test_beit.log
@@ -58,16 +63,16 @@ stages:
         --batch_size ${batch_size}
         --lr ${lr}
         --epochs ${epochs}
-        --max_length ${max_length}
         --dense_dim ${dense_dim}
         --dropout_rate ${dropout_rate}
         --grad_clip ${gradient_clip_value}
         --model_dir data/06_models/beit
-        --project beit
+        --project ${project_prefix}beit
     deps:
       - logs/test_beit.log
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes.py
+      - hateful_memes/models/base.py
       - hateful_memes/models/baseIT.py
     outs:
       - data/06_models/beit
@@ -84,6 +89,7 @@ stages:
     deps:
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes.py
+      - hateful_memes/models/base.py
       - hateful_memes/models/baseIT.py
     outs:
       - logs/test_vit.log
@@ -97,16 +103,16 @@ stages:
         --batch_size ${batch_size}
         --lr ${lr}
         --epochs ${epochs}
-        --max_length ${max_length}
         --dense_dim ${dense_dim}
         --dropout_rate ${dropout_rate}
         --grad_clip ${grad_clip}
         --model_dir data/06_models/vit
-        --project vit
+        --project ${project_prefix}vit
     deps:
       - logs/test_vit.log
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes.py
+      - hateful_memes/models/base.py
       - hateful_memes/models/baseIT.py
     outs:
       - data/06_models/vit
@@ -135,12 +141,11 @@ stages:
         --batch_size ${batch_size}
         --lr ${lr}
         --epochs ${epochs}
-        --max_length ${max_length}
         --dense_dim ${dense_dim}
         --dropout_rate ${dropout_rate}
         --grad_clip ${gradient_clip_value}
         --model_dir data/06_models/visual_bert
-        --freeze ${freeze}
+        --project ${project_prefix}visual_bert
     deps:
       - logs/test_visual_bert.log
       - data/01_raw/hateful_memes
@@ -149,6 +154,48 @@ stages:
       - hateful_memes/models/visual_bert.py
     outs:
       - data/06_models/visual_bert
+
+  test_hate_bert:
+    vars:
+      - config/hate_bert.yaml
+    cmd: >
+        python -m hateful_memes.models.auto_text_model
+        --batch_size 4 
+        --fast_dev_run True
+        --model_name ${model_name}
+        && echo "PASSED" > logs/test_hate_bert.log 
+    deps:
+      - data/01_raw/hateful_memes
+      - hateful_memes/data/hateful_memes.py
+      - hateful_memes/models/base.py
+      - hateful_memes/models/auto_text_model.py
+    outs:
+      - logs/test_hate_bert.log
+
+  hate_bert:
+    vars:
+      - config/hate_bert.yaml
+    cmd: >
+        python -m hateful_memes.models.auto_text_model
+        --batch_size ${batch_size}
+        --lr ${lr}
+        --epochs ${epochs}
+        --max_length ${max_length}
+        --dense_dim ${dense_dim}
+        --dropout_rate ${dropout_rate}
+        --grad_clip ${gradient_clip_value}
+        --model_name ${model_name}
+        --model_dir data/06_models/hate_bert
+        --project ${project_prefix}hate_bert
+    deps:
+      - logs/test_hate_bert.log
+      - data/01_raw/hateful_memes
+      - hateful_memes/data/hateful_memes.py
+      - hateful_memes/models/base.py
+      - hateful_memes/models/auto_text_model.py
+    outs:
+      - data/06_models/hate_bert
+
 
   test_electra:
     vars:
@@ -162,6 +209,7 @@ stages:
     deps:
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes.py
+      - hateful_memes/models/base.py
       - hateful_memes/models/auto_text_model.py
     outs:
       - logs/test_electra.log
@@ -179,12 +227,13 @@ stages:
         --dropout_rate ${dropout_rate}
         --grad_clip ${gradient_clip_value}
         --model_name ${model_name}
-        --project electra
         --model_dir data/06_models/electra
+        --project ${project_prefix}electra
     deps:
       - logs/test_electra.log
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes.py
+      - hateful_memes/models/base.py
       - hateful_memes/models/auto_text_model.py
     outs:
       - data/06_models/electra
@@ -201,6 +250,7 @@ stages:
     deps:
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes.py
+      - hateful_memes/models/base.py
       - hateful_memes/models/auto_text_model.py
     outs:
       - logs/test_distilbert.log
@@ -218,12 +268,13 @@ stages:
         --dropout_rate ${dropout_rate}
         --grad_clip ${gradient_clip_value}
         --model_name ${model_name}
-        --project distilbert
         --model_dir data/06_models/distilbert
+        --project ${project_prefix}distilbert
     deps:
       - logs/test_distilbert.log
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes.py
+      - hateful_memes/models/base.py
       - hateful_memes/models/auto_text_model.py
     outs:
       - data/06_models/distilbert
@@ -255,6 +306,7 @@ stages:
         --dropout_rate ${dropout_rate}
         --grad_clip ${gradient_clip_value}
         --model_dir data/06_models/simple_mlp_image
+        --project ${project_prefix}simple_mlp_image
     deps:
       - logs/test_simple_mlp_image.log
       - data/01_raw/hateful_memes
@@ -292,14 +344,49 @@ stages:
         --grad_clip ${gradient_clip_value}
         --model_dir data/06_models/simple_image
         --batch_norm ${batch_norm}
+        --project ${project_prefix}simple_image
     deps:
       - logs/test_simple_image.log
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes.py
-      - hateful_memes/models/simple_image.py
       - hateful_memes/models/base.py
+      - hateful_memes/models/simple_image.py
     outs:
       - data/06_models/simple_image
+
+  test_resnet_hate_bert:
+    cmd: >
+        python -m hateful_memes.models.resnet_hate_bert
+        --batch_size 4 
+        --fast_dev_run True
+        && echo "PASSED" > logs/test_resnet_hate_bert.log
+    deps:
+      - data/01_raw/hateful_memes
+      - hateful_memes/data/hateful_memes.py
+      - hateful_memes/models/resnet_hate_bert.py
+    outs:
+      - logs/test_resnet_hate_bert.log
+
+  resnet_hate_bert:
+    vars:
+      - config/resnet_hate_bert.yaml
+    cmd: >
+        python -m hateful_memes.models.resnet_hate_bert
+        --batch_size ${batch_size}
+        --lr ${lr}
+        --max_length ${max_length}
+        --dense_dim ${dense_dim}
+        --dropout_rate ${dropout_rate}
+        --model_dir data/06_models/resnet_hate_bert
+        --project ${project_prefix}resnet_hate_bert
+    deps:
+      - logs/test_resnet_hate_bert.log
+      - data/01_raw/hateful_memes
+      - hateful_memes/data/hateful_memes.py
+      - hateful_memes/models/base.py
+      - hateful_memes/models/resnet_hate_bert.py
+    outs:
+      - data/06_models/resnet_hate_bert
 
   baseline:
     cmd: python -m hateful_memes.models.baseline_algorithm
@@ -337,6 +424,7 @@ stages:
         --dropout_rate ${dropout_rate}
         --epochs ${epochs}
         --model_dir data/06_models/simple_text
+        --project ${project_prefix}simple_text
     deps:
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes.py
@@ -378,6 +466,7 @@ stages:
         --dropout_rate ${dropout_rate}
         --epochs ${epochs}
         --model_dir data/06_models/simple_image_text
+        --project ${project_prefix}simple_image_text
     deps:
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes.py
@@ -420,12 +509,12 @@ stages:
         --distilbert_ckpt data/06_models/distilbert
         --batch_size ${batch_size}
         --lr ${lr}
-        --num_dense_layers ${num_dense_layers}
         --dense_dim ${dense_dim}
         --dropout_rate ${dropout_rate}
         --grad_clip ${grad_clip}
         --epochs ${epochs}
         --model_dir data/06_models/super_model
+        --project ${project_prefix}super_model
     deps:
       - data/01_raw/hateful_memes
       - hateful_memes/data/hateful_memes.py
@@ -436,13 +525,11 @@ stages:
       - data/06_models/simple_mlp_image
       - data/06_models/simple_text
       - data/06_models/visual_bert
-      - data/06_models/visual_bert_with_od
       - data/06_models/vit
       - data/06_models/beit
       - data/06_models/electra
       - data/06_models/distilbert
-        # --visual_bert_with_od_ckpt data/06_models/visual_bert_with_od
-      # - data/06_models/visual_bert_with_od
+      - data/06_models/visual_bert_with_od
     outs:
       - data/06_models/super_model
   
