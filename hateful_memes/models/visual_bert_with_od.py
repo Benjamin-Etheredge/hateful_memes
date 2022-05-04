@@ -167,6 +167,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
     def forward(self, batch):
         """ Shut up """
         text = batch['text']
+        image = batch['raw_pil_image']
 
         inputs = self.tokenizer(
             text, 
