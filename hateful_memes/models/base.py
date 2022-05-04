@@ -155,12 +155,12 @@ def base_train(
     ic(accumulate_grad_batches)
     
     trainer_kwargs = dict(
-        # devices=-1 if not fast_dev_run else 1,
-        devices=1,
-        # strategy="ddp",
+        devices=-1 if not fast_dev_run else 1,
+        # devices=1,
+        strategy="ddp",
         # gpus=[1],
         accelerator='auto',
-        # replace_sampler_ddp=False,
+        replace_sampler_ddp=False,
         # auto_select_gpus=True,
         logger=logger,
         max_epochs=epochs,
@@ -237,7 +237,6 @@ def base_train(
     test_img_ids = data.test_dataset.info['id'].tolist()
 
     # Get Predictions
-    del trainer_kwargs['strategy']
     del trainer_kwargs['accumulate_grad_batches']
     trainer_kwargs['devices'] = 1
     trainer = Trainer(**trainer_kwargs)

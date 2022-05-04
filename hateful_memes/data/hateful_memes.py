@@ -231,31 +231,34 @@ class MaeMaeDataModule(pl.LightningDataModule):
     
     def setup(self, stage: str):
         # self.log(batch_size=self.batch_size)
+        train_set = "super_train"
         if stage=="validate":
-            self.train_dataset = MaeMaeDataset(
-                self.data_dir,
-                img_transforms=self.img_transforms, 
-                txt_transforms=self.txt_transforms,
-                set="val_train",
-            )
-        else:
-            self.train_dataset = MaeMaeDataset(
-                self.data_dir,
-                img_transforms=self.img_transforms, 
-                txt_transforms=self.txt_transforms,
-                set="super_train",
-            )
+            train_set = "val_train"
+        elif stage=="final":
+            train_set="final_train"
+
+        self.train_dataset = MaeMaeDataset(
+            self.data_dir,
+            img_transforms=self.img_transforms, 
+            txt_transforms=self.txt_transforms,
+            set=train_set)
+        
+        val_set = "dev_unseen"
+        test_set = "test_unseen"
+        if stage == "final":
+            val_set, test_set = test_set, val_set
+
         self.val_dataset = MaeMaeDataset(
             self.data_dir,
             img_transforms=self.img_transforms, 
             txt_transforms=self.txt_transforms,
-            set='dev_unseen',
+            set="test_unseen",
         )
         self.test_dataset = MaeMaeDataset(
             self.data_dir,
             img_transforms=self.img_transforms, 
             txt_transforms=self.txt_transforms,
-            set="test_unseen",
+            set='dev_unseen',
         )
 
         train_ids = set(self.train_dataset.info['id'])
@@ -267,11 +270,12 @@ class MaeMaeDataModule(pl.LightningDataModule):
 
     def train_dataloader(self, shuffle=True, drop_last=True):
         if shuffle:
+            device_count = max(torch.cuda.device_count(), 1)
             kwargs = dict(
                 sampler=torch.utils.data.sampler.WeightedRandomSampler(
                     self.train_dataset.weights, 
-                    len(self.train_dataset), # TODO basically 2 gpus does 2 epochs at once without //2
-                    replacement=True,
+                    len(self.train_dataset) // device_count, # TODO basically 2 gpus does 2 epochs at once without reducing count
+                    replacement=device_count == 1,  # must replace if only 1 device, or weighting does bad stuff
                 )
             )
             # kwargs = dict(shuffle=True)
