@@ -311,19 +311,19 @@ def base_train(
     train_cm = wandb.plot.confusion_matrix(
         y_true=np.array(train_labels),
         preds=None,
-        probs=torch.stack([torch.tensor(train_preds), 1 - torch.tensor(train_preds)], dim=1).numpy(),
+        probs=torch.stack([1 - torch.tensor(train_preds), torch.tensor(train_preds)], dim=1).numpy(),
         class_names=['not hateful', 'hateful'],
     )
     val_cm = wandb.plot.confusion_matrix(
         y_true=np.array(val_labels),
         preds=None,
-        probs=torch.stack([torch.tensor(val_preds), 1 - torch.tensor(val_preds)], dim=1).numpy(),
+        probs=torch.stack([1 - torch.tensor(val_preds), torch.tensor(val_preds)], dim=1).numpy(),
         class_names=['not hateful', 'hateful'],
     )
     test_cm = wandb.plot.confusion_matrix(
         y_true=np.array(test_labels),
         preds=None,
-        probs=torch.stack([torch.tensor(test_preds), 1 - torch.tensor(test_preds)], dim=1).numpy(),
+        probs=torch.stack([1 - torch.tensor(test_preds), torch.tensor(test_preds)], dim=1).numpy(),
         class_names=['not hateful', 'hateful'],
     )
 
