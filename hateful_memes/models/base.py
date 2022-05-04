@@ -238,6 +238,11 @@ def base_train(
 
     # Get Predictions
     del trainer_kwargs['accumulate_grad_batches']
+    try:
+        del trainer_kwargs['strategy']
+        del trainer_kwargs['replace_sampler_ddp']
+    except:
+        pass
     trainer_kwargs['devices'] = 1
     trainer = Trainer(**trainer_kwargs)
     train_batched_preds, val_batched_preds, test_batched_preds= trainer.predict(
