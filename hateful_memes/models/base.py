@@ -298,15 +298,14 @@ def base_train(
         )
     )
 
-    curr_time = time.strftime("%Y%m%d-%H%M%S")
     full_results = pd.concat([train_results, val_results, test_results])
     
     out_folder = model_dir.replace('06_models', '07_model_output')
     if not os.path.exists(out_folder):
         os.mkdir(out_folder)
-    out_fp = os.path.join(out_folder, curr_time)
+    out_fp = os.path.join(out_folder, "results")
 
-    full_results.to_pickle(f'{out_fp}.pkl')
+    # full_results.to_pickle(f'{out_fp}.pkl')
     full_results.to_csv(f'{out_fp}.csv', index=False)
     print(f'Saved full results to {out_fp}.pkl')
     train_cm = wandb.plot.confusion_matrix(

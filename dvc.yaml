@@ -38,6 +38,7 @@ stages:
       - hateful_memes/models/visual_bert_with_od.py
     outs:
       - data/06_models/visual_bert_with_od
+      - data/07_model_output/visual_bert_with_od
 
   test_beit:
     cmd: >
@@ -76,6 +77,7 @@ stages:
       - hateful_memes/models/baseIT.py
     outs:
       - data/06_models/beit
+      - data/07_model_output/beit
 
   test_vit:
     cmd: >
@@ -116,6 +118,7 @@ stages:
       - hateful_memes/models/baseIT.py
     outs:
       - data/06_models/vit
+      - data/07_model_output/vit
 
   test_visual_bert:
     cmd: >
@@ -154,6 +157,7 @@ stages:
       - hateful_memes/models/visual_bert.py
     outs:
       - data/06_models/visual_bert
+      - data/07_model_output/visual_bert
 
   test_hate_bert:
     vars:
@@ -195,6 +199,7 @@ stages:
       - hateful_memes/models/auto_text_model.py
     outs:
       - data/06_models/hate_bert
+      - data/07_model_output/hate_bert
 
 
   test_electra:
@@ -237,6 +242,7 @@ stages:
       - hateful_memes/models/auto_text_model.py
     outs:
       - data/06_models/electra
+      - data/07_model_output/electra
 
   test_distilbert:
     vars:
@@ -278,6 +284,7 @@ stages:
       - hateful_memes/models/auto_text_model.py
     outs:
       - data/06_models/distilbert
+      - data/07_model_output/distilbert
 
   test_simple_mlp_image:
     cmd: >
@@ -315,6 +322,7 @@ stages:
       - hateful_memes/models/simple_mlp_image.py
     outs:
       - data/06_models/simple_mlp_image
+      - data/07_model_output/simple_mlp_image
 
   test_simple_image:
     cmd: >
@@ -353,6 +361,7 @@ stages:
       - hateful_memes/models/simple_image.py
     outs:
       - data/06_models/simple_image
+      - data/07_model_output/simple_image
 
   test_resnet_hate_bert:
     cmd: >
@@ -387,6 +396,7 @@ stages:
       - hateful_memes/models/resnet_hate_bert.py
     outs:
       - data/06_models/resnet_hate_bert
+      - data/07_model_output/resnet_hate_bert
 
   baseline:
     cmd: python -m hateful_memes.models.baseline_algorithm
@@ -433,6 +443,7 @@ stages:
       - hateful_memes/models/simple_text.py
     outs:
       - data/06_models/simple_text
+      - data/07_model_output/simple_text
 
   ################################################################################
   # Simple Models 
@@ -475,6 +486,7 @@ stages:
       - hateful_memes/models/simple_text.py
     outs:
       - data/06_models/simple_image_text
+      - data/07_model_output/simple_image_text
 
   test_super_model:
     cmd: >
@@ -489,7 +501,7 @@ stages:
       - hateful_memes/models/base.py
       - hateful_memes/models/super_model.py
       - data/06_models/simple_image
-      - data/06_models/simple_text
+      - data/07_model_output/simple_text
     outs:
       - logs/test_super_model.log
 
@@ -532,6 +544,7 @@ stages:
         # --visual_bert_with_od_ckpt data/06_models/visual_bert_with_od
     outs:
       - data/06_models/super_model
+      - data/07_model_output/super_model
   
   ################################################################################
   # OFA
