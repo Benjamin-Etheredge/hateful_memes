@@ -68,6 +68,9 @@ class ResnetHateBert(BaseMaeMaeModel):
             nn.Linear(dense_dim, dense_dim),
             nn.ReLU(),
             nn.Dropout(dropout_rate),
+            nn.Linear(dense_dim, dense_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout_rate),
             nn.Linear(dense_dim, 1),
         )
 
