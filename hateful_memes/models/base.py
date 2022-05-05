@@ -23,7 +23,7 @@ from pytorch_lightning.callbacks import (
 from pytorch_lightning import Trainer
 import wandb
 
-from hateful_memes.utils import get_project_logger, BackBoneOverrider
+from hateful_memes.utils import get_project_logger, BackBoneOverrider, get_checkpoint_path
 from hateful_memes.data.hateful_memes import MaeMaeDataModule
 
 
@@ -139,7 +139,11 @@ def base_train(
 
     try:
         model.backbone
-        callbacks.append(BackBoneOverrider(finetune_epochs, verbose=True, backbone_initial_ratio_lr=0.001, lambda_func=lambda _: 1.5))
+        callbacks.append(BackBoneOverrider(
+            finetune_epochs, 
+            verbose=True, 
+            backbone_initial_ratio_lr=0.001, 
+            lambda_func=lambda _: 1.5))
         ic("Adding finetuning")
     except AttributeError:
         ic("no backbone")
@@ -216,6 +220,10 @@ def base_train(
     #############################################################
     # Output Results
     #############################################################
+    # load best model ckpt
+    ckpt_path = get_checkpoint_path(model_dir)
+    model = model.load_from_checkpoint(ckpt_path)
+
     # Setup data for predictions
     data = MaeMaeDataModule(batch_size=batch_size)
     data.setup("validate")
