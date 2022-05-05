@@ -127,22 +127,22 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: data/06_models/simple_image
-      md5: cf92ef13678ac9bd76fa94a8f3076edc.dir
+      md5: 51bce32504af9530481035277d12ab0a.dir
       size: 125960121
       nfiles: 1
-    - path: data/06_models/simple_text
-      md5: f6f207ca2e5fd76a08a10de07715de5e.dir
-      size: 392433903
+    - path: data/07_model_output/simple_text
+      md5: e96c5fa0915fe13e66c265d035941fe8.dir
+      size: 399434
       nfiles: 1
     - path: hateful_memes/data/hateful_memes.py
-      md5: eafe380d174561f6231754882681a252
-      size: 11572
+      md5: 0b15181e2b2cfcd0ba64d53cec2f5d2d
+      size: 11580
     - path: hateful_memes/models/base.py
-      md5: 8bd5daef3b0e187fc6423eae3c990741
-      size: 11644
+      md5: f2ce6315c69ea28d72f34315834518b6
+      size: 11726
     - path: hateful_memes/models/super_model.py
-      md5: 9986e3d3b17cbf0f1f772e224c9ad827
-      size: 7159
+      md5: d8336c06db91645e1d4c7df2d5ad9262
+      size: 7532
     outs:
     - path: logs/test_super_model.log
       md5: 15de982d1dc99ce52d089868a579de34
@@ -559,7 +559,7 @@ stages:
       \ --simple_mlp_image_ckpt data/06_models/simple_mlp_image --simple_text_ckpt\
       \ data/06_models/simple_text --visual_bert_ckpt data/06_models/visual_bert --vit_ckpt\
       \ data/06_models/vit --beit_ckpt data/06_models/beit --electra_ckpt data/06_models/electra\
-      \ --distilbert_ckpt data/06_models/distilbert --batch_size 8 --lr 0.001 --dense_dim\
+      \ --distilbert_ckpt data/06_models/distilbert --batch_size 32 --lr 0.001 --dense_dim\
       \ 1024 --dropout_rate 0.5 --grad_clip 1.0 --epochs 1000 --model_dir data/06_models/super_model\
       \ --project super_model\n"
     deps:
@@ -568,53 +568,57 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: data/06_models/beit
-      md5: ed16bc704ef10a48540ab6283fefd39c.dir
-      size: 1042626143
+      md5: d520f4c9d104b36c6dd8b16ca8e9b997.dir
+      size: 356386579
       nfiles: 1
     - path: data/06_models/distilbert
-      md5: 8f954122b8395da66ffe46209b31cc92.dir
-      size: 274977693
+      md5: e4a2ff155a93da6ae676c4659fd32ad6.dir
+      size: 805945549
       nfiles: 1
     - path: data/06_models/electra
-      md5: efef875f6d806b71db1b7fec9227f63a.dir
-      size: 57236629
+      md5: 0a1592376a2226c576e8f7b4cb6e8a1a.dir
+      size: 165229945
       nfiles: 1
     - path: data/06_models/simple_image
-      md5: cf92ef13678ac9bd76fa94a8f3076edc.dir
+      md5: 51bce32504af9530481035277d12ab0a.dir
       size: 125960121
       nfiles: 1
     - path: data/06_models/simple_mlp_image
-      md5: 34ec7370163cc768cd669f97c51e0be2.dir
+      md5: 1d3e83608b775ba44580d2232d10938c.dir
       size: 231628147
       nfiles: 1
     - path: data/06_models/simple_text
-      md5: f6f207ca2e5fd76a08a10de07715de5e.dir
+      md5: 6213adbd16ef1f165bbd3bd85faad838.dir
       size: 392433903
       nfiles: 1
     - path: data/06_models/visual_bert
-      md5: 76fda32e75d71e149b1d12608c534931.dir
-      size: 600562653
+      md5: 22337e494d0a8d42ac359680fb0e3e40.dir
+      size: 1679975719
       nfiles: 1
     - path: data/06_models/vit
-      md5: c89a7e14e727924a05d8c3548ee6a4c5.dir
-      size: 355149397
+      md5: 7b237943efc79f4b702831d52b158e65.dir
+      size: 1046393397
       nfiles: 1
     - path: hateful_memes/data/hateful_memes.py
-      md5: 7067c8de043ed3d671cf8137fce28f4f
-      size: 11919
+      md5: 0b15181e2b2cfcd0ba64d53cec2f5d2d
+      size: 11580
     - path: hateful_memes/models/base.py
-      md5: b5ba0700590f5b0e3a32a5b8e9d2915d
-      size: 11648
+      md5: f2ce6315c69ea28d72f34315834518b6
+      size: 11726
     - path: hateful_memes/models/super_model.py
-      md5: 9986e3d3b17cbf0f1f772e224c9ad827
-      size: 7159
+      md5: d8336c06db91645e1d4c7df2d5ad9262
+      size: 7532
     - path: logs/test_super_model.log
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
     outs:
     - path: data/06_models/super_model
-      md5: 098ef274d4e971a5549041bb2feb56c2.dir
-      size: 1894799338
+      md5: fd2edc74909b289a7702f20ae1a1b6cd.dir
+      size: 1932590808
+      nfiles: 1
+    - path: data/07_model_output/super_model
+      md5: 9cb33e063d0d4a9a0b11223447ea8e73.dir
+      size: 401057
       nfiles: 1
   hate_bert:
     cmd: "python -m hateful_memes.models.auto_text_model --batch_size 64 --lr 0.001\
