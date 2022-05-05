@@ -141,8 +141,8 @@ stages:
       md5: f2ce6315c69ea28d72f34315834518b6
       size: 11726
     - path: hateful_memes/models/super_model.py
-      md5: edb2bdc6f82805520c7c95747812e682
-      size: 7426
+      md5: d8336c06db91645e1d4c7df2d5ad9262
+      size: 7532
     outs:
     - path: logs/test_super_model.log
       md5: 15de982d1dc99ce52d089868a579de34
@@ -606,19 +606,19 @@ stages:
       md5: f2ce6315c69ea28d72f34315834518b6
       size: 11726
     - path: hateful_memes/models/super_model.py
-      md5: edb2bdc6f82805520c7c95747812e682
-      size: 7426
+      md5: d8336c06db91645e1d4c7df2d5ad9262
+      size: 7532
     - path: logs/test_super_model.log
       md5: 15de982d1dc99ce52d089868a579de34
       size: 7
     outs:
     - path: data/06_models/super_model
-      md5: b9241893c4faa1ee946d8022e3a3d419.dir
-      size: 1919993630
+      md5: fd2edc74909b289a7702f20ae1a1b6cd.dir
+      size: 1932590808
       nfiles: 1
     - path: data/07_model_output/super_model
-      md5: 3c0ed90be1ee3def87680ea8bb25f526.dir
-      size: 400182
+      md5: 9cb33e063d0d4a9a0b11223447ea8e73.dir
+      size: 401057
       nfiles: 1
   hate_bert:
     cmd: "python -m hateful_memes.models.auto_text_model --batch_size 64 --lr 0.001\
