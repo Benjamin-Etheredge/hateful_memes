@@ -192,7 +192,7 @@ def main(lr, dense_dim, dropout_rate,
         electra_ckpt=electra_ckpt,
         distilbert_ckpt=distilbert_ckpt,
         weight_decay=0.01)
-    base_train(model=model, finetune_epochs=100,, monitor_metric='val/auroc', monitor_metric_mode='max', **train_kwargs)
+    base_train(model=model, finetune_epochs=100, monitor_metric='val/auroc', monitor_metric_mode='max', **train_kwargs)
     
 
 if __name__ == "__main__":
