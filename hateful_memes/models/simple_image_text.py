@@ -81,19 +81,11 @@ class BaseImageTextMaeMaeModel(BaseMaeMaeModel):
             nn.Conv2d(256, 256, 3, padding=1, bias=False),
             nn.BatchNorm2d(256),
             nn.ReLU(),
-            nn.MaxPool2d(2),
             # #
-            # nn.Conv2d(256, 512, 3, padding=1, bias=False),
-            # nn.BatchNorm2d(512),
-            # nn.ReLU(),
-            # nn.Conv2d(512, 512, 3, padding=1, bias=False),
-            # nn.BatchNorm2d(512),
-            # nn.ReLU(),
-            # nn.MaxPool2d(2),
         )
 
         # conv_out_size = 4608
-        conv_out_size = 12544
+        conv_out_size = 256
         # conv_out_size = 5120
 
             # nn.Linear(dense_dim + conv_out_size, dense_dim),
@@ -116,15 +108,22 @@ class BaseImageTextMaeMaeModel(BaseMaeMaeModel):
         self.dropout_rate = dropout_rate
         self.num_layers = num_layers
         self.include_top = include_top
-        self.last_hidden_size = dense_dim
+        self.last_hidden_size = conv_out_size + dense_dim
 
         self.save_hyperparameters()
     
     def forward(self, batch):
         # Text
+        images = batch['image']
         text_features = batch['text']
+
         input = self.tokenizer(text_features, padding='max_length', truncation=True, max_length=self.max_length)
-        ids = torch.tensor(input['input_ids']).to(self.device)
+        ids = torch.tensor(input['input_ids']).to(self.device, non_blocking=True)
+
+        x = self.conv(images)
+        x = torch.mean(x, dim=[2, 3])
+        final_image_x = x.view(x.size(0), -1)
+
 
         x = self.embedder(ids)
         x = F.dropout(x, self.dropout_rate)
@@ -134,18 +133,12 @@ class BaseImageTextMaeMaeModel(BaseMaeMaeModel):
 
         final_text_x = ht[-1]
 
-        # Image
-        images = batch['image']
-
-        x = self.conv(images)
-
-        final_image_x = x.view(x.size(0), -1)
 
         x = torch.cat((final_text_x, final_image_x), dim=1)
 
-        x = self.dense_layers(x)
 
         if self.include_top:
+            x = self.dense_layers(x)
             x = self.final_fc(x)
             x = torch.squeeze(x, dim=-1)
         return x

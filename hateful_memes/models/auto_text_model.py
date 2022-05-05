@@ -44,6 +44,9 @@ class AutoTextModule(BaseMaeMaeModel):
             nn.Linear(self.last_hidden_size, dense_dim),
             nn.GELU(),
             nn.Dropout(dropout_rate),
+            nn.Linear(dense_dim, dense_dim),
+            nn.GELU(),
+            nn.Dropout(dropout_rate),
             nn.Linear(dense_dim, 1)
         )
         self.backbone = self.model
@@ -74,6 +77,7 @@ class AutoTextModule(BaseMaeMaeModel):
             x = x.squeeze(1)
 
         return x
+
     
 @click.command()
 @click.option('--lr', default=1e-4, help='Learning rate')

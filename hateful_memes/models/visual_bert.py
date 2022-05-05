@@ -37,7 +37,7 @@ class VisualBertModule(BaseMaeMaeModel):
             param.requires_grad = False
         self.num_ftrs_resnet = resnet.fc.in_features
         resnet.fc = nn.Flatten()
-        self.resnet_fc = nn.Linear(self.num_ftrs_resnet, self.num_ftrs_resnet)
+        # self.resnet_fc = nn.Linear(self.num_ftrs_resnet, self.num_ftrs_resnet)
         # ic(resnet)
 
         # TODO linear vs embedding for dim changing
@@ -46,9 +46,9 @@ class VisualBertModule(BaseMaeMaeModel):
             nn.Linear(768, dense_dim),
             nn.GELU(),
             nn.Dropout(dropout_rate),
-            # nn.Linear(dense_dim, dense_dim),
-            # nn.GELU(),
-            # nn.Dropout(dropout_rate),
+            nn.Linear(dense_dim, dense_dim),
+            nn.GELU(),
+            nn.Dropout(dropout_rate),
             nn.Linear(dense_dim, 1)
         )
         # TODO config modification
@@ -81,7 +81,7 @@ class VisualBertModule(BaseMaeMaeModel):
         # inputs = inputs.to(self.device)
 
         image_x = resnet(image)
-        image_x = self.resnet_fc(image_x)
+        # image_x = self.resnet_fc(image_x)
         image_x = image_x.view(image_x.shape[0], 1, -1)
 
         inputs.update({

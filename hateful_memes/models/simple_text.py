@@ -46,8 +46,15 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
         # self.trans = nn.TransformerEncoderLayer()
 
 
-        self.l1 = nn.Linear(dense_dim, dense_dim)
-        self.l2 = nn.Linear(dense_dim, 1)
+        self.dense = nn.Sequential(
+            nn.Linear(dense_dim, dense_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout_rate),
+            nn.Linear(dense_dim, dense_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout_rate),
+            nn.Linear(dense_dim, 1),
+        )
         # TODO consider 3 classes for offensive detection
 
         self.embed_dim = embed_dim
@@ -70,11 +77,9 @@ class BaseTextMaeMaeModel(BaseMaeMaeModel):
         # x = x[:, -1, :]
         x = ht[-1]
         # x = x.view(x.shape[0], -1)
-        x = self.l1(x)
-        x = F.relu(x)
 
         if self.include_top:
-            x = self.l2(x)
+            x = self.dense(x)
             x = torch.squeeze(x, dim=-1)
 
         return x

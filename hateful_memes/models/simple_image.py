@@ -74,14 +74,13 @@ class SimpleImageMaeMaeModel(BaseMaeMaeModel):
             nn.Conv2d(512, 512, 3, padding=1, bias=False),
             nn.BatchNorm2d(512),
             nn.GELU(),
-            nn.MaxPool2d(2)
         )
 
         # TODO better batch norm usage and remove bias
 
         # self.l1 = nn.Linear(25088, dense_dim)
         self.dense_layers = nn.Sequential(
-            nn.Linear(4608, dense_dim),
+            nn.Linear(512, dense_dim),
             nn.GELU(),
             nn.Dropout(dropout_rate),
             nn.Linear(dense_dim, dense_dim),
@@ -109,12 +108,14 @@ class SimpleImageMaeMaeModel(BaseMaeMaeModel):
         x = self.conv5(x)
         x = self.conv6(x)
 
+        x = torch.mean(x, dim=[2,3])
+
         x = x.view(x.shape[0], -1)
         # x = x.mean(dim=(2, 3))
 
-        x = self.dense_layers(x)
 
         if self.include_top:
+            x = self.dense_layers(x)
             x = self.fc(x)
 
         x = torch.squeeze(x)

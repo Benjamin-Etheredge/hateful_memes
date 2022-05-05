@@ -52,10 +52,7 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         # Resnet
         resnet = models.resnet50(pretrained=True)
         self.num_ftrs_resnet = resnet.fc.in_features
-        resnet.fc = nn.Sequential(
-            nn.Flatten(),
-            # nn.Linear(self.num_ftrs_resnet, self.num_ftrs_resnet),
-        )
+        resnet.fc = nn.Flatten()
         # for param in resnet.parameters():
             # param.requires_grad = False
         # resnet.eval()
@@ -75,8 +72,13 @@ class VisualBertWithODModule(BaseMaeMaeModel):
         # )
 
         # FC layers for classification
+
+        self.last_hidden_size = 768
         self.fc = nn.Sequential(
             nn.Linear(768, dense_dim),
+            nn.GELU(),
+            nn.Dropout(dropout_rate),
+            nn.Linear(dense_dim, dense_dim),
             nn.GELU(),
             nn.Dropout(dropout_rate),
             nn.Linear(dense_dim, 1)
