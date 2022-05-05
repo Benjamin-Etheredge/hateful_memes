@@ -94,7 +94,7 @@ class SimpleImageMaeMaeModel(BaseMaeMaeModel):
         self.batch_norm = batch_norm
         self.last_hidden_size = dense_dim
         self.include_top = include_top
-        self.last_hidden_size = dense_dim
+        self.last_hidden_size = 512
         self.save_hyperparameters()
 
     def forward(self, batch):
