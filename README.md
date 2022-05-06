@@ -1,6 +1,7 @@
 # hateful_memes
 [![Training](https://github.com/Benjamin-Etheredge/hateful_memes/actions/workflows/train.yml/badge.svg?branch=master)](https://github.com/Benjamin-Etheredge/hateful_memes/actions/workflows/train.yml)
 
+# Main Results: https://wandb.ai/meme-team/super_model
 # Random Info
 
 
