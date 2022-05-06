@@ -261,8 +261,8 @@ stages:
       size: 4232567214
       nfiles: 12148
     - path: hateful_memes/models/visual_bert_with_od.py
-      md5: a192a4328c3eda007d7414b2f87d9b5f
-      size: 8742
+      md5: e1805e4ecf4b95dfd6dab95f08ec0ed1
+      size: 8833
     outs:
     - path: logs/test_visual_bert_with_od.log
       md5: 15de982d1dc99ce52d089868a579de34
